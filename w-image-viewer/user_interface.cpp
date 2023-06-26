@@ -318,7 +318,7 @@ void User_interface::dialog_file_open()
 		constexpr std::array filterspec{
 			COMDLG_FILTERSPEC{ L"All supported", WIV_SUPPORTED_FILE_TYPES }
 		};
-		wiv_assert(file_open_dialog->SetFileTypes(filterspec.size(), filterspec.data()) == S_OK);
+		wiv_assert(file_open_dialog->SetFileTypes(filterspec.size(), filterspec.data()), == S_OK);
 		if (file_open_dialog->Show(hwnd) == S_OK) {
 			Microsoft::WRL::ComPtr<IShellItem> shell_item;
 			if (file_open_dialog->GetResult(shell_item.ReleaseAndGetAddressOf()) == S_OK) {
