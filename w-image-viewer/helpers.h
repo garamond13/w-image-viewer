@@ -3,7 +3,7 @@
 #include "pch.h"
 
 #ifdef NDEBUG
-#define wiv_assert(keep, discard_ifndebug) (keep)
+#define wiv_assert(keep, discard_ifndebug) keep
 #else
 #define wiv_assert(keep, discard_ifndebug) (assert(keep discard_ifndebug))
 #endif
