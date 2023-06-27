@@ -248,13 +248,14 @@ void Renderer::create_cms_profile_display()
 	case WIV_CMS_PROFILE_DISPLAY_AUTO: {
 
 		//get system default icc profile
-		char path[MAX_PATH];
 		auto dc{ GetDC(nullptr) };
-		[[maybe_unused]] DWORD buf_size;
-		wiv_assert(GetICMProfileA(dc, &buf_size, path), == TRUE);
+		DWORD size;
+		GetICMProfileA(dc, &size, nullptr);
+		auto path{ std::make_unique_for_overwrite<char[]>(size) };
+		wiv_assert(GetICMProfileA(dc, &size, path.get()), == TRUE);
 		wiv_assert(ReleaseDC(nullptr, dc), == 1);
 		
-		cms_profile_display.reset(cmsOpenProfileFromFile(path, "r"));
+		cms_profile_display.reset(cmsOpenProfileFromFile(path.get(), "r"));
 		break;
 	}
 	case WIV_CMS_PROFILE_DISPLAY_SRGB:
