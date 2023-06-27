@@ -311,7 +311,7 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 	auto htransform{ cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, p_config->cms_intent, flags)};
 	if (htransform) {
 		lut = std::make_unique_for_overwrite<uint16_t[]>(WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * 4);
-		cmsDoTransform(htransform, WIV_CMS_LUT, lut.get(), WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE);
+		cmsDoTransform(htransform, WIV_CMS_LUT.data(), lut.get(), WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE);
 		cmsDeleteTransform(htransform);
 	}
 	return lut;
