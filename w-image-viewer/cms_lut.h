@@ -5,9 +5,9 @@
 
 //DONT CALL THIS AT RUNTIME!
 template <int lut_size>
-constexpr std::array<uint16_t, lut_size * lut_size * lut_size * 4> wiv_fill_lut()
+constexpr auto wiv_fill_lut()
 {
-	std::array<uint16_t, 65 * 65 * 65 * 4> lut{};
+	std::array<uint16_t, lut_size * lut_size * lut_size * 4> lut{};
 	int i{};
 	for (int b{}; b < lut_size; ++b)
 		for (int g{}; g < lut_size; ++g)
