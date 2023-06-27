@@ -25,7 +25,8 @@ void Renderer::create(Config* config, HWND hwnd)
 	create_swapchain(hwnd);
 	create_samplers();
 	create_vertex_shader();
-	create_cms_profile_display();
+	if(p_config->cms_use)
+		create_cms_profile_display();
 	user_interface.create(config, hwnd, device.Get(), device_context.Get());
 }
 
@@ -106,7 +107,7 @@ void Renderer::create_image()
 	wiv_assert(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.ReleaseAndGetAddressOf()), == S_OK);
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
 
-	if (p_config->cms_use && cms_profile_display)
+	if (cms_profile_display)
 		create_cms_lut();
 }
 
