@@ -39,7 +39,7 @@ void Renderer::update()
 		if (p_config->cms_use && is_cms_valid)
 			pass_cms();
 		if (!is_equal(scale, 1.0f)) {
-			update_tone_responce_curve();
+			update_trc();
 			bool sigmoidize{ scale > 1.0f && p_config->sigmoid_use };
 			bool linearize{ scale < 1.0f || sigmoidize || p_config->blur_use };
 			if (linearize)
@@ -722,18 +722,22 @@ float Renderer::get_kernel_radius() const noexcept
 	return p_config->kernel_r;
 }
 
-void Renderer::update_tone_responce_curve()
+void Renderer::update_trc()
 {
 	if (p_config->cms_use) {
-		if ((p_config->cms_profile_display == WIV_CMS_PROFILE_DISPLAY_AUTO || p_config->cms_profile_display == WIV_CMS_PROFILE_DISPLAY_CUSTOM) && cms_profile_display)
-			trc = { WIV_CMS_TRC_GAMMA, static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1)) };
+		if ((p_config->cms_profile_display == WIV_CMS_PROFILE_DISPLAY_AUTO || p_config->cms_profile_display == WIV_CMS_PROFILE_DISPLAY_CUSTOM) && cms_profile_display) {
+			auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1)) };
+			trc = { WIV_CMS_TRC_GAMMA, gamma < 0.0f ? 1.0f : gamma };
+		}
 		else if (p_config->cms_profile_display == WIV_CMS_PROFILE_DISPLAY_ADOBE)
 			trc = { WIV_CMS_TRC_GAMMA, 2.19921875f /* source https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf */ };
 		else if (p_config->cms_profile_display == WIV_CMS_PROFILE_DISPLAY_SRGB)
 			trc = { WIV_CMS_TRC_SRGB, 0.0f /* will be ignored */ };
 	}
-	else if (image.embended_profile)
-		trc = { WIV_CMS_TRC_GAMMA, static_cast<float>(cmsDetectRGBProfileGamma(image.embended_profile.get(), 0.1)) };
+	else if (image.embended_profile) {
+		auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(image.embended_profile.get(), 0.1)) };
+		trc = { WIV_CMS_TRC_GAMMA, gamma < 0.0f ? 1.0f : gamma };
+	}
 	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_ADOBE)
 		trc = { WIV_CMS_TRC_GAMMA, 2.19921875f /* source https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf */ };
 	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_SRGB || p_config->cms_use_defualt_to_srgb)

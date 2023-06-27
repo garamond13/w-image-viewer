@@ -61,7 +61,7 @@ private:
 	void update_dims_output();
 	void update_scale() noexcept;
 	float get_kernel_radius() const noexcept;
-	void update_tone_responce_curve();
+	void update_trc();
 	Config* p_config;
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> device_context;
