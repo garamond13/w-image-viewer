@@ -67,6 +67,8 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     case WIV_WM_OPEN_FILE:
         window->renderer.create_image();
+        if(window->p_config->window_autowh)
+            window->renderer.user_interface.auto_window_size();
         window->renderer.should_update = true;
     case WM_SIZE:
         window->renderer.on_window_resize();
@@ -75,6 +77,8 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     case WM_DROPFILES:
         if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
             window->renderer.create_image();
+            if (window->p_config->window_autowh)
+                window->renderer.user_interface.auto_window_size();
             window->renderer.should_update = true;
         }
         break;

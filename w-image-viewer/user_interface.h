@@ -15,13 +15,13 @@ public:
 	void context_menu();
 	void window_settings();
 	void window_about();
+	void auto_window_size() const;
 	File_manager file_manager;
 	bool is_fullscreen;
 	bool is_dialog_file_open;
 private:
 	void dialog_file_open();
 	void toggle_fullscreen();
-	void auto_window_size() const;
 	void dimm(bool condition = false) const;
 	Config* p_config;
 	HWND hwnd;

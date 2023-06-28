@@ -324,11 +324,8 @@ void User_interface::dialog_file_open()
 			if (file_open_dialog->GetResult(shell_item.ReleaseAndGetAddressOf()) == S_OK) {
 				wchar_t* path;
 				if (shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path) == S_OK) {
-					if (file_manager.file_open(path)) {
-						if(p_config->window_autowh)
-							auto_window_size();
+					if (file_manager.file_open(path))
 						wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
-					}
 					else
 						wiv_assert(PostMessageW(hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
 					CoTaskMemFree(path);
@@ -388,11 +385,8 @@ void User_interface::auto_window_size() const
 	const auto cx{ rect.right - rect.left };
 	const auto cy{ rect.bottom - rect.top };
 
-	//center the window
-	const auto x{ static_cast<int>((cx_screen - static_cast<double>(cx)) / 2.0) };
-	const auto y{ static_cast<int>((cy_screen - static_cast<double>(cy)) / 2.0) };
-
-	SetWindowPos(hwnd, nullptr, x, y, cx, cy, SWP_NOZORDER);
+	//center the window and apply new dimensions
+	SetWindowPos(hwnd, nullptr, static_cast<int>((cx_screen - static_cast<double>(cx)) / 2.0), static_cast<int>((cy_screen - static_cast<double>(cy)) / 2.0), cx, cy, SWP_NOZORDER);
 }
 
 //imgui dimming helper
