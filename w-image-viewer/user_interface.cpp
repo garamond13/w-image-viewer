@@ -367,8 +367,8 @@ void User_interface::auto_window_size() const
 		return;
 
 	//get the screen width and height
-	auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) };
-	auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) };
+	const auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) };
+	const auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) };
 	
 	const auto image_width{ file_manager.image.get_width<double>() };
 	const auto image_height{ file_manager.image.get_height<double>() };
