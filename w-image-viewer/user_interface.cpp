@@ -280,7 +280,6 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::ColorEdit3("First tile color", p_config->alpha_t1_c.data(), ImGuiColorEditFlags_DisplayHSV);
 			ImGui::ColorEdit3("Second tile color", p_config->alpha_t2_c.data(), ImGuiColorEditFlags_DisplayHSV);
-
 		}
 		ImGui::SeparatorText("Changes");
 		if (ImGui::Button("Reset changes"))
