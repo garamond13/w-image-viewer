@@ -50,7 +50,7 @@ void File_manager::file_previous()
     if (files.empty())
         return;
     
-    //get next valid file
+    //get previous valid file
     std::sort(files.begin(), files.end());
     for (const auto& file : std::ranges::views::reverse(files)) {
         if (image.set_image_input(file.c_str())) {
