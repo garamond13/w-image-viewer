@@ -51,6 +51,9 @@
 #define WIV_NAME_UNSHARP_SIGMA unsharp_s
 #define WIV_NAME_UNSHARP_AMOUNT unsharp_a
 
+//WIV_NAME_PASS_
+#define WIV_NAME_PASS_FORMAT pass_format
+
 //dont use directly
 #define wiv_nametostr_helper(x) #x
 
@@ -91,6 +94,11 @@ inline constexpr auto WIV_WINDOW_EX_STYLE{ WS_EX_ACCEPTFILES };
 //window messages
 inline constexpr auto WIV_WM_OPEN_FILE{ WM_USER + 0 };
 inline constexpr auto WIV_WM_RESET_RESOURCES{ WM_USER + 1 };
+
+inline constexpr std::array WIV_PASS_FORMATS{
+	DXGI_FORMAT_R32G32B32A32_FLOAT,
+	DXGI_FORMAT_R16G16B16A16_FLOAT
+};
 
 class Config
 {
@@ -145,6 +153,9 @@ public:
 	int WIV_NAME_UNSHARP_RADIUS;
 	float WIV_NAME_UNSHARP_SIGMA;
 	float WIV_NAME_UNSHARP_AMOUNT;
+
+	//WIV_NAME_PASS_
+	int WIV_NAME_PASS_FORMAT;
 private:
 	std::filesystem::path get_path();
 	std::unordered_map<std::string, std::string> map{
@@ -199,6 +210,9 @@ private:
 		{ wiv_nametostr(WIV_NAME_UNSHARP_USE), "0" },
 		{ wiv_nametostr(WIV_NAME_UNSHARP_RADIUS), "2" },
 		{ wiv_nametostr(WIV_NAME_UNSHARP_SIGMA), "1.0" },
-		{ wiv_nametostr(WIV_NAME_UNSHARP_AMOUNT), "0.5" }
+		{ wiv_nametostr(WIV_NAME_UNSHARP_AMOUNT), "0.5" },
+
+		//WIV_NAME_PASS_
+		{ wiv_nametostr(WIV_NAME_PASS_FORMAT), "0" }
 	};
 };

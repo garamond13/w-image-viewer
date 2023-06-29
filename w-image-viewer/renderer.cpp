@@ -611,7 +611,7 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 		.Height{ height },
 		.MipLevels{ 1 },
 		.ArraySize{ 1 },
-		.Format{ DXGI_FORMAT_R32G32B32A32_FLOAT },
+		.Format{ WIV_PASS_FORMATS[p_config->pass_format] },
 		.SampleDesc{
 			.Count{ 1 }
 		},

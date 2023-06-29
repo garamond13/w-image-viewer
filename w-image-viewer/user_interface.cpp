@@ -171,6 +171,12 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::ColorEdit4("background color", p_config->clear_c.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
+			constexpr std::array items{
+				"RGBA32F",
+				"RGBA16F",
+			};
+			ImGui::Combo("Internal format", &p_config->pass_format, items.data(), items.size());
+			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Scale")) {
 			

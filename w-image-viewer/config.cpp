@@ -84,6 +84,9 @@ void Config::values_map()
 	toval(WIV_NAME_CMS_PROFILE_DISPLAY, i);
 	toval(WIV_NAME_CMS_USE_DEFUALT_TO_SRGB, i);
 	WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM = map[wiv_nametostr(WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM)];
+
+	//WIV_NAME_PASS_
+	toval(WIV_NAME_PASS_FORMAT, i);
 }
 
 void Config::map_values()
@@ -139,12 +142,14 @@ void Config::map_values()
 	tomap(WIV_NAME_CMS_PROFILE_DISPLAY);
 	tomap(WIV_NAME_CMS_USE_DEFUALT_TO_SRGB);
 	map[wiv_nametostr(WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM)] = WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM.string();
+
+	//WIV_NAME_PASS_
+	tomap(WIV_NAME_PASS_FORMAT);
 }
 
 std::filesystem::path Config::get_path()
 {
 #ifdef NDEBUG
-
 	//config path: %USERPROFILE%\AppData\Local\WImageViewer\config.txt
 
 	wchar_t* local_app_data;
