@@ -27,7 +27,7 @@ void Renderer::create(Config* config, HWND hwnd)
 	create_vertex_shader();
 	if(p_config->cms_use)
 		create_cms_profile_display();
-	user_interface.create(config, hwnd, device.Get(), device_context.Get());
+	user_interface.create(config, hwnd, device.Get(), device_context.Get(), &should_update);
 }
 
 void Renderer::update()
@@ -676,6 +676,8 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 		else {
 			viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f;
 		}
+		viewport.TopLeftX += user_interface.image_pan.first;
+		viewport.TopLeftY += user_interface.image_pan.second;
 	}
 	
 	device_context->RSSetViewports(1, &viewport);
@@ -684,12 +686,12 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 void Renderer::update_dims_output()
 {
 	if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image.get_width<double>(), image.get_height<double>())) {
-		dims_output.width = static_cast<int>(std::lround(image.get_width<double>() * get_ratio<double>(dims_swap_chain.height, image.get_height<double>())));
-		dims_output.height = dims_swap_chain.height;
+		dims_output.width = static_cast<int>(std::lround(image.get_width<double>() * get_ratio<double>(dims_swap_chain.height, image.get_height<double>())) * user_interface.image_zoom);
+		dims_output.height = static_cast<int>(std::lround(dims_swap_chain.height * user_interface.image_zoom));
 	}
 	else {
-		dims_output.width = dims_swap_chain.width;
-		dims_output.height = static_cast<int>(std::lround(image.get_height<double>() * get_ratio<double>(dims_swap_chain.width, image.get_width<double>())));
+		dims_output.width = static_cast<int>(std::lround(dims_swap_chain.width * user_interface.image_zoom));
+		dims_output.height = static_cast<int>(std::lround(image.get_height<double>() * get_ratio<double>(dims_swap_chain.width, image.get_width<double>())) * user_interface.image_zoom);
 	}
 }
 

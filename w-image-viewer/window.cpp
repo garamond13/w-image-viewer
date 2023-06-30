@@ -69,10 +69,12 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         window->renderer.create_image();
         if(window->p_config->window_autowh)
             window->renderer.user_interface.auto_window_size();
+        window->renderer.user_interface.reset_image_pan_and_zoom();
         window->renderer.should_update = true;
         break;
     case WM_SIZE:
         window->renderer.on_window_resize();
+        window->renderer.user_interface.reset_image_pan_and_zoom();
         window->renderer.should_update = true;
         break;
     case WM_DROPFILES:
@@ -80,6 +82,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
             window->renderer.create_image();
             if (window->p_config->window_autowh)
                 window->renderer.user_interface.auto_window_size();
+            window->renderer.user_interface.reset_image_pan_and_zoom();
             window->renderer.should_update = true;
         }
         break;

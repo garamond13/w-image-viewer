@@ -12,10 +12,11 @@ User_interface::~User_interface()
 	ImGui::DestroyContext();
 }
 
-void User_interface::create(Config* p_config, HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context)
+void User_interface::create(Config* p_config, HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
 {
 	this->p_config = p_config;
 	this->hwnd = hwnd;
+	p_renderer_should_update = should_update;
 
 #ifndef NDEBUG
 	IMGUI_CHECKVERSION();
@@ -73,10 +74,43 @@ void User_interface::draw() const
 
 void User_interface::input()
 {
-	if (ImGui::IsMouseDoubleClicked(0) && !ImGui::GetIO().WantCaptureMouse) {
-		toggle_fullscreen();
-		return;
+	//workaround for IsMouseDoubleClicked(0) triggering IsMouseDragging(0)
+	static bool is_double_click;
+	if (ImGui::IsMouseReleased(0))
+		is_double_click = false;
+	
+	if (!ImGui::GetIO().WantCaptureMouse) {
+		if (ImGui::IsMouseDoubleClicked(0)) {
+			toggle_fullscreen();
+			is_double_click = true;
+			return;
+		}
+		
+		//image panning
+		if (!is_double_click && ImGui::IsMouseDragging(0)) {
+			const auto delta{ ImGui::GetMouseDragDelta() };
+			image_pan.first += delta.x;
+			image_pan.second += delta.y;
+			ImGui::ResetMouseDragDelta();
+			*p_renderer_should_update = true;
+			return;
+		}
+
+		//image zooming
+		if (ImGui::GetIO().MouseWheel > 0.0f) {
+			image_zoom += 0.1f;
+			*p_renderer_should_update = true;
+			return;
+		}
+		if (ImGui::GetIO().MouseWheel < 0.0f) {
+			image_zoom -= 0.1f;
+			if (image_zoom < 0.1)
+				image_zoom = 0.1;
+			*p_renderer_should_update = true;
+			return;
+		}
 	}
+
 	if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && !ImGui::GetIO().WantCaptureKeyboard) {
 		if (file_manager.file_current.empty())
 			return;
@@ -392,6 +426,12 @@ void User_interface::auto_window_size() const
 
 	//center the window and apply new dimensions
 	SetWindowPos(hwnd, nullptr, static_cast<int>((cx_screen - cx) / 2.0), static_cast<int>((cy_screen - cy) / 2.0), cx, cy, SWP_NOZORDER);
+}
+
+void User_interface::reset_image_pan_and_zoom() noexcept
+{
+	image_pan = std::pair(0.0f, 0.0f);
+	image_zoom = 1.0f;
 }
 
 //imgui dimming helper
