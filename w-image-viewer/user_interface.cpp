@@ -79,6 +79,7 @@ void User_interface::input()
 	if (ImGui::IsMouseReleased(0))
 		is_double_click = false;
 	
+	//mouse
 	if (!ImGui::GetIO().WantCaptureMouse) {
 		if (ImGui::IsMouseDoubleClicked(0)) {
 			toggle_fullscreen();
@@ -92,52 +93,89 @@ void User_interface::input()
 			image_pan.first += delta.x;
 			image_pan.second += delta.y;
 			ImGui::ResetMouseDragDelta();
+			is_in_panzoom = true;
 			*p_renderer_should_update = true;
 			return;
 		}
 
-		//image zooming
+		//image zoom
 		if (ImGui::GetIO().MouseWheel > 0.0f) {
 			image_zoom += 0.1f;
+			is_in_panzoom = true;
 			*p_renderer_should_update = true;
 			return;
 		}
 		if (ImGui::GetIO().MouseWheel < 0.0f) {
 			image_zoom -= 0.1f;
-			if (image_zoom < 0.1)
-				image_zoom = 0.1;
+			is_in_panzoom = true;
 			*p_renderer_should_update = true;
 			return;
 		}
 	}
 
-	if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && !ImGui::GetIO().WantCaptureKeyboard) {
-		if (file_manager.file_current.empty())
+	//keyboard
+	if (!ImGui::GetIO().WantCaptureKeyboard) {
+		if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
+			if (file_manager.file_current.empty())
+				return;
+			file_manager.file_previous();
+			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
-		file_manager.file_previous();
-		wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
-		return;
-	}
-	if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && !ImGui::GetIO().WantCaptureKeyboard) {
-		if (file_manager.file_current.empty())
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
+			if (file_manager.file_current.empty())
+				return;
+			file_manager.file_next();
+			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
-		file_manager.file_next();
-		wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
-		return;
+		}
+
+		//ctrl + key
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+			if (ImGui::IsKeyPressed(ImGuiKey_O, false)) {
+				dialog_file_open();
+				return;
+			}
+			if (ImGui::IsKeyPressed(ImGuiKey_1, false)) {
+				reset_image_panzoom();
+				image_no_scale = true;
+				*p_renderer_should_update = true;
+				return;
+			}
+			if (ImGui::IsKeyPressed(ImGuiKey_0, false)) {
+				reset_image_panzoom();
+				*p_renderer_should_update = true;
+				return;
+			}
+			if (ImGui::IsKeyPressed(ImGuiKey_KeypadAdd)) {
+				image_zoom += 0.1f;
+				is_in_panzoom = true;
+				*p_renderer_should_update = true;
+				return;
+			}
+			if (ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract)) {
+				image_zoom -= 0.1f;
+				is_in_panzoom = true;
+				*p_renderer_should_update = true;
+				return;
+			}
+		}
+
+		//alt + key
+		if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
+			if (ImGui::IsKeyPressed(ImGuiKey_Enter, false)) {
+				toggle_fullscreen();
+				return;
+			}
+		}
 	}
+
+	//leave escape key with higher priority
 	if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
 		if (is_fullscreen)
 			toggle_fullscreen();
 		else
 			wiv_assert(DestroyWindow(hwnd), != 0);
-		return;
-	}
-	if (ImGui::IsKeyDown(ImGuiKey_LeftAlt) && ImGui::IsKeyPressed(ImGuiKey_Enter, false)) {
-		toggle_fullscreen();
-		return;
-	}
-	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_O, false)) {
-		dialog_file_open();
 		return;
 	}
 }
@@ -428,10 +466,11 @@ void User_interface::auto_window_size() const
 	SetWindowPos(hwnd, nullptr, static_cast<int>((cx_screen - cx) / 2.0), static_cast<int>((cy_screen - cy) / 2.0), cx, cy, SWP_NOZORDER);
 }
 
-void User_interface::reset_image_pan_and_zoom() noexcept
+void User_interface::reset_image_panzoom() noexcept
 {
 	image_pan = std::pair(0.0f, 0.0f);
-	image_zoom = 1.0f;
+	image_zoom = 0.0f;
+	image_no_scale = false;
 }
 
 //imgui dimming helper

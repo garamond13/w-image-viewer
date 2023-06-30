@@ -34,38 +34,43 @@ void Renderer::update()
 {
 	if (srv_image && should_update) {
 		srv_pass = srv_image;
-		update_dims_output();
-		update_scale();
-		if (p_config->cms_use && is_cms_valid)
-			pass_cms();
-		if (!is_equal(scale, 1.0f)) {
-			update_trc();
-			bool sigmoidize{ scale > 1.0f && p_config->sigmoid_use };
-			bool linearize{ scale < 1.0f || sigmoidize || p_config->blur_use };
-			if (linearize)
-				pass_linearize(image.get_width<UINT>(), image.get_height<UINT>());
-			if (sigmoidize)
-				pass_sigmoidize();
-			if (scale < 1.0f && p_config->blur_use)
-				pass_blur();
-			if (p_config->kernel_use_cyl)
-				pass_cylindrical_resample();
-			else
-				pass_orthogonal_resample();
-			if (sigmoidize)
-				pass_desigmoidize();
-			if (p_config->unsharp_use) {
-				if (!linearize) {
-					pass_linearize(dims_output.width, dims_output.height);
-					linearize = true;
+		update_scale_and_dims_output();
+		if (!user_interface.is_in_panzoom) {
+			if (p_config->cms_use && is_cms_valid)
+				pass_cms();
+			if (!is_equal(scale, 1.0f)) {
+				update_trc();
+				bool sigmoidize{ scale > 1.0f && p_config->sigmoid_use };
+				bool linearize{ scale < 1.0f || sigmoidize || p_config->blur_use };
+				if (linearize)
+					pass_linearize(image.get_width<UINT>(), image.get_height<UINT>());
+				if (sigmoidize)
+					pass_sigmoidize();
+				if (scale < 1.0f && p_config->blur_use)
+					pass_blur();
+				if (p_config->kernel_use_cyl)
+					pass_cylindrical_resample();
+				else
+					pass_orthogonal_resample();
+				if (sigmoidize)
+					pass_desigmoidize();
+				if (p_config->unsharp_use) {
+					if (!linearize) {
+						pass_linearize(dims_output.width, dims_output.height);
+						linearize = true;
+					}
+					pass_unsharp();
 				}
-				pass_unsharp();
+				if (linearize)
+					pass_delinearize(dims_output.width, dims_output.height);
 			}
-			if (linearize)
-				pass_delinearize(dims_output.width, dims_output.height);
 		}
 		pass_last();
-		should_update = false;
+		if (user_interface.is_in_panzoom)
+			should_update = true;
+		else
+			should_update = false;
+		user_interface.is_in_panzoom = false;
 	}
 	user_interface.update();
 }
@@ -668,49 +673,33 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 		.Height{ height }
 	};
 
-	//offset image in order to center it in the window
+	//offset image in order to center it in the window + apply panning
 	if (adjust) {
-		if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(width, height)) {
-			viewport.TopLeftX = (dims_swap_chain.width - viewport.Width) / 2.0f;
-		}
-		else {
-			viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f;
-		}
-		viewport.TopLeftX += user_interface.image_pan.first;
-		viewport.TopLeftY += user_interface.image_pan.second;
+		viewport.TopLeftX = (dims_swap_chain.width - viewport.Width) / 2.0f + user_interface.image_pan.first;
+		viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f + user_interface.image_pan.second;
 	}
 	
 	device_context->RSSetViewports(1, &viewport);
 }
 
-void Renderer::update_dims_output()
+void Renderer::update_scale_and_dims_output() noexcept
 {
-	if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image.get_width<double>(), image.get_height<double>())) {
-		dims_output.width = static_cast<int>(std::lround(image.get_width<double>() * get_ratio<double>(dims_swap_chain.height, image.get_height<double>())) * user_interface.image_zoom);
-		dims_output.height = static_cast<int>(std::lround(dims_swap_chain.height * user_interface.image_zoom));
+	if (user_interface.image_no_scale) {
+		scale = 1.0f;
+	}
+
+	//fit inside the window
+	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image.get_width<double>(), image.get_height<double>())) {
+		scale = get_ratio<float>(dims_swap_chain.height, image.get_height<float>());
 	}
 	else {
-		dims_output.width = static_cast<int>(std::lround(dims_swap_chain.width * user_interface.image_zoom));
-		dims_output.height = static_cast<int>(std::lround(image.get_height<double>() * get_ratio<double>(dims_swap_chain.width, image.get_width<double>())) * user_interface.image_zoom);
+		scale = get_ratio<float>(dims_swap_chain.width, image.get_width<float>());
 	}
-}
 
-void Renderer::update_scale() noexcept
-{
-	const auto x_ratio{ get_ratio<float>(dims_output.width, image.get_width<float>()) };
-	const auto y_ratio{ get_ratio<float>(dims_output.height, image.get_height<float>()) };
-
-	//downscale
-	if (x_ratio < 1.0f || y_ratio < 1.0f)
-		scale = std::min(x_ratio, y_ratio);
-
-	//upscale
-	else if (x_ratio > 1.0f || y_ratio > 1.0f)
-		scale = std::max(x_ratio, y_ratio);
-	
-	//no scaling
-	else
-		scale = 1.0f;
+	scale = scale + user_interface.image_zoom < WIV_FLT_EPS ? scale : scale + user_interface.image_zoom;
+	assert(scale > WIV_FLT_EPS);
+	dims_output.width = static_cast<int>(std::lround(image.get_width<float>() * scale));
+	dims_output.height = static_cast<int>(std::lround(image.get_height<float>() * scale));
 }
 
 float Renderer::get_kernel_radius() const noexcept

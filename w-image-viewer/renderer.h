@@ -58,8 +58,7 @@ private:
 	void update_constant_buffer(ID3D11Buffer* buffer, const void* data, size_t size) const noexcept;
 	void create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept;
 	void create_viewport(float width, float height, bool adjust = false) const noexcept;
-	void update_dims_output();
-	void update_scale() noexcept;
+	void update_scale_and_dims_output() noexcept;
 	float get_kernel_radius() const noexcept;
 	void update_trc();
 	Config* p_config;

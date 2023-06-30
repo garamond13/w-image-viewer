@@ -16,12 +16,17 @@ public:
 	void window_settings();
 	void window_about();
 	void auto_window_size() const;
-	void reset_image_pan_and_zoom() noexcept;
+	void reset_image_panzoom() noexcept;
 	File_manager file_manager;
 	bool is_fullscreen;
 	bool is_dialog_file_open;
-	std::pair<float, float> image_pan;
+	std::pair<float, float> image_pan; //x,y
 	float image_zoom;
+	bool is_in_panzoom;
+
+	//request to show image at the original width and height
+	bool image_no_scale;
+
 private:
 	void dialog_file_open();
 	void toggle_fullscreen();
