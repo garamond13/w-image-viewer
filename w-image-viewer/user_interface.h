@@ -11,10 +11,6 @@ public:
 	void create(Config* p_config, HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update);
 	void update();
 	void draw() const;
-	void input();
-	void context_menu();
-	void window_settings();
-	void window_about();
 	void auto_window_size() const;
 	void reset_image_panzoom() noexcept;
 	File_manager file_manager;
@@ -28,6 +24,10 @@ public:
 	bool image_no_scale;
 
 private:
+	void input();
+	void context_menu();
+	void window_settings();
+	void window_about();
 	void dialog_file_open();
 	void toggle_fullscreen();
 	void dimm(bool condition = false) const;

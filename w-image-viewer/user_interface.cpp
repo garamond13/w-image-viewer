@@ -72,13 +72,53 @@ void User_interface::draw() const
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
+void User_interface::auto_window_size() const
+{
+	if (is_fullscreen || IsZoomed(hwnd))
+		return;
+
+	//get the screen width and height
+	const auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) };
+	const auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) };
+	
+	const auto image_width{ file_manager.image.get_width<double>() };
+	const auto image_height{ file_manager.image.get_height<double>() };
+	RECT rect{};
+
+	//if the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image
+	if (cx_screen / cy_screen > image_width / image_height) {
+		rect.right = image_width > cx_screen * 0.9 ? std::lround(image_width * cy_screen / image_height * 0.9) : static_cast<LONG>(image_width);
+		rect.bottom = image_height > cy_screen * 0.9 ? std::lround(image_height * rect.right / image_width) : static_cast<LONG>(image_height);
+	}
+	else {
+		rect.bottom = image_height > cy_screen * 0.9 ? std::lround(image_height * cx_screen / image_width * 0.9) : static_cast<LONG>(image_height);
+		rect.right = image_width > cx_screen * 0.9 ? std::lround(image_width * rect.bottom / image_height) : static_cast<LONG>(image_width);
+	}
+
+	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
+
+	//calculate window width and height
+	const auto cx{ rect.right - rect.left };
+	const auto cy{ rect.bottom - rect.top };
+
+	//center the window and apply new dimensions
+	SetWindowPos(hwnd, nullptr, static_cast<int>((cx_screen - cx) / 2.0), static_cast<int>((cy_screen - cy) / 2.0), cx, cy, SWP_NOZORDER);
+}
+
+void User_interface::reset_image_panzoom() noexcept
+{
+	image_pan = std::pair(0.0f, 0.0f);
+	image_zoom = 0.0f;
+	image_no_scale = false;
+}
+
 void User_interface::input()
 {
 	//workaround for IsMouseDoubleClicked(0) triggering IsMouseDragging(0)
 	static bool is_double_click;
 	if (ImGui::IsMouseReleased(0))
 		is_double_click = false;
-	
+
 	//mouse
 	if (!ImGui::GetIO().WantCaptureMouse) {
 		if (ImGui::IsMouseDoubleClicked(0)) {
@@ -86,7 +126,7 @@ void User_interface::input()
 			is_double_click = true;
 			return;
 		}
-		
+
 		//image panning
 		if (!is_double_click && ImGui::IsMouseDragging(0)) {
 			const auto delta{ ImGui::GetMouseDragDelta() };
@@ -251,7 +291,7 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Scale")) {
-			
+
 			//pre-scale blur
 			ImGui::SeparatorText("Pre-scale blur (downscale only)");
 			ImGui::Checkbox("Enable pre-scale blur", &p_config->blur_use);
@@ -431,46 +471,6 @@ void User_interface::toggle_fullscreen()
 		ShowWindow(hwnd, SW_MAXIMIZE);
 	}
 	is_fullscreen = !is_fullscreen;
-}
-
-void User_interface::auto_window_size() const
-{
-	if (is_fullscreen || IsZoomed(hwnd))
-		return;
-
-	//get the screen width and height
-	const auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) };
-	const auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) };
-	
-	const auto image_width{ file_manager.image.get_width<double>() };
-	const auto image_height{ file_manager.image.get_height<double>() };
-	RECT rect{};
-
-	//if the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image
-	if (cx_screen / cy_screen > image_width / image_height) {
-		rect.right = image_width > cx_screen * 0.9 ? std::lround(image_width * cy_screen / image_height * 0.9) : static_cast<LONG>(image_width);
-		rect.bottom = image_height > cy_screen * 0.9 ? std::lround(image_height * rect.right / image_width) : static_cast<LONG>(image_height);
-	}
-	else {
-		rect.bottom = image_height > cy_screen * 0.9 ? std::lround(image_height * cx_screen / image_width * 0.9) : static_cast<LONG>(image_height);
-		rect.right = image_width > cx_screen * 0.9 ? std::lround(image_width * rect.bottom / image_height) : static_cast<LONG>(image_width);
-	}
-
-	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
-
-	//calculate window width and height
-	const auto cx{ rect.right - rect.left };
-	const auto cy{ rect.bottom - rect.top };
-
-	//center the window and apply new dimensions
-	SetWindowPos(hwnd, nullptr, static_cast<int>((cx_screen - cx) / 2.0), static_cast<int>((cy_screen - cy) / 2.0), cx, cy, SWP_NOZORDER);
-}
-
-void User_interface::reset_image_panzoom() noexcept
-{
-	image_pan = std::pair(0.0f, 0.0f);
-	image_zoom = 0.0f;
-	image_no_scale = false;
 }
 
 //imgui dimming helper
