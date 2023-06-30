@@ -336,7 +336,7 @@ void Renderer::pass_cms()
 
 void Renderer::pass_linearize(UINT width, UINT height)
 {
-	const alignas(16) std::array data{
+	alignas(16) const std::array data{
 		Cb4{
 			.x{ .i{ trc.first }},
 			.y{ .f{ trc.second }} //gamma, only relevant if gamma correction is used
@@ -356,7 +356,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 
 void Renderer::pass_delinearize(UINT width, UINT height)
 {
-	const alignas(16) std::array data{
+	alignas(16) const std::array data{
 		Cb4{
 			.x{ .i{ trc.first }},
 			.y{ .f{ 1.0f / trc.second }} //1.0 / gamma, only relevant if gamma correction is used
@@ -376,7 +376,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 
 void Renderer::pass_sigmoidize()
 {
-	const alignas(16) std::array data{
+	alignas(16) const std::array data{
 		Cb4{
 			.x{ .f{ p_config->sigmoid_c }},
 			.y{ .f{ p_config->sigmoid_m }}
@@ -396,7 +396,7 @@ void Renderer::pass_sigmoidize()
 
 void Renderer::pass_desigmoidize()
 {
-	const alignas(16) std::array data{
+	alignas(16) const std::array data{
 		Cb4{
 			.x{ .f{ p_config->sigmoid_c }},
 			.y{ .f{ p_config->sigmoid_m }}
@@ -549,7 +549,7 @@ void Renderer::pass_orthogonal_resample()
 
 void Renderer::pass_cylindrical_resample()
 {
-	const alignas(16) std::array data{
+	alignas(16) const std::array data{
 		Cb4{
 			.x{ .i{ p_config->kernel_i }},
 			.y{ .f{ get_kernel_radius() }},
@@ -581,7 +581,7 @@ void Renderer::pass_cylindrical_resample()
 void Renderer::pass_last()
 {
 	if (image.has_alpha()) {
-		const alignas(16) std::array cb0_data{
+		alignas(16) const std::array cb0_data{
 			Cb4{
 				.x{ .f{ dims_output.get_width<float>() / p_config->alpha_t_size }},
 				.y{ .f{ dims_output.get_height<float>() / p_config->alpha_t_size }}
