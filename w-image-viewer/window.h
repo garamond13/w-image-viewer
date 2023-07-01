@@ -12,6 +12,7 @@ public:
 	Renderer renderer;
 	HWND hwnd;
 private:
+	void set_window_name();
 	static LRESULT wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 	Config* p_config;
 };

@@ -37,6 +37,7 @@ void Config::values_map()
 	toval(WIV_NAME_WINDOW_WIDTH, i);
 	toval(WIV_NAME_WINDOW_HEIGHT, i);
 	toval(WIV_NAME_WINDOW_USE_AUTO_DIMS, i);
+	toval(WIV_NAME_WINDOW_NAME, i);
 
 	//WIV_NAME_CLEAR_
 	toval(WIV_NAME_CLEAR_COLOR[0], f);
@@ -95,6 +96,7 @@ void Config::map_values()
 	tomap(WIV_NAME_WINDOW_WIDTH);
 	tomap(WIV_NAME_WINDOW_HEIGHT);
 	tomap(WIV_NAME_WINDOW_USE_AUTO_DIMS);
+	tomap(WIV_NAME_WINDOW_NAME);
 
 	//WIV_NAME_CLEAR_
 	tomap(WIV_NAME_CLEAR_COLOR[0]);

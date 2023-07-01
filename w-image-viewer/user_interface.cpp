@@ -282,10 +282,17 @@ void User_interface::window_settings()
 			ImGui::ColorEdit4("Background color", p_config->clear_c.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
 			constexpr std::array items{
+				"defualt name",
+				"file name",
+				"full file name"
+			};
+			ImGui::Combo("Window name", &p_config->window_name, items.data(), items.size());
+			ImGui::Spacing();
+			constexpr std::array items2{
 				"RGBA32F",
 				"RGBA16F"
 			};
-			ImGui::Combo("Internal format", &p_config->pass_format, items.data(), items.size());
+			ImGui::Combo("Internal format", &p_config->pass_format, items2.data(), items2.size());
 			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Scale")) {

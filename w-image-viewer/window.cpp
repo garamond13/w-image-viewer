@@ -23,9 +23,26 @@ Window::Window(Config* p_config, HINSTANCE hinstance, int ncmdshow) :
         .bottom{ p_config->window_h }
     };
     wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
-    CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, L"W Image Viewer", WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, hinstance, this);
+    CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, hinstance, this);
     renderer.create(p_config, hwnd);
     ShowWindow(hwnd, ncmdshow);
+}
+
+void Window::set_window_name()
+{
+    std::wstring name;
+    switch (p_config->window_name) {
+    case WIV_WINDOW_NAME_DEFAULT:
+        name = WIV_WINDOW_NAME;
+        break;
+    case WIV_WINDOW_NAME_FILE_NAME:
+        name = renderer.user_interface.file_manager.file_current.filename().wstring() + L" - " + WIV_WINDOW_NAME;
+        break;
+    case WIV_WINDOW_NAME_FILE_NAME_FULL:
+        name = renderer.user_interface.file_manager.file_current.wstring() + L" - " + WIV_WINDOW_NAME;
+        break;
+    }
+    wiv_assert(SetWindowTextW(hwnd, name.c_str()), != 0);
 }
 
 //forward declare message handler from imgui_impl_win32.cpp
@@ -70,6 +87,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         if(window->p_config->window_autowh)
             window->renderer.user_interface.auto_window_size();
         window->renderer.user_interface.reset_image_panzoom();
+        window->set_window_name();
         window->renderer.should_update = true;
         break;
     case WM_SIZE:
@@ -83,6 +101,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
             if (window->p_config->window_autowh)
                 window->renderer.user_interface.auto_window_size();
             window->renderer.user_interface.reset_image_panzoom();
+            window->set_window_name();
             window->renderer.should_update = true;
         }
         break;

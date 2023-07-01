@@ -9,6 +9,7 @@
 #define WIV_NAME_WINDOW_WIDTH window_w
 #define WIV_NAME_WINDOW_HEIGHT window_h
 #define WIV_NAME_WINDOW_USE_AUTO_DIMS window_autowh
+#define WIV_NAME_WINDOW_NAME window_name
 
 //WIV_NAME_CLEAR_
 #define WIV_NAME_CLEAR_COLOR clear_c
@@ -76,6 +77,13 @@ enum WIV_CMS_PROFILE_DISPLAY_
 	WIV_CMS_PROFILE_DISPLAY_CUSTOM
 };
 
+enum WIV_WINDOW_NAME_
+{
+	WIV_WINDOW_NAME_DEFAULT,
+	WIV_WINDOW_NAME_FILE_NAME,
+	WIV_WINDOW_NAME_FILE_NAME_FULL
+};
+
 inline constexpr auto WIV_SUPPORTED_FILE_TYPES{ L""
 	"*.tif;*.tiff;*.tx;*.env;*.sm;*.vsm;" //tagged image file format (tiff) 
 	"*.jpg;*jpeg;*.jpe;*.jif;*.jfif;*.jfi;" //joint photographic experts group (jpeg)
@@ -88,6 +96,7 @@ inline constexpr auto WIV_SUPPORTED_FILE_TYPES{ L""
 	"*.ico" //icon
 };
 
+inline constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
 inline constexpr auto WIV_WINDOW_STYLE{ WS_OVERLAPPEDWINDOW };
 inline constexpr auto WIV_WINDOW_EX_STYLE{ WS_EX_ACCEPTFILES };
 
@@ -112,6 +121,7 @@ public:
 	int WIV_NAME_WINDOW_WIDTH;
 	int WIV_NAME_WINDOW_HEIGHT;
 	bool WIV_NAME_WINDOW_USE_AUTO_DIMS;
+	int WIV_NAME_WINDOW_NAME;
 
 	//WIV_NAME_CLEAR_
 	std::array<float, 4> WIV_NAME_CLEAR_COLOR{ 0.0f, 0.0f, 0.0f, 1.0f };
@@ -164,6 +174,7 @@ private:
 		{ wiv_nametostr(WIV_NAME_WINDOW_WIDTH), "1000" },
 		{ wiv_nametostr(WIV_NAME_WINDOW_HEIGHT), "618" },
 		{ wiv_nametostr(WIV_NAME_WINDOW_USE_AUTO_DIMS), "0" },
+		{ wiv_nametostr(WIV_NAME_WINDOW_NAME), "0" },
 
 		//WIV_NAME_CLEAR_
 		{ wiv_nametostr(WIV_NAME_CLEAR_COLOR[0]), "0.5" },
