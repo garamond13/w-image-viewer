@@ -52,7 +52,16 @@ int Image::get_tagged_color_space()
 
 bool Image::set_image_input(std::wstring_view path)
 {
-	image_input = OIIO::ImageInput::open(path.data());
+	OIIO::ImageSpec config;
+
+	//bmp
+	config["bmp:monochrome_detect"] = 0;
+	
+	//raw
+	config["raw:use_camera_matrix"] = 0;
+	config["raw:Demosaic"] = "AMaZE";
+
+	image_input = OIIO::ImageInput::open(path.data(), &config);
 	if (!image_input)
 		return false;
 	embended_profile.reset(get_embended_profile());

@@ -93,7 +93,8 @@ inline constexpr auto WIV_SUPPORTED_FILE_TYPES{ L""
 	"*.pbm;*.pgm;*.ppm;*.pnm;" //pnm/netpbm
 	"*.psd;" //psd
 	"*.tga;*.icb;*.vda;*.vst;*.tpic;" //truevision tga (targa)
-	"*.ico" //icon
+	"*.ico;" //icon
+	"*.cr2;*.arw;*.raf;*.dng;*.nrw;*.nef;*.orf;*.rw2;" //raw
 };
 
 inline constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
