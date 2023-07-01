@@ -336,6 +336,8 @@ void Renderer::pass_cms()
 
 void Renderer::pass_linearize(UINT width, UINT height)
 {
+	if (trc.first == WIV_CMS_TRC_NONE)
+		return;
 	alignas(16) const std::array data{
 		Cb4{
 			.x{ .i{ trc.first }},
@@ -356,6 +358,8 @@ void Renderer::pass_linearize(UINT width, UINT height)
 
 void Renderer::pass_delinearize(UINT width, UINT height)
 {
+	if (trc.first == WIV_CMS_TRC_NONE)
+		return;
 	alignas(16) const std::array data{
 		Cb4{
 			.x{ .i{ trc.first }},
@@ -376,6 +380,10 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 
 void Renderer::pass_sigmoidize()
 {
+	//sigmoidize expects linear light input
+	if (trc.first == WIV_CMS_TRC_NONE)
+		return;
+
 	alignas(16) const std::array data{
 		Cb4{
 			.x{ .f{ p_config->sigmoid_c }},
@@ -396,6 +404,10 @@ void Renderer::pass_sigmoidize()
 
 void Renderer::pass_desigmoidize()
 {
+	//sigmoidize expects linear light input
+	if (trc.first == WIV_CMS_TRC_NONE)
+		return;
+
 	alignas(16) const std::array data{
 		Cb4{
 			.x{ .f{ p_config->sigmoid_c }},
