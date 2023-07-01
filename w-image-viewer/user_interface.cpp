@@ -360,7 +360,7 @@ void User_interface::window_settings()
 			constexpr std::array items2{
 				"auto",
 				"sRGB",
-				"AdobeRGB1998",
+				"AdobeRGB",
 				"custom"
 			};
 			ImGui::Combo("Display profile", &p_config->cms_profile_display, items2.data(), items2.size());
