@@ -28,7 +28,7 @@ Window::Window(Config* p_config, HINSTANCE hinstance, int ncmdshow) :
     ShowWindow(hwnd, ncmdshow);
 }
 
-void Window::set_window_name()
+void Window::set_window_name() const
 {
     std::wstring name;
     switch (p_config->window_name) {
