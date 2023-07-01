@@ -675,8 +675,8 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 
 	//offset image in order to center it in the window + apply panning
 	if (adjust) {
-		viewport.TopLeftX = (dims_swap_chain.width - viewport.Width) / 2.0f + user_interface.image_pan.first;
-		viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f + user_interface.image_pan.second;
+		viewport.TopLeftX = (dims_swap_chain.width - viewport.Width) / 2.0f + user_interface.image_pan.x;
+		viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f + user_interface.image_pan.y;
 	}
 	
 	device_context->RSSetViewports(1, &viewport);

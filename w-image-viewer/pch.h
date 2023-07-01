@@ -22,6 +22,7 @@
 
 
 //imgui
+#define IMGUI_USER_CONFIG "wiv_imconfig.h"
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>

@@ -161,6 +161,7 @@
     <ClInclude Include="icc.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="cms_lut.h" />
+    <ClInclude Include="wiv_imconfig.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="Resource.h" />

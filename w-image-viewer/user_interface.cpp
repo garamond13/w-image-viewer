@@ -107,7 +107,7 @@ void User_interface::auto_window_size() const
 
 void User_interface::reset_image_panzoom() noexcept
 {
-	image_pan = std::pair(0.0f, 0.0f);
+	image_pan = ImVec2();
 	image_zoom = 0.0f;
 	image_no_scale = false;
 }
@@ -129,9 +129,7 @@ void User_interface::input()
 
 		//image panning
 		if (!is_double_click && ImGui::IsMouseDragging(0)) {
-			const auto delta{ ImGui::GetMouseDragDelta() };
-			image_pan.first += delta.x;
-			image_pan.second += delta.y;
+			image_pan += ImGui::GetMouseDragDelta();
 			ImGui::ResetMouseDragDelta();
 			is_in_panzoom = true;
 			*p_renderer_should_update = true;

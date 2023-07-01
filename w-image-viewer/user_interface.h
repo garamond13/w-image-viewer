@@ -16,7 +16,7 @@ public:
 	File_manager file_manager;
 	bool is_fullscreen;
 	bool is_dialog_file_open;
-	std::pair<float, float> image_pan; //x,y
+	ImVec2 image_pan;
 	float image_zoom;
 	bool is_in_panzoom;
 
