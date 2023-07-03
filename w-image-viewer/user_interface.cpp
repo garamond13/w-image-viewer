@@ -295,9 +295,9 @@ void User_interface::window_settings()
 			ImGui::ColorEdit4("Background color", g_config.clear_c.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
 			constexpr std::array items{
-				"defualt name",
-				"file name",
-				"full file name"
+				"Defualt name",
+				"File name",
+				"Full file name"
 			};
 			ImGui::Combo("Window name", &g_config.window_name, items.data(), items.size());
 			ImGui::Spacing();
@@ -335,20 +335,20 @@ void User_interface::window_settings()
 			ImGui::Checkbox("Use cylindrical filtering", &g_config.kernel_use_cyl);
 			ImGui::Spacing();
 			constexpr std::array items{
-				"lanczos",
-				"ginseng",
-				"hamming",
-				"power of cosine",
-				"garamond-kaiser",
-				"power of garamond",
-				"power of blackman",
-				"gnw",
-				"said",
-				"nearest neighbor",
-				"linear",
-				"bicubic",
-				"modified fsr kernel",
-				"bc-spline"
+				"Lanczos",
+				"Ginseng",
+				"Hamming",
+				"Power of cosine",
+				"Garamond-Kaiser",
+				"Power of Garamond",
+				"Power of Blackman",
+				"GNW",
+				"Said",
+				"Nearest neighbor",
+				"Linear",
+				"Bicubic",
+				"Modified FSR",
+				"BC-Spline"
 			};
 			ImGui::Combo("Kernel-function", &g_config.kernel_i, items.data(), items.size());
 			const auto& i{ g_config.kernel_i };
@@ -357,10 +357,10 @@ void User_interface::window_settings()
 			ImGui::InputFloat("Blur", &g_config.kernel_b, 0.0f, 0.0f, "%.6f");
 			dimm();
 			dimm(i == WIV_KERNEL_FUNCTION_LANCZOS || i == WIV_KERNEL_FUNCTION_GINSENG || i == WIV_KERNEL_FUNCTION_HAMMING || i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR);
-			ImGui::InputFloat("Parameter1", &g_config.kernel_p1, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Parameter 1", &g_config.kernel_p1, 0.0f, 0.0f, "%.6f");
 			dimm();
 			dimm(i == WIV_KERNEL_FUNCTION_LANCZOS || i == WIV_KERNEL_FUNCTION_GINSENG || i == WIV_KERNEL_FUNCTION_HAMMING || i == WIV_KERNEL_FUNCTION_POW_COSINE || i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC);
-			ImGui::InputFloat("Parameter2", &g_config.kernel_p2, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Parameter 2", &g_config.kernel_p2, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::InputFloat("Anti-ringing", &g_config.kernel_ar, 0.0f, 0.0f, "%.6f");
 			ImGui::Spacing();
@@ -380,10 +380,10 @@ void User_interface::window_settings()
 			ImGui::Checkbox("Enable color managment system", &g_config.cms_use);
 			ImGui::Spacing();
 			constexpr std::array items2{
-				"auto",
+				"Auto",
 				"sRGB",
 				"AdobeRGB",
-				"custom"
+				"Custom"
 			};
 			ImGui::Combo("Display profile", &g_config.cms_profile_display, items2.data(), items2.size());
 			char buffer[MAX_PATH];
@@ -394,10 +394,10 @@ void User_interface::window_settings()
 			dimm();
 			ImGui::Spacing();
 			constexpr std::array items{
-				"perceptual",
-				"relative colorimetric",
-				"saturation",
-				"absolute colorimetric"
+				"Perceptual",
+				"Relative colorimetric",
+				"Saturation",
+				"Absolute colorimetric"
 			};
 			ImGui::Combo("Rendering intent", &g_config.cms_intent, items.data(), items.size());
 			ImGui::Spacing();
