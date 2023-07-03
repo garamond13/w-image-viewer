@@ -23,6 +23,7 @@ public:
 	}
 
 	std::unique_ptr<std::remove_pointer<cmsHPROFILE>::type, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
+	int orientation;
 private:
 	cmsHPROFILE get_embended_profile();
 
@@ -51,8 +52,15 @@ private:
 				reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
 			}
 		}
+		
+		//at this point we dont need raw_input data anymore
+		raw_input.recycle();
+		
 		return data;
 	}
 	
+	//FIX ME!
+	//in image_input in combination with raw_input can throw read access violation
 	std::unique_ptr<OIIO::ImageInput> image_input;
+	LibRaw raw_input;
 };

@@ -1,14 +1,13 @@
 #pragma once
 
 #include "pch.h"
-#include "config.h"
 #include "file_manager.h"
 
 class User_interface
 {
 public:
 	~User_interface();
-	void create(Config* p_config, HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update);
+	void create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update);
 	void update();
 	void draw() const;
 	void auto_window_size() const;
@@ -17,8 +16,9 @@ public:
 	bool is_fullscreen;
 	bool is_dialog_file_open;
 	ImVec2 image_pan;
+	bool is_panning;
 	float image_zoom;
-	bool is_in_panzoom;
+	bool is_zooming;
 	float image_rotation;
 	bool is_rotating;
 
@@ -33,7 +33,6 @@ private:
 	void dialog_file_open();
 	void toggle_fullscreen();
 	void dimm(bool condition = false) const;
-	Config* p_config;
 	HWND hwnd;
 	bool is_window_settings_open;
 	bool is_window_about_open;

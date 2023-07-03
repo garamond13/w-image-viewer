@@ -157,6 +157,7 @@
     <ClInclude Include="dims.h" />
     <ClInclude Include="file_manager.h" />
     <ClInclude Include="font.h" />
+    <ClInclude Include="global.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="icc.h" />
     <ClInclude Include="image.h" />

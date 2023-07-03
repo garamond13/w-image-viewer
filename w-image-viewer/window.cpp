@@ -1,10 +1,10 @@
 #include "pch.h"
+#include "global.h"
 #include "window.h"
 #include "helpers.h"
 #include "resource.h"
 
-Window::Window(Config* p_config, HINSTANCE hinstance, int ncmdshow) :
-	p_config(p_config)
+Window::Window(HINSTANCE hinstance, int ncmdshow)
 {
     //register window class
     WNDCLASSEXW wndclassexw{
@@ -19,19 +19,19 @@ Window::Window(Config* p_config, HINSTANCE hinstance, int ncmdshow) :
 
     //create window
     RECT rect{
-        .right{ p_config->window_w },
-        .bottom{ p_config->window_h }
+        .right{ g_config.window_w },
+        .bottom{ g_config.window_h }
     };
     wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
     CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, hinstance, this);
-    renderer.create(p_config, hwnd);
+    renderer.create(hwnd);
     ShowWindow(hwnd, ncmdshow);
 }
 
 void Window::set_window_name() const
 {
     std::wstring name;
-    switch (p_config->window_name) {
+    switch (g_config.window_name) {
     case WIV_WINDOW_NAME_DEFAULT:
         name = WIV_WINDOW_NAME;
         break;
@@ -43,6 +43,27 @@ void Window::set_window_name() const
         break;
     }
     wiv_assert(SetWindowTextW(hwnd, name.c_str()), != 0);
+}
+
+void Window::reset_image_rotation() noexcept
+{
+    //rotated 180
+    if (renderer.user_interface.file_manager.image.orientation == 2)
+        renderer.user_interface.image_rotation = -180.0f;
+
+    //rotated 90 cw
+    else if (renderer.user_interface.file_manager.image.orientation == 5)
+        renderer.user_interface.image_rotation = -90.0f;
+
+    //rotated 90 ccw
+    else if (renderer.user_interface.file_manager.image.orientation == 7)
+        renderer.user_interface.image_rotation = 90.0f;
+
+    else
+        renderer.user_interface.image_rotation = 0.0f;
+
+    //reset orientation
+    renderer.user_interface.file_manager.image.orientation = 0;
 }
 
 //forward declare message handler from imgui_impl_win32.cpp
@@ -84,10 +105,10 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
     case WIV_WM_OPEN_FILE:
         window->renderer.create_image();
-        if(window->p_config->window_autowh)
+        if(g_config.window_autowh)
             window->renderer.user_interface.auto_window_size();
         window->renderer.user_interface.reset_image_panzoom();
-        window->renderer.user_interface.image_rotation = 0.0f;
+        window->reset_image_rotation();
         window->set_window_name();
         window->renderer.should_update = true;
         break;
@@ -99,10 +120,10 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     case WM_DROPFILES:
         if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
             window->renderer.create_image();
-            if (window->p_config->window_autowh)
+            if (g_config.window_autowh)
                 window->renderer.user_interface.auto_window_size();
             window->renderer.user_interface.reset_image_panzoom();
-            window->renderer.user_interface.image_rotation = 0.0f;
+            window->reset_image_rotation();
             window->set_window_name();
             window->renderer.should_update = true;
         }

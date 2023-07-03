@@ -88,6 +88,9 @@ void Config::values_map()
 
 	//WIV_NAME_PASS_
 	toval(WIV_NAME_PASS_FORMAT, i);
+
+	//WIV_NAME_RAW_
+	toval(WIV_NAME_RAW_READ_THUMBNAIL, i);
 }
 
 void Config::map_values()
@@ -147,6 +150,9 @@ void Config::map_values()
 
 	//WIV_NAME_PASS_
 	tomap(WIV_NAME_PASS_FORMAT);
+	
+	//WIV_NAME_RAW_
+	tomap(WIV_NAME_RAW_READ_THUMBNAIL);
 }
 
 std::filesystem::path Config::get_path()

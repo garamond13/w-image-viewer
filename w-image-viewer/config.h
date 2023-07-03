@@ -55,6 +55,9 @@
 //WIV_NAME_PASS_
 #define WIV_NAME_PASS_FORMAT pass_format
 
+//WIV_NAME_RAW_
+#define WIV_NAME_RAW_READ_THUMBNAIL raw_thumb
+
 //dont use directly
 #define wiv_nametostr_helper(x) #x
 
@@ -167,6 +170,10 @@ public:
 
 	//WIV_NAME_PASS_
 	int WIV_NAME_PASS_FORMAT;
+
+	//WIV_NAME_RAW_
+	bool WIV_NAME_RAW_READ_THUMBNAIL;
+
 private:
 	std::filesystem::path get_path();
 	std::unordered_map<std::string, std::string> map{
@@ -225,6 +232,9 @@ private:
 		{ wiv_nametostr(WIV_NAME_UNSHARP_AMOUNT), "0.5" },
 
 		//WIV_NAME_PASS_
-		{ wiv_nametostr(WIV_NAME_PASS_FORMAT), "0" }
+		{ wiv_nametostr(WIV_NAME_PASS_FORMAT), "0" },
+		
+		//WIV_NAME_RAW_
+		{ wiv_nametostr(WIV_NAME_RAW_READ_THUMBNAIL), "1" }
 	};
 };

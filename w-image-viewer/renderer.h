@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pch.h"
-#include "config.h"
 #include "user_interface.h"
 #include "dims.h"
 
@@ -25,7 +24,7 @@ struct alignas(16) Cb4
 class Renderer
 {
 public:
-	void create(Config* config, HWND hwnd);
+	void create(HWND hwnd);
 	void update();
 	void draw() const;
 	void create_image();
@@ -61,7 +60,6 @@ private:
 	void update_scale_and_dims_output() noexcept;
 	float get_kernel_radius() const noexcept;
 	void update_trc();
-	Config* p_config;
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> device_context;
 	Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain;

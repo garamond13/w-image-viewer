@@ -1,14 +1,13 @@
 #include "pch.h"
-#include "config.h"
+#include "global.h"
 #include "window.h"
 #include "helpers.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
-    auto config{ std::make_unique<Config>() };
-    config->file_read();
-    config->values_map();
-    auto window{ std::make_unique<Window>(config.get(), hInstance, nCmdShow) };
+    g_config.file_read();
+    g_config.values_map();
+    auto window{ std::make_unique<Window>(hInstance, nCmdShow) };
 
     //"direct" file open
     if (lpCmdLine[0] != '\0') {

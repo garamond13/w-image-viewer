@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "image.h"
-#include "config.h"
-
+#include "global.h"
 
 std::unique_ptr<uint8_t[]> Image::get_data(DXGI_FORMAT& format, UINT& sys_mem_pitch)
 {
@@ -52,16 +51,27 @@ int Image::get_tagged_color_space()
 
 bool Image::set_image_input(std::wstring_view path)
 {
-	OIIO::ImageSpec config;
-
-	//bmp
-	config["bmp:monochrome_detect"] = 0;
-	
-	//raw
-	config["raw:use_camera_matrix"] = 0;
-	config["raw:Demosaic"] = "AMaZE";
-
-	image_input = OIIO::ImageInput::open(path.data(), &config);
+	//first try to open file with libraw, since oiio cant read thumbnails
+	if (g_config.raw_thumb && raw_input.open_file(path.data()) == LIBRAW_SUCCESS) {
+		if (raw_input.unpack_thumb() == LIBRAW_SUCCESS) {
+			OIIO::Filesystem::IOMemReader thumb(raw_input.imgdata.thumbnail.thumb, raw_input.imgdata.thumbnail.tlength);
+			
+			//OIIO::ImageInput::open(), filename here is irelevant, we only need extension
+			if (raw_input.imgdata.thumbnail.tformat == LIBRAW_THUMBNAIL_JPEG) {
+				image_input = OIIO::ImageInput::open(".jpg", nullptr, &thumb);
+			}
+			else //try bmp
+				image_input = OIIO::ImageInput::open(".bmp", nullptr, &thumb);
+			orientation = raw_input.imgdata.sizes.flip;
+		}
+		else
+			image_input = OIIO::ImageInput::open(path.data());
+	}
+	else {
+		OIIO::ImageSpec config;
+		config["bmp:monochrome_detect"] = 0;
+		image_input = OIIO::ImageInput::open(path.data(), &config);
+	}
 	if (!image_input)
 		return false;
 	embended_profile.reset(get_embended_profile());

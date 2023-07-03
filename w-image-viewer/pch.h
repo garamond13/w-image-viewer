@@ -7,6 +7,7 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
 #include <ShlObj.h>
 #include <wrl/client.h>
 #include <shellapi.h>
@@ -30,6 +31,7 @@
 //oiio
 #define OIIO_STATIC_DEFINE
 #include <OpenImageIO/imageio.h>
+#include <OpenImageIO/filesystem.h>
 #ifdef NDEBUG
 	#pragma comment(lib, "OpenImageIO.lib")
 	#pragma comment(lib, "OpenImageIO.lib")
@@ -38,6 +40,8 @@
 	#pragma comment(lib, "OpenImageIO_Util_d.lib")
 #endif
 
+//libraw
+#include <libraw/libraw.h>
 
 //lcms
 #include <lcms2.h>
