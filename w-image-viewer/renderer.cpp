@@ -35,7 +35,7 @@ void Renderer::update()
 	if (srv_image && should_update) {
 		srv_pass = srv_image;
 		update_scale_and_dims_output();
-		if (!user_interface.is_in_panzoom) {
+		if (!user_interface.is_in_panzoom || !user_interface.is_rotating) {
 			if (p_config->cms_use && is_cms_valid)
 				pass_cms();
 			if (!is_equal(scale, 1.0f)) {
@@ -71,6 +71,7 @@ void Renderer::update()
 		else
 			should_update = false;
 		user_interface.is_in_panzoom = false;
+		user_interface.is_rotating = false;
 	}
 	user_interface.update();
 }
@@ -592,11 +593,13 @@ void Renderer::pass_cylindrical_resample()
 
 void Renderer::pass_last()
 {
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	if (image.has_alpha()) {
 		alignas(16) const std::array cb0_data{
 			Cb4{
 				.x{ .f{ dims_output.get_width<float>() / p_config->alpha_t_size }},
-				.y{ .f{ dims_output.get_height<float>() / p_config->alpha_t_size }}
+				.y{ .f{ dims_output.get_height<float>() / p_config->alpha_t_size }},
+				.z{ .f{ user_interface.image_rotation }}
 			},
 			Cb4{
 				.x{ .f{ p_config->alpha_t1_c[0] }},
@@ -609,13 +612,20 @@ void Renderer::pass_last()
 				.z{ .f{ p_config->alpha_t2_c[2] }}
 			}
 		};
-		Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
 		update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
 		create_pixel_shader(PS_SAMPLE_ALPHA, sizeof(PS_SAMPLE_ALPHA));
 	}
-	else
+	else {
+		alignas(16) const std::array cb0_data{
+			Cb4{
+				.x{ .f{ user_interface.image_rotation }}
+			}
+		};
+		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
+		update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
 		create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
+	}
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>(), true);
 }
@@ -696,22 +706,29 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 
 void Renderer::update_scale_and_dims_output() noexcept
 {
+	auto image_w{ image.get_width<float>() };
+	auto image_h{ image.get_height<float>() };
+
+	//check is the rotation angele divisible by 180, if it is we dont need to swap width and height
+	if (is_not_zero(frac(user_interface.image_rotation / 180.0f)))
+		std::swap(image_w, image_h);
+
 	if (user_interface.image_no_scale) {
 		scale = 1.0f;
 	}
 
 	//fit inside the window
-	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image.get_width<double>(), image.get_height<double>())) {
-		scale = get_ratio<float>(dims_swap_chain.height, image.get_height<float>());
+	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image_w, image_h)) {
+		scale = get_ratio<float>(dims_swap_chain.height, image_h);
 	}
 	else {
-		scale = get_ratio<float>(dims_swap_chain.width, image.get_width<float>());
+		scale = get_ratio<float>(dims_swap_chain.width, image_w);
 	}
 
 	scale = scale + user_interface.image_zoom < WIV_FLT_EPS ? scale : scale + user_interface.image_zoom;
 	assert(scale > WIV_FLT_EPS);
-	dims_output.width = static_cast<int>(std::lround(image.get_width<float>() * scale));
-	dims_output.height = static_cast<int>(std::lround(image.get_height<float>() * scale));
+	dims_output.width = static_cast<int>(std::lround(image_w * scale));
+	dims_output.height = static_cast<int>(std::lround(image_h * scale));
 }
 
 float Renderer::get_kernel_radius() const noexcept

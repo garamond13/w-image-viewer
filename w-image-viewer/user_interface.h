@@ -19,6 +19,8 @@ public:
 	ImVec2 image_pan;
 	float image_zoom;
 	bool is_in_panzoom;
+	float image_rotation;
+	bool is_rotating;
 
 	//request to show image at the original width and height
 	bool image_no_scale;

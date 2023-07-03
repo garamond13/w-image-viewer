@@ -87,6 +87,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         if(window->p_config->window_autowh)
             window->renderer.user_interface.auto_window_size();
         window->renderer.user_interface.reset_image_panzoom();
+        window->renderer.user_interface.image_rotation = 0.0f;
         window->set_window_name();
         window->renderer.should_update = true;
         break;
@@ -101,6 +102,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
             if (window->p_config->window_autowh)
                 window->renderer.user_interface.auto_window_size();
             window->renderer.user_interface.reset_image_panzoom();
+            window->renderer.user_interface.image_rotation = 0.0f;
             window->set_window_name();
             window->renderer.should_update = true;
         }

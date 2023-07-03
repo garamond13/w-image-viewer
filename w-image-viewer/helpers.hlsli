@@ -23,4 +23,11 @@ inline bool is_not_zero(float a)
 
 //
 
+inline void rotate_texcoord(inout float2 texcoord, float theta)
+{
+    texcoord -= 0.5;
+    theta = radians(theta);
+    texcoord = float2(texcoord.x * cos(theta) + texcoord.y * sin(theta), -texcoord.x * sin(theta) + texcoord.y * cos(theta)) + 0.5;
+}
+
 #endif // __HELPERS_HLSLI__

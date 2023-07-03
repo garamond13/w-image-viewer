@@ -247,6 +247,19 @@ void User_interface::context_menu()
 			goto end;
 		}
 		ImGui::Separator();
+		if (ImGui::Selectable("Rotate CW")) {
+			image_rotation += 90.0f;
+			is_rotating = true;
+			*p_renderer_should_update = true;
+			goto end;
+		}
+		if (ImGui::Selectable("Rotate CCW")) {
+			image_rotation -= 90.0f;
+			is_rotating = true;
+			*p_renderer_should_update = true;
+			goto end;
+		}
+		ImGui::Separator();
 		if (ImGui::Selectable("Settings...")) {
 			is_window_settings_open = true;
 			goto end;

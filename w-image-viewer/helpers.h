@@ -51,3 +51,10 @@ constexpr T get_ratio(auto a, auto b) noexcept
 {
 	return static_cast<T>(a) / static_cast<T>(b);
 }
+
+//returns fractional part
+inline auto frac(auto f) noexcept
+{
+	static_assert(std::is_same<decltype(f), float>::value || std::is_same<decltype(f), double>::value || std::is_same<decltype(f), long double>::value, "f is not floating-point type");
+	return f - std::floor(f);
+}
