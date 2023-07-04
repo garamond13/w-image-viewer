@@ -153,20 +153,6 @@ void User_interface::input()
 
 	//keyboard
 	if (!ImGui::GetIO().WantCaptureKeyboard) {
-		if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-			if (file_manager.file_current.empty())
-				return;
-			file_manager.file_previous();
-			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
-			return;
-		}
-		if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-			if (file_manager.file_current.empty())
-				return;
-			file_manager.file_next();
-			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
-			return;
-		}
 
 		//ctrl + key
 		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
@@ -197,6 +183,18 @@ void User_interface::input()
 				*p_renderer_should_update = true;
 				return;
 			}
+			if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
+				image_rotation -= 90.0f;
+				is_rotating = true;
+				*p_renderer_should_update = true;
+				return;
+			}
+			if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
+				image_rotation += 90.0f;
+				is_rotating = true;
+				*p_renderer_should_update = true;
+				return;
+			}
 		}
 
 		//alt + key
@@ -205,6 +203,22 @@ void User_interface::input()
 				toggle_fullscreen();
 				return;
 			}
+		}
+
+		//free keys
+		if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
+			if (file_manager.file_current.empty())
+				return;
+			file_manager.file_previous();
+			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			return;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
+			if (file_manager.file_current.empty())
+				return;
+			file_manager.file_next();
+			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			return;
 		}
 	}
 
