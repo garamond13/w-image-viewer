@@ -437,11 +437,12 @@ void User_interface::window_about()
 		ImGui::Spacing();
 		ImGui::TextUnformatted(reinterpret_cast<const char*>(u8"Created by Ivan Bjeliš."));
 		ImGui::Spacing();
-		constexpr auto web_link{ "github.com/garamond13/w-image-viewer" };
-		ImGui::TextUnformatted(web_link);
 		ImGui::Spacing();
-		if (ImGui::Button("Copy link"))
-			ImGui::SetClipboardText(web_link);
+		if (ImGui::Button("Web page...")) {
+			if (is_fullscreen)
+				toggle_fullscreen();
+			ShellExecuteW(nullptr, L"open", L"https://github.com/garamond13/w-image-viewer", nullptr, nullptr, SW_SHOWNORMAL);
+		}
 		ImGui::End();
 	}
 }
