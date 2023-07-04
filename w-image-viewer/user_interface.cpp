@@ -414,7 +414,7 @@ void User_interface::window_settings()
 			ImGui::ColorEdit3("Second tile color", g_config.alpha_t2_c.data(), ImGuiColorEditFlags_DisplayHSV);
 		}
 		ImGui::SeparatorText("Changes");
-		if (ImGui::Button("Reset changes"))
+		if (ImGui::Button("Revert changes"))
 			g_config.map_values();
 		ImGui::SameLine();
 		if (ImGui::Button("Write changes")) {
