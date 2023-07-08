@@ -325,28 +325,76 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Scale")) {
+			ImGui::Spacing();
+
+			//scale profiles
+			//
+
+			ImGui::TextUnformatted("Range bounds:");
+			static Range<float> range;
+			ImGui::DragFloatRange2("##range", &range.lower, &range.upper, 0.0f, 0.0f, 0.0f, "Lower: %.6f", "Upper: %.6f", ImGuiSliderFlags_AlwaysClamp);
+			ImGui::SameLine();
+			if (ImGui::Button("Add profile")) {
+
+				//check first does profile already exists
+				bool exists{};
+				for (const auto& profile : g_config.scale_profiles) {
+					if (profile.range == range)
+						exists = true;
+				}
+
+				if (!exists)
+					g_config.scale_profiles.push_back({ range, {} });
+			}
+			ImGui::Spacing();
+
+			//hold values
+			//cant use vector<const char*> directly, because const char* will be non owning
+			std::vector<std::string> profile_names;
+			for (const auto& profile_name : g_config.scale_profiles)
+				profile_names.push_back(std::to_string(profile_name.range.lower) + ", " + std::to_string(profile_name.range.upper));
+
+			//cant use string directly in imgui
+			std::vector<const char*> profile_items;
+			for (const auto& profile_item : profile_names)
+				profile_items.push_back(profile_item.c_str());
+
+			static int current_profile;
+			ImGui::Combo("Profile", &current_profile, profile_items.data(), profile_items.size());
+			ImGui::Spacing();
+			auto& scale{ g_config.scale_profiles[current_profile].config };
+
+			if (ImGui::Button("Remove profile")) {
+				if (current_profile > 0) {
+					g_config.scale_profiles.erase(g_config.scale_profiles.begin() + current_profile);
+					--current_profile;
+				}
+			}
+			ImGui::Spacing();
+
+			//
 
 			//pre-scale blur
 			ImGui::SeparatorText("Pre-scale blur (downscale only)");
-			ImGui::Checkbox("Enable pre-scale blur", &g_config.blur_use);
-			dimm(!g_config.blur_use);
-			ImGui::InputInt("Radius##blur", &g_config.blur_r, 0, 0);
-			ImGui::InputFloat("Sigma##blur", &g_config.blur_s, 0.0f, 0.0f, "%.6f");
+			ImGui::Checkbox("Enable pre-scale blur", &scale.blur_use);
+			dimm(!scale.blur_use);
+			ImGui::InputInt("Radius##blur", &scale.blur_r, 0, 0);
+			ImGui::InputFloat("Sigma##blur", &scale.blur_s, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::Spacing();
 
 			//sigmoidize
 			ImGui::SeparatorText("Sigmoidize (upscale only)");
-			ImGui::Checkbox("Enable sigmoidize", &g_config.sigmoid_use);
-			dimm(!g_config.sigmoid_use);
-			ImGui::InputFloat("Contrast", &g_config.sigmoid_c, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Midpoint", &g_config.sigmoid_m, 0.0f, 0.0f, "%.6f");
+			ImGui::Checkbox("Enable sigmoidize", &scale.sigmoid_use);
+			dimm(!scale.sigmoid_use);
+			ImGui::InputFloat("Contrast", &scale.sigmoid_c, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Midpoint", &scale.sigmoid_m, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::Spacing();
 
 			//scale
 			ImGui::SeparatorText("Scale");
-			ImGui::Checkbox("Use cylindrical filtering", &g_config.kernel_use_cyl);
+			ImGui::Checkbox("Use cylindrical filtering", &scale.kernel_use_cyl);
 			ImGui::Spacing();
 			constexpr std::array items{
 				"Lanczos",
@@ -364,28 +412,28 @@ void User_interface::window_settings()
 				"Modified FSR",
 				"BC-Spline"
 			};
-			ImGui::Combo("Kernel-function", &g_config.kernel_i, items.data(), items.size());
-			const auto& i{ g_config.kernel_i };
+			ImGui::Combo("Kernel-function", &scale.kernel_i, items.data(), items.size());
+			const auto& i{ scale.kernel_i };
 			dimm(i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC || i == WIV_KERNEL_FUNCTION_FSR || i == WIV_KERNEL_FUNCTION_BCSPLINE);
-			ImGui::InputFloat("Radius##kernel", &g_config.kernel_r, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Blur", &g_config.kernel_b, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Radius##kernel", &scale.kernel_r, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Blur", &scale.kernel_b, 0.0f, 0.0f, "%.6f");
 			dimm();
 			dimm(i == WIV_KERNEL_FUNCTION_LANCZOS || i == WIV_KERNEL_FUNCTION_GINSENG || i == WIV_KERNEL_FUNCTION_HAMMING || i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR);
-			ImGui::InputFloat("Parameter 1", &g_config.kernel_p1, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Parameter 1", &scale.kernel_p1, 0.0f, 0.0f, "%.6f");
 			dimm();
 			dimm(i == WIV_KERNEL_FUNCTION_LANCZOS || i == WIV_KERNEL_FUNCTION_GINSENG || i == WIV_KERNEL_FUNCTION_HAMMING || i == WIV_KERNEL_FUNCTION_POW_COSINE || i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC);
-			ImGui::InputFloat("Parameter 2", &g_config.kernel_p2, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Parameter 2", &scale.kernel_p2, 0.0f, 0.0f, "%.6f");
 			dimm();
-			ImGui::InputFloat("Anti-ringing", &g_config.kernel_ar, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Anti-ringing", &scale.kernel_ar, 0.0f, 0.0f, "%.6f");
 			ImGui::Spacing();
 
 			//post-scale unsharp
 			ImGui::SeparatorText("Post-scale unsharp mask");
-			ImGui::Checkbox("Enable post-scale unsharp mask", &g_config.unsharp_use);
-			dimm(!g_config.unsharp_use);
-			ImGui::InputInt("Radius##unsharp", &g_config.unsharp_r, 0, 0);
-			ImGui::InputFloat("Sigma##unsharp", &g_config.unsharp_s, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Amount", &g_config.unsharp_a, 0.0f, 0.0f, "%.6f");
+			ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use);
+			dimm(!scale.unsharp_use);
+			ImGui::InputInt("Radius##unsharp", &scale.unsharp_r, 0, 0);
+			ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_s, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Amount", &scale.unsharp_a, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::Spacing();
 		}
@@ -428,12 +476,8 @@ void User_interface::window_settings()
 			ImGui::ColorEdit3("Second tile color", g_config.alpha_t2_c.data(), ImGuiColorEditFlags_DisplayHSV);
 		}
 		ImGui::SeparatorText("Changes");
-		if (ImGui::Button("Revert changes"))
-			g_config.map_values();
-		ImGui::SameLine();
 		if (ImGui::Button("Write changes")) {
-			g_config.map_values();
-			g_config.file_write();
+			g_config.write();
 		}
 		ImGui::Spacing();
 		ImGui::End();

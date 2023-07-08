@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="config_pairs.h" />
     <ClInclude Include="dims.h" />
     <ClInclude Include="file_manager.h" />
     <ClInclude Include="font.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="icc.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="cms_lut.h" />
+    <ClInclude Include="range.h" />
     <ClInclude Include="wiv_imconfig.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="renderer.h" />

@@ -22,7 +22,7 @@ public:
 		return static_cast<T>(image_input->spec().height);
 	}
 
-	std::unique_ptr<std::remove_pointer<cmsHPROFILE>::type, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
+	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
 	int orientation;
 private:
 	cmsHPROFILE get_embended_profile();

@@ -34,27 +34,28 @@ void Renderer::update()
 {
 	if (srv_image && should_update) {
 		update_scale_and_dims_output();
+		update_scale_profile();
 		if (!(user_interface.is_panning || user_interface.is_zooming || user_interface.is_rotating)) {
 			srv_pass = srv_image;
 			if (g_config.cms_use && is_cms_valid)
 				pass_cms();
 			if (!is_equal(scale, 1.0f)) {
 				update_trc();
-				bool sigmoidize{ scale > 1.0f && g_config.sigmoid_use };
-				bool linearize{ scale < 1.0f || sigmoidize || g_config.blur_use };
+				bool sigmoidize{ scale > 1.0f && p_scale_profile->sigmoid_use };
+				bool linearize{ scale < 1.0f || sigmoidize || p_scale_profile->blur_use };
 				if (linearize)
 					pass_linearize(image.get_width<UINT>(), image.get_height<UINT>());
 				if (sigmoidize)
 					pass_sigmoidize();
-				if (scale < 1.0f && g_config.blur_use)
+				if (scale < 1.0f && p_scale_profile->blur_use)
 					pass_blur();
-				if (g_config.kernel_use_cyl)
+				if (p_scale_profile->kernel_use_cyl)
 					pass_cylindrical_resample();
 				else
 					pass_orthogonal_resample();
 				if (sigmoidize)
 					pass_desigmoidize();
-				if (g_config.unsharp_use) {
+				if (p_scale_profile->unsharp_use) {
 					if (!linearize) {
 						pass_linearize(dims_output.width, dims_output.height);
 						linearize = true;
@@ -388,8 +389,8 @@ void Renderer::pass_sigmoidize()
 
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .f{ g_config.sigmoid_c }},
-			.y{ .f{ g_config.sigmoid_m }}
+			.x{ .f{ p_scale_profile->sigmoid_c }},
+			.y{ .f{ p_scale_profile->sigmoid_m }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -412,8 +413,8 @@ void Renderer::pass_desigmoidize()
 
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .f{ g_config.sigmoid_c }},
-			.y{ .f{ g_config.sigmoid_m }}
+			.x{ .f{ p_scale_profile->sigmoid_c }},
+			.y{ .f{ p_scale_profile->sigmoid_m }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -432,8 +433,8 @@ void Renderer::pass_blur()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .f{ static_cast<float>(g_config.blur_r) }},
-			.y{ .f{ g_config.blur_s }},
+			.x{ .f{ static_cast<float>(p_scale_profile->blur_r) }},
+			.y{ .f{ p_scale_profile->blur_s }},
 			.z{ .f{ 0.0f }}, //unsharp amount, must be 0.0f
 		},
 		Cb4{
@@ -474,9 +475,9 @@ void Renderer::pass_unsharp()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .f{ static_cast<float>(g_config.unsharp_r) }},
-			.y{ .f{ g_config.unsharp_s }},
-			.z{ .f{ g_config.unsharp_a }}, //unsharp amount, must be 0.0f
+			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_r) }},
+			.y{ .f{ p_scale_profile->unsharp_s }},
+			.z{ .f{ p_scale_profile->unsharp_a }}, //unsharp amount, must be 0.0f
 		},
 		Cb4{
 			.x{ .f{ 0.0f }}, //x axis
@@ -519,14 +520,14 @@ void Renderer::pass_orthogonal_resample()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .i{ g_config.kernel_i }},
+			.x{ .i{ p_scale_profile->kernel_i }},
 			.y{ .f{ get_kernel_radius() }},
-			.z{ .f{ g_config.kernel_b }},
-			.w{ .f{ g_config.kernel_p1 }}
+			.z{ .f{ p_scale_profile->kernel_b }},
+			.w{ .f{ p_scale_profile->kernel_p1 }}
 		},
 		Cb4{
-			.x{ .f{ g_config.kernel_p2 }},
-			.y{ .f{ g_config.kernel_ar }},
+			.x{ .f{ p_scale_profile->kernel_p2 }},
+			.y{ .f{ p_scale_profile->kernel_ar }},
 			.z{ .f{ scale < 1.0f ? 1.0f / scale : 1.0f }},
 		},
 		Cb4{
@@ -565,14 +566,14 @@ void Renderer::pass_cylindrical_resample()
 {
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .i{ g_config.kernel_i }},
+			.x{ .i{ p_scale_profile->kernel_i }},
 			.y{ .f{ get_kernel_radius() }},
-			.z{ .f{ g_config.kernel_b }},
-			.w{ .f{ g_config.kernel_p1 }}
+			.z{ .f{ p_scale_profile->kernel_b }},
+			.w{ .f{ p_scale_profile->kernel_p1 }}
 		},
 		Cb4{
-			.x{ .f{ g_config.kernel_p2 }},
-			.y{ .f{ g_config.kernel_ar }},
+			.x{ .f{ p_scale_profile->kernel_p2 }},
+			.y{ .f{ p_scale_profile->kernel_ar }},
 			.z{ .f{ image.get_width<float>() }},
 			.w{ .f{ image.get_height<float>() }}
 		},
@@ -732,15 +733,27 @@ void Renderer::update_scale_and_dims_output() noexcept
 	dims_output.height = static_cast<int>(std::lround(image_h * scale));
 }
 
+void Renderer::update_scale_profile() noexcept
+{
+	for (const auto& profile : g_config.scale_profiles) {
+		if (profile.range.is_inrange(scale)) {
+			p_scale_profile = &profile.config;
+			return;
+		}
+	}
+	//use default profile
+	p_scale_profile = &g_config.scale_profiles[0].config;
+}
+
 float Renderer::get_kernel_radius() const noexcept
 {
-	if (g_config.kernel_i == WIV_KERNEL_FUNCTION_NEAREST || (g_config.kernel_i == WIV_KERNEL_FUNCTION_LINEAR && !g_config.kernel_use_cyl))
+	if (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_NEAREST || (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_LINEAR && !p_scale_profile->kernel_use_cyl))
 		return 1.0f;
-	else if (g_config.kernel_i == WIV_KERNEL_FUNCTION_LINEAR && g_config.kernel_use_cyl)
+	else if (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_LINEAR && p_scale_profile->kernel_use_cyl)
 		return std::numbers::sqrt2_v<float>;
-	else if (g_config.kernel_i == WIV_KERNEL_FUNCTION_BICUBIC || g_config.kernel_i == WIV_KERNEL_FUNCTION_FSR || g_config.kernel_i == WIV_KERNEL_FUNCTION_BCSPLINE)
+	else if (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_BICUBIC || p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_FSR || p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_BCSPLINE)
 		return 2.0f;
-	return g_config.kernel_r;
+	return p_scale_profile->kernel_r;
 }
 
 void Renderer::update_trc()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "config.h"
 #include "user_interface.h"
 #include "dims.h"
 
@@ -58,6 +59,7 @@ private:
 	void create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept;
 	void create_viewport(float width, float height, bool adjust = false) const noexcept;
 	void update_scale_and_dims_output() noexcept;
+	void update_scale_profile() noexcept;
 	float get_kernel_radius() const noexcept;
 	void update_trc();
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
@@ -70,7 +72,8 @@ private:
 	Dims<int> dims_swap_chain;
 	Dims<int> dims_output;
 	float scale;
-	std::unique_ptr<std::remove_pointer<cmsHPROFILE>::type, decltype(&cmsCloseProfile)> cms_profile_display{ nullptr, cmsCloseProfile };
+	const Config_scale* p_scale_profile;
+	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> cms_profile_display{ nullptr, cmsCloseProfile };
 	std::pair<int, float> trc; //tone responce curve, type and value
 	bool is_cms_valid;
 };
