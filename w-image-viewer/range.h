@@ -18,6 +18,12 @@ struct Range
 		return lower <= static_cast<T>(val) && static_cast<T>(val) <= upper;
 	}
 
+	constexpr void clamp() noexcept
+	{
+		if (lower > upper)
+			lower = upper;
+	}
+
 	T lower;
 	T upper;
 };

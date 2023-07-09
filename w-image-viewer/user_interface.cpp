@@ -330,9 +330,11 @@ void User_interface::window_settings()
 			//scale profiles
 			//
 
-			ImGui::TextUnformatted("Range bounds:");
+			ImGui::TextUnformatted("Range:");
 			static Range<float> range;
-			ImGui::DragFloatRange2("##range", &range.lower, &range.upper, 0.0f, 0.0f, 0.0f, "Lower: %.6f", "Upper: %.6f", ImGuiSliderFlags_AlwaysClamp);
+			std::array range_array{ &range.lower, &range.upper };
+			ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
+			range.clamp();
 			ImGui::SameLine();
 			if (ImGui::Button("Add profile")) {
 
