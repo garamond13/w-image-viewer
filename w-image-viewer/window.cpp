@@ -19,8 +19,8 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
 
     //create window
     RECT rect{
-        .right{ g_config.window_w },
-        .bottom{ g_config.window_h }
+        .right{ g_config.window_width },
+        .bottom{ g_config.window_height }
     };
     wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
     CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, hinstance, this);

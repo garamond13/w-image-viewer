@@ -81,7 +81,7 @@ void Renderer::update()
 void Renderer::draw() const
 {
 	device_context->OMSetRenderTargets(1, rtv_back_buffer.GetAddressOf(), nullptr);
-	device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_c.data());
+	device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_color.data());
 	device_context->Draw(3, 0);
 	user_interface.draw();
 	wiv_assert(swap_chain->Present(1, 0), == S_OK);
@@ -389,8 +389,8 @@ void Renderer::pass_sigmoidize()
 
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .f{ p_scale_profile->sigmoid_c }},
-			.y{ .f{ p_scale_profile->sigmoid_m }}
+			.x{ .f{ p_scale_profile->sigmoid_contrast }},
+			.y{ .f{ p_scale_profile->sigmoid_midpoint }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -413,8 +413,8 @@ void Renderer::pass_desigmoidize()
 
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .f{ p_scale_profile->sigmoid_c }},
-			.y{ .f{ p_scale_profile->sigmoid_m }}
+			.x{ .f{ p_scale_profile->sigmoid_contrast }},
+			.y{ .f{ p_scale_profile->sigmoid_midpoint }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -433,8 +433,8 @@ void Renderer::pass_blur()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .f{ static_cast<float>(p_scale_profile->blur_r) }},
-			.y{ .f{ p_scale_profile->blur_s }},
+			.x{ .f{ static_cast<float>(p_scale_profile->blur_radius) }},
+			.y{ .f{ p_scale_profile->blur_sigma }},
 			.z{ .f{ 0.0f }}, //unsharp amount, must be 0.0f
 		},
 		Cb4{
@@ -475,9 +475,9 @@ void Renderer::pass_unsharp()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_r) }},
-			.y{ .f{ p_scale_profile->unsharp_s }},
-			.z{ .f{ p_scale_profile->unsharp_a }}, //unsharp amount, must be 0.0f
+			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius) }},
+			.y{ .f{ p_scale_profile->unsharp_sigma }},
+			.z{ .f{ p_scale_profile->unsharp_amount }}, //unsharp amount, must be 0.0f
 		},
 		Cb4{
 			.x{ .f{ 0.0f }}, //x axis
@@ -520,9 +520,9 @@ void Renderer::pass_orthogonal_resample()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .i{ p_scale_profile->kernel_i }},
+			.x{ .i{ p_scale_profile->kernel_index }},
 			.y{ .f{ get_kernel_radius() }},
-			.z{ .f{ p_scale_profile->kernel_b }},
+			.z{ .f{ p_scale_profile->kernel_blur }},
 			.w{ .f{ p_scale_profile->kernel_p1 }}
 		},
 		Cb4{
@@ -566,9 +566,9 @@ void Renderer::pass_cylindrical_resample()
 {
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .i{ p_scale_profile->kernel_i }},
+			.x{ .i{ p_scale_profile->kernel_index }},
 			.y{ .f{ get_kernel_radius() }},
-			.z{ .f{ p_scale_profile->kernel_b }},
+			.z{ .f{ p_scale_profile->kernel_blur }},
 			.w{ .f{ p_scale_profile->kernel_p1 }}
 		},
 		Cb4{
@@ -599,19 +599,19 @@ void Renderer::pass_last()
 	if (image.has_alpha()) {
 		alignas(16) const std::array cb0_data{
 			Cb4{
-				.x{ .f{ dims_output.get_width<float>() / g_config.alpha_t_size }},
-				.y{ .f{ dims_output.get_height<float>() / g_config.alpha_t_size }},
+				.x{ .f{ dims_output.get_width<float>() / g_config.alpha_tile_size }},
+				.y{ .f{ dims_output.get_height<float>() / g_config.alpha_tile_size }},
 				.z{ .f{ user_interface.image_rotation }}
 			},
 			Cb4{
-				.x{ .f{ g_config.alpha_t1_c[0] }},
-				.y{ .f{ g_config.alpha_t1_c[1] }},
-				.z{ .f{ g_config.alpha_t1_c[2] }}
+				.x{ .f{ g_config.alpha_tile1_color[0] }},
+				.y{ .f{ g_config.alpha_tile1_color[1] }},
+				.z{ .f{ g_config.alpha_tile1_color[2] }}
 			},
 			Cb4{
-				.x{ .f{ g_config.alpha_t2_c[0] }},
-				.y{ .f{ g_config.alpha_t2_c[1] }},
-				.z{ .f{ g_config.alpha_t2_c[2] }}
+				.x{ .f{ g_config.alpha_tile2_color[0] }},
+				.y{ .f{ g_config.alpha_tile2_color[1] }},
+				.z{ .f{ g_config.alpha_tile2_color[2] }}
 			}
 		};
 		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
@@ -747,13 +747,13 @@ void Renderer::update_scale_profile() noexcept
 
 float Renderer::get_kernel_radius() const noexcept
 {
-	if (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_NEAREST || (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_LINEAR && !p_scale_profile->kernel_use_cyl))
+	if (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_NEAREST || (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_LINEAR && !p_scale_profile->kernel_use_cyl))
 		return 1.0f;
-	else if (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_LINEAR && p_scale_profile->kernel_use_cyl)
+	else if (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_LINEAR && p_scale_profile->kernel_use_cyl)
 		return std::numbers::sqrt2_v<float>;
-	else if (p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_BICUBIC || p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_FSR || p_scale_profile->kernel_i == WIV_KERNEL_FUNCTION_BCSPLINE)
+	else if (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_BICUBIC || p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_FSR || p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_BCSPLINE)
 		return 2.0f;
-	return p_scale_profile->kernel_r;
+	return p_scale_profile->kernel_radius;
 }
 
 void Renderer::update_trc()

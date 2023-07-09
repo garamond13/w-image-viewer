@@ -301,12 +301,12 @@ void User_interface::window_settings()
 		if (ImGui::CollapsingHeader("General")) {
 			ImGui::Spacing();
 			ImGui::TextUnformatted("Default window dimensions:");
-			ImGui::InputInt("Width", &g_config.window_w, 0, 0);
-			ImGui::InputInt("Height", &g_config.window_h, 0, 0);
+			ImGui::InputInt("Width", &g_config.window_width, 0, 0);
+			ImGui::InputInt("Height", &g_config.window_height, 0, 0);
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable window auto dimensions", &g_config.window_autowh);
 			ImGui::Spacing();
-			ImGui::ColorEdit4("Background color", g_config.clear_c.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
+			ImGui::ColorEdit4("Background color", g_config.clear_color.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
 			constexpr std::array items{
 				"Defualt name",
@@ -378,8 +378,8 @@ void User_interface::window_settings()
 			ImGui::SeparatorText("Pre-scale blur (downscale only)");
 			ImGui::Checkbox("Enable pre-scale blur", &scale.blur_use);
 			dimm(!scale.blur_use);
-			ImGui::InputInt("Radius##blur", &scale.blur_r, 0, 0);
-			ImGui::InputFloat("Sigma##blur", &scale.blur_s, 0.0f, 0.0f, "%.6f");
+			ImGui::InputInt("Radius##blur", &scale.blur_radius, 0, 0);
+			ImGui::InputFloat("Sigma##blur", &scale.blur_sigma, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::Spacing();
 
@@ -387,8 +387,8 @@ void User_interface::window_settings()
 			ImGui::SeparatorText("Sigmoidize (upscale only)");
 			ImGui::Checkbox("Enable sigmoidize", &scale.sigmoid_use);
 			dimm(!scale.sigmoid_use);
-			ImGui::InputFloat("Contrast", &scale.sigmoid_c, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Midpoint", &scale.sigmoid_m, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Contrast", &scale.sigmoid_contrast, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Midpoint", &scale.sigmoid_midpoint, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::Spacing();
 
@@ -412,11 +412,11 @@ void User_interface::window_settings()
 				"Modified FSR",
 				"BC-Spline"
 			};
-			ImGui::Combo("Kernel-function", &scale.kernel_i, items.data(), items.size());
-			const auto& i{ scale.kernel_i };
+			ImGui::Combo("Kernel-function", &scale.kernel_index, items.data(), items.size());
+			const auto& i{ scale.kernel_index };
 			dimm(i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC || i == WIV_KERNEL_FUNCTION_FSR || i == WIV_KERNEL_FUNCTION_BCSPLINE);
-			ImGui::InputFloat("Radius##kernel", &scale.kernel_r, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Blur", &scale.kernel_b, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Radius##kernel", &scale.kernel_radius, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Blur", &scale.kernel_blur, 0.0f, 0.0f, "%.6f");
 			dimm();
 			dimm(i == WIV_KERNEL_FUNCTION_LANCZOS || i == WIV_KERNEL_FUNCTION_GINSENG || i == WIV_KERNEL_FUNCTION_HAMMING || i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR);
 			ImGui::InputFloat("Parameter 1", &scale.kernel_p1, 0.0f, 0.0f, "%.6f");
@@ -431,9 +431,9 @@ void User_interface::window_settings()
 			ImGui::SeparatorText("Post-scale unsharp mask");
 			ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use);
 			dimm(!scale.unsharp_use);
-			ImGui::InputInt("Radius##unsharp", &scale.unsharp_r, 0, 0);
-			ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_s, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Amount", &scale.unsharp_a, 0.0f, 0.0f, "%.6f");
+			ImGui::InputInt("Radius##unsharp", &scale.unsharp_radius, 0, 0);
+			ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_sigma, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Amount", &scale.unsharp_amount, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::Spacing();
 		}
@@ -470,10 +470,10 @@ void User_interface::window_settings()
 		}
 		if (ImGui::CollapsingHeader("Transparency")) {
 			ImGui::Spacing();
-			ImGui::InputFloat("Tile size", &g_config.alpha_t_size, 0.0f, 0.0f, "%.6f");
+			ImGui::InputFloat("Tile size", &g_config.alpha_tile_size, 0.0f, 0.0f, "%.6f");
 			ImGui::Spacing();
-			ImGui::ColorEdit3("First tile color", g_config.alpha_t1_c.data(), ImGuiColorEditFlags_DisplayHSV);
-			ImGui::ColorEdit3("Second tile color", g_config.alpha_t2_c.data(), ImGuiColorEditFlags_DisplayHSV);
+			ImGui::ColorEdit3("First tile color", g_config.alpha_tile1_color.data(), ImGuiColorEditFlags_DisplayHSV);
+			ImGui::ColorEdit3("Second tile color", g_config.alpha_tile2_color.data(), ImGuiColorEditFlags_DisplayHSV);
 		}
 		ImGui::SeparatorText("Changes");
 		if (ImGui::Button("Write changes")) {
