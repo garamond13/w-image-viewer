@@ -363,5 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # WIV
-config.txt
 *_hlsl.h

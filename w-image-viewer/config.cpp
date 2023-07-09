@@ -260,22 +260,7 @@ void Config::write_scale(std::ofstream& file, const Config_scale& scale)
 
 std::filesystem::path Config::get_path()
 {
-#ifdef NDEBUG
-	//config path: %USERPROFILE%\AppData\Local\WImageViewer\config.txt
-
-	wchar_t* local_app_data;
-	SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local_app_data);
-	std::filesystem::path path{ std::move(local_app_data) };
-
-	//append %USERPROFILE%\AppData\Local with our directory
-	//check first if it exists and if not, create it
-	path /= L"WImageViewer";
-	if (!std::filesystem::exists(path))
-		std::filesystem::create_directory(path);
-	
-	//finaly make the full path of the config file
-	return path /= L"config.txt";
-#else
-	return L"config.txt";
-#endif
+	wchar_t path[MAX_PATH];
+	GetModuleFileNameW(nullptr, path, MAX_PATH);
+	return std::filesystem::path(path).parent_path() / L"config.txt";
 }
