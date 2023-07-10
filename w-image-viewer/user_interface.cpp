@@ -295,8 +295,9 @@ void User_interface::context_menu()
 void User_interface::window_settings()
 {
 	if (is_window_settings_open) {
-		constexpr ImVec2 size{ 430.0f, 430.0f };
-		ImGui::SetNextWindowSize(size, ImGuiCond_Once);
+		constexpr ImVec2 window_size{ 430.0f, 430.0f };
+		constexpr ImVec2 button_size{ -1.0f, 0.0f };
+		ImGui::SetNextWindowSize(window_size, ImGuiCond_Once);
 		ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
 		if (ImGui::CollapsingHeader("General")) {
 			ImGui::Spacing();
@@ -330,13 +331,13 @@ void User_interface::window_settings()
 			//scale profiles
 			//
 
-			ImGui::TextUnformatted("Range:");
+			ImGui::TextUnformatted("Profiles:");
 			static Range<float> range;
 			std::array range_array{ &range.lower, &range.upper };
 			ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
 			range.clamp();
 			ImGui::SameLine();
-			if (ImGui::Button("Add profile")) {
+			if (ImGui::Button("Add profile", button_size)) {
 
 				//check first does profile already exists
 				bool exists{};
@@ -348,7 +349,6 @@ void User_interface::window_settings()
 				if (!exists)
 					g_config.scale_profiles.push_back({ range, {} });
 			}
-			ImGui::Spacing();
 
 			//hold values
 			//cant use vector<const char*> directly, because const char* will be non owning
@@ -362,16 +362,15 @@ void User_interface::window_settings()
 				profile_items.push_back(profile_item.c_str());
 
 			static int current_profile;
-			ImGui::Combo("Profile", &current_profile, profile_items.data(), profile_items.size());
-			ImGui::Spacing();
-			auto& scale{ g_config.scale_profiles[current_profile].config };
-
-			if (ImGui::Button("Remove profile")) {
+			ImGui::Combo("##profile", &current_profile, profile_items.data(), profile_items.size());
+			ImGui::SameLine();
+			if (ImGui::Button("Remove profile", button_size)) {
 				if (current_profile > 0) {
 					g_config.scale_profiles.erase(g_config.scale_profiles.begin() + current_profile);
 					--current_profile;
 				}
 			}
+			auto& scale{ g_config.scale_profiles[current_profile].config };
 			ImGui::Spacing();
 
 			//
