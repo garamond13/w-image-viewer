@@ -37,6 +37,7 @@ inline constexpr auto WIV_SUPPORTED_FILE_TYPES{ L""
 	"*.tga;*.icb;*.vda;*.vst;*.tpic;" //truevision tga (targa)
 	"*.ico;" //icon
 	"*.cr2;*.arw;*.raf;*.dng;*.nrw;*.nef;*.orf;*.rw2;" //raw
+	"*.webp;" //webp
 };
 
 inline constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
