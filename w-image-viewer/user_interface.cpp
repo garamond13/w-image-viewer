@@ -311,8 +311,8 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			constexpr std::array items{
 				"Defualt name",
-				"File name",
-				"Full file name"
+				"Filename",
+				"Full filename"
 			};
 			ImGui::Combo("Window name", &g_config.window_name, items.data(), items.size());
 			ImGui::Spacing();
@@ -439,7 +439,7 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Color managment")) {
-			ImGui::SeparatorText("Color managment system");
+			ImGui::Spacing();
 			ImGui::Checkbox("Enable color managment system", &g_config.cms_use);
 			ImGui::Spacing();
 			constexpr std::array items2{
