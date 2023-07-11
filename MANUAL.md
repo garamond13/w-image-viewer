@@ -1,5 +1,23 @@
 # User manual
 
+## Controls
+
+LMB double click - toggle fullscreen  
+ALT + ENTER - toggle fullscreen  
+LMB hold and drag - pan image  
+RMB - open context menu  
+MW scroll up or down - zoom in or out image  
+CTRL + NUM+ - zoom in  
+CTRL + NUM- - zoom out  
+CTRL + 1 - zoom 100%  
+CTRL + 0 - zoom to fit  
+CTRL + O - open file  
+LEFT ARROW - previous image  
+RIGHT ARROW - next image  
+CTRL + LEFT ARROW - rotate CCW  
+CTRL + RIGHT ARROW - rotate CW  
+ESC - exit fullscreen or quit app  
+
 ## Settings
 
 You can access the settings window by right clicking anywhere to open the context menu, then chose `Settings...`.
