@@ -59,8 +59,7 @@ private:
 		return data;
 	}
 	
-	//FIX ME!
-	//in image_input in combination with raw_input can throw read access violation
 	std::unique_ptr<OIIO::ImageInput> image_input;
 	LibRaw raw_input;
+	OIIO::Filesystem::IOMemReader thumb{nullptr, 0};
 };

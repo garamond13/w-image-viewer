@@ -54,7 +54,7 @@ bool Image::set_image_input(std::wstring_view path)
 	//first try to open file with libraw, since oiio cant read thumbnails
 	if (g_config.raw_thumb && raw_input.open_file(path.data()) == LIBRAW_SUCCESS) {
 		if (raw_input.unpack_thumb() == LIBRAW_SUCCESS) {
-			OIIO::Filesystem::IOMemReader thumb(raw_input.imgdata.thumbnail.thumb, raw_input.imgdata.thumbnail.tlength);
+			thumb = { raw_input.imgdata.thumbnail.thumb, raw_input.imgdata.thumbnail.tlength };
 			
 			//OIIO::ImageInput::open(), filename here is irelevant, we only need extension
 			if (raw_input.imgdata.thumbnail.tformat == LIBRAW_THUMBNAIL_JPEG) {
