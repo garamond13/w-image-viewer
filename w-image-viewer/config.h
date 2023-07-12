@@ -26,20 +26,6 @@ enum WIV_WINDOW_NAME_
 	WIV_WINDOW_NAME_FILE_NAME_FULL
 };
 
-inline constexpr auto WIV_SUPPORTED_FILE_TYPES{ L""
-	"*.tif;*.tiff;*.tx;*.env;*.sm;*.vsm;" //tagged image file format (tiff) 
-	"*.jpg;*jpeg;*.jpe;*.jif;*.jfif;*.jfi;" //joint photographic experts group (jpeg)
-	"*.png;" //portable network graphics (png)
-	"*.bmp;*.rle;*.dib;" //bitmap image (bmp)
-	"*.exr;" //openEXR
-	"*.pbm;*.pgm;*.ppm;*.pnm;" //pnm/netpbm
-	"*.psd;" //psd
-	"*.tga;*.icb;*.vda;*.vst;*.tpic;" //truevision tga (targa)
-	"*.ico;" //icon
-	"*.cr2;*.arw;*.raf;*.dng;*.nrw;*.nef;*.orf;*.rw2;" //raw
-	"*.webp;" //webp
-};
-
 inline constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
 inline constexpr auto WIV_WINDOW_STYLE{ WS_OVERLAPPEDWINDOW };
 inline constexpr auto WIV_WINDOW_EX_STYLE{ WS_EX_ACCEPTFILES };

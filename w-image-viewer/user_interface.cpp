@@ -5,6 +5,7 @@
 #include "helpers.h"
 #include "shader_config.h"
 #include "version.h"
+#include "supported_extensions.h"
 
 User_interface::~User_interface()
 {
@@ -513,7 +514,7 @@ void User_interface::dialog_file_open()
 	Microsoft::WRL::ComPtr<IFileOpenDialog> file_open_dialog;
 	if (CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(file_open_dialog.ReleaseAndGetAddressOf())) == S_OK) {
 		constexpr std::array filterspec{
-			COMDLG_FILTERSPEC{ L"All supported", WIV_SUPPORTED_FILE_TYPES }
+			COMDLG_FILTERSPEC{ L"All supported", WIV_SUPPORTED_EXTENSIONS }
 		};
 		wiv_assert(file_open_dialog->SetFileTypes(filterspec.size(), filterspec.data()), == S_OK);
 		if (file_open_dialog->Show(hwnd) == S_OK) {

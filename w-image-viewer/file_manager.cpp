@@ -2,6 +2,7 @@
 #include "file_manager.h"
 #include "config.h"
 #include "helpers.h"
+#include "supported_extensions.h"
 
 bool File_manager::file_open(std::wstring_view path)
 {
@@ -17,7 +18,7 @@ void File_manager::file_next()
     //iterate directory
     std::vector<std::filesystem::path> files;
     for (const auto& file : std::filesystem::directory_iterator(file_current.parent_path())) {
-        if (!file.is_directory() && PathMatchSpecExW(file.path().c_str(), WIV_SUPPORTED_FILE_TYPES, PMSF_MULTIPLE) == S_OK) {
+        if (!file.is_directory() && PathMatchSpecExW(file.path().c_str(), WIV_SUPPORTED_EXTENSIONS, PMSF_MULTIPLE) == S_OK) {
             if (file.path() > file_current)
                 files.push_back(file.path());
         }
@@ -41,7 +42,7 @@ void File_manager::file_previous()
     //iterate directory
     std::vector<std::filesystem::path> files;
     for (const auto& file : std::filesystem::directory_iterator(file_current.parent_path())) {
-        if (!file.is_directory() && PathMatchSpecExW(file.path().c_str(), WIV_SUPPORTED_FILE_TYPES, PMSF_MULTIPLE) == S_OK) {
+        if (!file.is_directory() && PathMatchSpecExW(file.path().c_str(), WIV_SUPPORTED_EXTENSIONS, PMSF_MULTIPLE) == S_OK) {
             if (file.path() < file_current)
                 files.push_back(file.path());
         }

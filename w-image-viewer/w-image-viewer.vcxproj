@@ -164,6 +164,7 @@
     <ClInclude Include="image.h" />
     <ClInclude Include="cms_lut.h" />
     <ClInclude Include="range.h" />
+    <ClInclude Include="supported_extensions.h" />
     <ClInclude Include="wiv_imconfig.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="renderer.h" />
