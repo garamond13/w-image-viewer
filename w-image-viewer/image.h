@@ -61,5 +61,5 @@ private:
 	
 	std::unique_ptr<OIIO::ImageInput> image_input;
 	LibRaw raw_input;
-	OIIO::Filesystem::IOMemReader thumb{nullptr, 0};
+	OIIO::Filesystem::IOMemReader thumb{ nullptr, 0 };
 };
