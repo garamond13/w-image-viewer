@@ -105,7 +105,7 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 #ifdef read_array
 #undef read_array
 #endif
-#define read_array(name,i) if (key == name ## _ ## i ## _KEY) { strtoval(val, name ## _VAL [i]); return; }
+#define read_array(name) for (int i{}; i < name ## _KEY.size(); ++i) if (key == name ## _KEY[i]) { strtoval(val, name ## _VAL[i]); return; }
 
 	//WIV_NAME_WINDOW_
 	read(WIV_NAME_WINDOW_WIDTH)
@@ -114,18 +114,12 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 	read(WIV_NAME_WINDOW_NAME)
 
 	//WIV_NAME_CLEAR_
-	read_array(WIV_NAME_CLEAR_COLOR, 0)
-	read_array(WIV_NAME_CLEAR_COLOR, 1)
-	read_array(WIV_NAME_CLEAR_COLOR, 2)
+	read_array(WIV_NAME_CLEAR_COLOR)
 
 	//WIV_NAME_ALPHA_
 	read(WIV_NAME_ALPHA_TILE_SIZE)
-	read_array(WIV_NAME_ALPHA_TILE1_COLOR, 0)
-	read_array(WIV_NAME_ALPHA_TILE1_COLOR, 1)
-	read_array(WIV_NAME_ALPHA_TILE1_COLOR, 2)
-	read_array(WIV_NAME_ALPHA_TILE2_COLOR, 0)
-	read_array(WIV_NAME_ALPHA_TILE2_COLOR, 1)
-	read_array(WIV_NAME_ALPHA_TILE2_COLOR, 2)
+	read_array(WIV_NAME_ALPHA_TILE1_COLOR)
+	read_array(WIV_NAME_ALPHA_TILE2_COLOR)
 
 	//WIV_NAME_CMS_
 	read(WIV_NAME_CMS_USE)
@@ -188,7 +182,7 @@ void Config::write_top_level(std::ofstream& file)
 #ifdef write_array
 #undef write_array
 #endif
-#define write_array(name,i) file << name ## _ ## i ## _KEY << '=' << name ## _VAL [i] << '\n';
+#define write_array(name) for (int i{}; i < name ## _KEY.size(); ++i) file << name ## _KEY[i] << '=' << name ## _VAL[i] << '\n';
 
 	//WIV_NAME_WINDOW_
 	write(WIV_NAME_WINDOW_WIDTH)
@@ -197,18 +191,12 @@ void Config::write_top_level(std::ofstream& file)
 	write(WIV_NAME_WINDOW_NAME)
 
 	//WIV_NAME_CLEAR_
-	write_array(WIV_NAME_CLEAR_COLOR, 0)
-	write_array(WIV_NAME_CLEAR_COLOR, 1)
-	write_array(WIV_NAME_CLEAR_COLOR, 2)
+	write_array(WIV_NAME_CLEAR_COLOR)
 
 	//WIV_NAME_ALPHA_
 	write(WIV_NAME_ALPHA_TILE_SIZE)
-	write_array(WIV_NAME_ALPHA_TILE1_COLOR, 0)
-	write_array(WIV_NAME_ALPHA_TILE1_COLOR, 1)
-	write_array(WIV_NAME_ALPHA_TILE1_COLOR, 2)
-	write_array(WIV_NAME_ALPHA_TILE2_COLOR, 0)
-	write_array(WIV_NAME_ALPHA_TILE2_COLOR, 1)
-	write_array(WIV_NAME_ALPHA_TILE2_COLOR, 2)
+	write_array(WIV_NAME_ALPHA_TILE1_COLOR)
+	write_array(WIV_NAME_ALPHA_TILE2_COLOR)
 
 	//WIV_NAME_CMS_
 	write(WIV_NAME_CMS_USE)
