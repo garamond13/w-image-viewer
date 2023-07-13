@@ -155,7 +155,7 @@ void Renderer::create_device()
 	constexpr UINT flags{ D3D11_CREATE_DEVICE_DEBUG };
 #endif
 
-	static constexpr std::array feature_levels{
+	static constinit const std::array feature_levels{
 		D3D_FEATURE_LEVEL_12_1,
 		D3D_FEATURE_LEVEL_12_0,
 		D3D_FEATURE_LEVEL_11_1,
@@ -288,7 +288,7 @@ void Renderer::create_cms_lut()
 	}
 
 	//bind lut as 3d texture
-	static constexpr D3D11_TEXTURE3D_DESC texture3d_desc{
+	static constinit const D3D11_TEXTURE3D_DESC texture3d_desc{
 		.Width{ WIV_CMS_LUT_SIZE },
 		.Height{ WIV_CMS_LUT_SIZE },
 		.Depth{ WIV_CMS_LUT_SIZE },
@@ -655,7 +655,7 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 
 	//draw
 	device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
-	static constexpr std::array clear_color{ 0.0f, 0.0f, 0.0f, 1.0f };
+	static constinit const std::array clear_color{ 0.0f, 0.0f, 0.0f, 1.0f };
 	device_context->ClearRenderTargetView(rtv.Get(), clear_color.data());
 	device_context->Draw(3, 0);
 

@@ -296,8 +296,8 @@ void User_interface::context_menu()
 void User_interface::window_settings()
 {
 	if (is_window_settings_open) {
-		static constexpr ImVec2 window_size{ 430.0f, 430.0f };
-		static constexpr ImVec2 button_size{ -1.0f, 0.0f };
+		static constinit const ImVec2 window_size{ 430.0f, 430.0f };
+		static constinit const ImVec2 button_size{ -1.0f, 0.0f };
 		ImGui::SetNextWindowSize(window_size, ImGuiCond_Once);
 		ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
 		if (ImGui::CollapsingHeader("General")) {
@@ -310,14 +310,14 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::ColorEdit4("Background color", g_config.clear_color.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
-			static constexpr std::array items{
+			static constinit const std::array items{
 				"Defualt name",
 				"Filename",
 				"Full filename"
 			};
 			ImGui::Combo("Window name", &g_config.window_name, items.data(), items.size());
 			ImGui::Spacing();
-			static constexpr std::array items2{
+			static constinit const std::array items2{
 				"RGBA32F",
 				"RGBA16F"
 			};
@@ -398,7 +398,7 @@ void User_interface::window_settings()
 			ImGui::SeparatorText("Scale");
 			ImGui::Checkbox("Use cylindrical filtering", &scale.kernel_use_cyl);
 			ImGui::Spacing();
-			static constexpr std::array items{
+			static constinit const std::array items{
 				"Lanczos",
 				"Ginseng",
 				"Hamming",
@@ -443,7 +443,7 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable color managment system", &g_config.cms_use);
 			ImGui::Spacing();
-			static constexpr std::array items2{
+			static constinit const std::array items2{
 				"Auto",
 				"sRGB",
 				"AdobeRGB",
@@ -457,7 +457,7 @@ void User_interface::window_settings()
 			g_config.cms_profile_display_custom = buffer;
 			dimm();
 			ImGui::Spacing();
-			static constexpr std::array items{
+			static constinit const std::array items{
 				"Perceptual",
 				"Relative colorimetric",
 				"Saturation",
@@ -489,7 +489,7 @@ void User_interface::window_settings()
 void User_interface::window_about()
 {
 	if (is_window_about_open) {
-		static constexpr ImVec2 size{ 288, 178.0f };
+		static constinit const ImVec2 size{ 288, 178.0f };
 		ImGui::SetNextWindowSize(size);
 		ImGui::Begin("About", &is_window_about_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("W Image Viewer %d.%d.%d", WIV_VERSION_NUMBER_MAJOR, WIV_VERSION_NUMBER_MINOR, WIV_VERSION_NUMBER_PATCH);
@@ -513,8 +513,8 @@ void User_interface::dialog_file_open()
 	wiv_assert(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE), >= S_OK);
 	Microsoft::WRL::ComPtr<IFileOpenDialog> file_open_dialog;
 	if (CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(file_open_dialog.ReleaseAndGetAddressOf())) == S_OK) {
-		static constexpr std::array filterspec{
-			COMDLG_FILTERSPEC{ L"All supported", WIV_SUPPORTED_EXTENSIONS }
+		static constinit const std::array<COMDLG_FILTERSPEC, 1> filterspec{
+			{ L"All supported", WIV_SUPPORTED_EXTENSIONS }
 		};
 		wiv_assert(file_open_dialog->SetFileTypes(filterspec.size(), filterspec.data()), == S_OK);
 		if (file_open_dialog->Show(hwnd) == S_OK) {

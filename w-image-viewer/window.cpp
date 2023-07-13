@@ -7,7 +7,7 @@
 Window::Window(HINSTANCE hinstance, int ncmdshow)
 {
     //register window class
-    WNDCLASSEXW wndclassexw{
+    const WNDCLASSEXW wndclassexw{
         .cbSize{ sizeof(WNDCLASSEXW) },
         .style{ CS_HREDRAW | CS_VREDRAW },
         .lpfnWndProc{ wnd_proc },
