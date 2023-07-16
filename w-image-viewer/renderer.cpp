@@ -727,10 +727,11 @@ void Renderer::update_scale_and_dims_output() noexcept
 		scale = get_ratio<float>(dims_swap_chain.width, image_w);
 	}
 
-	scale = scale + user_interface.image_zoom < WIV_FLT_EPS ? scale : scale + user_interface.image_zoom;
-	assert(scale > WIV_FLT_EPS);
-	dims_output.width = static_cast<int>(std::lround(image_w * scale));
-	dims_output.height = static_cast<int>(std::lround(image_h * scale));
+	//apply image_zoom to scale and limit minimum scale
+	scale = std::max(scale + user_interface.image_zoom * scale, 1e-3f);
+
+	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
+	dims_output.height = static_cast<int>(std::ceil(image_h * scale));
 }
 
 void Renderer::update_scale_profile() noexcept
