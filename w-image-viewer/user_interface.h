@@ -3,6 +3,12 @@
 #include "pch.h"
 #include "file_manager.h"
 
+enum WIV_OPEN_
+{
+	WIV_OPEN_IMAGE,
+	WIV_OPEN_ICC
+};
+
 class User_interface
 {
 public:
@@ -30,7 +36,7 @@ private:
 	void context_menu();
 	void window_settings();
 	void window_about();
-	void dialog_file_open();
+	void dialog_file_open(WIV_OPEN_ file_type);
 	void toggle_fullscreen();
 	void dimm(bool condition = false) const;
 	HWND hwnd;

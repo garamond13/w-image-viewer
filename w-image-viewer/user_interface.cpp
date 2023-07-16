@@ -158,7 +158,10 @@ void User_interface::input()
 		//ctrl + key
 		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
 			if (ImGui::IsKeyPressed(ImGuiKey_O, false)) {
-				dialog_file_open();
+				
+				//it will block the thread, but probably no need to run it from new thread
+				dialog_file_open(WIV_OPEN_IMAGE);
+				
 				return;
 			}
 			if (ImGui::IsKeyPressed(ImGuiKey_1, false)) {
@@ -237,7 +240,7 @@ void User_interface::context_menu()
 {
 	if (ImGui::BeginPopupContextVoid("Right click menu")) {
 		if (ImGui::Selectable("Open...")) {
-			std::thread t(&User_interface::dialog_file_open, this);
+			std::thread t(&User_interface::dialog_file_open, this, WIV_OPEN_IMAGE);
 			t.detach();
 			goto end;
 		}
@@ -453,9 +456,14 @@ void User_interface::window_settings()
 			char buffer[MAX_PATH];
 			std::strcpy(buffer, g_config.cms_profile_display_custom.string().c_str());
 			dimm(g_config.cms_profile_display != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
-			ImGui::InputText("Custom path", buffer, MAX_PATH);
+			ImGui::InputText("##custom path", buffer, MAX_PATH);
 			g_config.cms_profile_display_custom = buffer;
 			dimm();
+			ImGui::SameLine();
+			if (ImGui::Button("Custom...", button_size)) {
+				std::thread t(&User_interface::dialog_file_open, this, WIV_OPEN_ICC);
+				t.detach();
+			}
 			ImGui::Spacing();
 			static constinit const std::array items{
 				"Perceptual",
@@ -507,25 +515,34 @@ void User_interface::window_about()
 	}
 }
 
-void User_interface::dialog_file_open()
+//dont think this can get any uglier
+void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 {
 	is_dialog_file_open = true;
 	wiv_assert(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE), >= S_OK);
 	Microsoft::WRL::ComPtr<IFileOpenDialog> file_open_dialog;
 	if (CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(file_open_dialog.ReleaseAndGetAddressOf())) == S_OK) {
-		static constinit const std::array<COMDLG_FILTERSPEC, 1> filterspec{
-			{ L"All supported", WIV_SUPPORTED_EXTENSIONS }
+		COMDLG_FILTERSPEC filterspec{
+			.pszName{ L"All supported" }
 		};
-		wiv_assert(file_open_dialog->SetFileTypes(filterspec.size(), filterspec.data()), == S_OK);
+		if (file_type == WIV_OPEN_IMAGE)
+			filterspec.pszSpec = WIV_SUPPORTED_EXTENSIONS;
+		else //WIV_OPEN_ICC
+			filterspec.pszSpec = L"*.icc";
+		wiv_assert(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
 		if (file_open_dialog->Show(hwnd) == S_OK) {
 			Microsoft::WRL::ComPtr<IShellItem> shell_item;
 			if (file_open_dialog->GetResult(shell_item.ReleaseAndGetAddressOf()) == S_OK) {
 				wchar_t* path;
 				if (shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path) == S_OK) {
-					if (file_manager.file_open(path))
-						wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
-					else
-						wiv_assert(PostMessageW(hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+					if (file_type == WIV_OPEN_IMAGE) {
+						if (file_manager.file_open(path))
+							wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+						else
+							wiv_assert(PostMessageW(hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+					}
+					else //WIV_OPEN_ICC
+						g_config.cms_profile_display_custom = path;
 					CoTaskMemFree(path);
 				}
 			}

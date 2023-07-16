@@ -117,8 +117,8 @@ Amount (strenght) of sharpening.
 `Display profile`  
 Sets display color profile. `Auto` automatically picks installed color profile, `sRGB` uses internal sRGB profile as if its display profile, `AdobeRGB` uses internal AdobeRGB profile as if its display profile, and `Custom` enables the use of custom profile.
 
-`Custom path`  
-If you set `Display profile` to `Custom` here you can provide file path to custom profile (example C:\New Folder\display profile.icc).
+`Custom...`  
+If you set `Display profile` to `Custom` here you can provide file path to custom profile (example C:\New Folder\display profile.icc). Click on the `Custom...` button to bring up file open dialog.
 
 `Rendering intent`
 
