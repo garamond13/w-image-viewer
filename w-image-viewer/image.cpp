@@ -39,14 +39,34 @@ int Image::get_tagged_color_space()
 
 		//std::strstr(const char* str, const char* strSearch)
 		//returns a pointer to the first occurrence of strSearch in str, or nullptr if strSearch doesn't appear in str
+		//
+
 		if (std::strstr(tag, "sRGB"))
 			return WIV_COLOR_SPACE_SRGB;
-		else if (std::strstr(tag, "AdobeRGB"))
+		if (std::strstr(tag, "AdobeRGB"))
 			return WIV_COLOR_SPACE_ADOBE;
+
+		//checking for upper (Linear) and lower case linear should cover all cases
+		if (std::strstr(tag, "inear") /* not typo */ ) {
+			
+			if (g_config.cms_use_default_to_aces)
+				return WIV_COLOR_SPACE_ACES;
+			else
+				return WIV_COLOR_SPACE_LINEAR_SRGB;
+		}
+
+		if (std::strstr(tag, "ACEScg"))
+			return WIV_COLOR_SPACE_ACES;
+		
+		if (std::strstr(tag, "lin_srgb"))
+			return WIV_COLOR_SPACE_LINEAR_SRGB;
 	}
 
-	//indicate failure
-	return -1;
+	//
+
+	if (g_config.cms_use_defualt_to_srgb)
+		return WIV_COLOR_SPACE_SRGB;
+	return WIV_COLOR_SPACE_NONE;
 }
 
 bool Image::set_image_input(std::wstring_view path)

@@ -110,9 +110,9 @@ Blur spread, larger values increase the contribution of neighboring pixels.
 `Amount`  
 Amount (strenght) of sharpening.
 
-### Color managment
+### Color management
 
-`Enable color managment system`
+`Enable color management`
 
 `Display profile`  
 Sets display color profile. `Auto` automatically picks installed color profile, `sRGB` uses internal sRGB profile as if its display profile, `AdobeRGB` uses internal AdobeRGB profile as if its display profile, and `Custom` enables the use of custom profile.
@@ -124,9 +124,12 @@ If you set `Display profile` to `Custom` here you can provide file path to custo
 
 `Enable black point compensation`
 
-#### Unatagged images
+#### Color tags
 
-`Default to sRGB`  
+`Linear tagged images default to ACEScg`  
+Treat images with linear tags as ACEScg. If unchecked, images with linear tags will be treated as linear sRGB.
+
+`Untagged images Default to sRGB`  
 Treat images without any embedded color profiles or color tags as sRGB.
 
 ### Transparency

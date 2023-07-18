@@ -442,10 +442,11 @@ void User_interface::window_settings()
 			dimm();
 			ImGui::Spacing();
 		}
-		if (ImGui::CollapsingHeader("Color managment")) {
+		if (ImGui::CollapsingHeader("Color management")) {
 			ImGui::Spacing();
-			ImGui::Checkbox("Enable color managment system", &g_config.cms_use);
+			ImGui::Checkbox("Enable color management", &g_config.cms_use);
 			ImGui::Spacing();
+			dimm(!g_config.cms_use);
 			static constinit const std::array items2{
 				"Auto",
 				"sRGB",
@@ -455,10 +456,12 @@ void User_interface::window_settings()
 			ImGui::Combo("Display profile", &g_config.cms_profile_display, items2.data(), items2.size());
 			char buffer[MAX_PATH];
 			std::strcpy(buffer, g_config.cms_profile_display_custom.string().c_str());
-			dimm(g_config.cms_profile_display != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
+			if (g_config.cms_use)
+				dimm(g_config.cms_profile_display != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
 			ImGui::InputText("##custom path", buffer, MAX_PATH);
 			g_config.cms_profile_display_custom = buffer;
-			dimm();
+			if (g_config.cms_use)
+				dimm();
 			ImGui::SameLine();
 			if (ImGui::Button("Custom...", button_size)) {
 				std::thread t(&User_interface::dialog_file_open, this, WIV_OPEN_ICC);
@@ -474,8 +477,11 @@ void User_interface::window_settings()
 			ImGui::Combo("Rendering intent", &g_config.cms_intent, items.data(), items.size());
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable black point compensation", &g_config.cms_use_bpc);
-			ImGui::SeparatorText("Untagged images");
-			ImGui::Checkbox("Default to sRGB", &g_config.cms_use_defualt_to_srgb);
+			dimm();
+			ImGui::SeparatorText("Color tags");
+			ImGui::Checkbox("Linear tagged images default to ACEScg", &g_config.cms_use_default_to_aces);
+			ImGui::Spacing();
+			ImGui::Checkbox("Untagged images default to sRGB", &g_config.cms_use_defualt_to_srgb);
 			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Transparency")) {

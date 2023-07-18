@@ -75,6 +75,9 @@ inline constexpr auto WIV_NAME_CMS_USE_BLACKPOINT_COMPENSATION_KEY{ "cms_bpc" };
 inline constexpr auto WIV_NAME_CMS_USE_DEFUALT_TO_SRGB_KEY{ "cms_deftosrgb" };
 #define WIV_NAME_CMS_USE_DEFUALT_TO_SRGB_VAL cms_use_defualt_to_srgb
 
+inline constexpr auto WIV_NAME_CMS_USE_DEFUALT_TO_ACES_KEY{ "cms_deftoaces" };
+#define WIV_NAME_CMS_USE_DEFUALT_TO_ACES_VAL cms_use_default_to_aces
+
 inline constexpr auto WIV_NAME_CMS_PROFILE_DISPLAY_KEY{ "cms_prof" }; //enum WIV_CMS_PROFILE_DISPLAY_
 #define WIV_NAME_CMS_PROFILE_DISPLAY_VAL cms_profile_display //enum WIV_CMS_PROFILE_DISPLAY_
 

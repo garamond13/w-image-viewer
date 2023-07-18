@@ -317,7 +317,30 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 	cmsUInt32Number flags{ cmsFLAGS_NOCACHE | cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE };
 	if (g_config.cms_use_bpc)
 		flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
-	auto htransform{ cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent, flags)};
+	cmsHTRANSFORM htransform{};
+	if (image.embended_profile)
+		htransform = cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent, flags);
+	else {
+		cmsHPROFILE hprofile{};
+		switch (image.get_tagged_color_space()) {
+		case WIV_COLOR_SPACE_SRGB:
+			hprofile = cmsCreate_sRGBProfile();
+			break;
+		case WIV_COLOR_SPACE_ADOBE:
+			hprofile = cms_create_profile_adobe_rgb();
+			break;
+		case WIV_COLOR_SPACE_ACES:
+			hprofile = cms_create_profile_aces_cg();
+			break;
+		case WIV_COLOR_SPACE_LINEAR_SRGB:
+			hprofile = cms_create_profile_linear_srgb();
+			break;
+		}
+		if (hprofile) {
+			htransform = cmsCreateTransform(hprofile, TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent, flags);
+			cmsCloseProfile(hprofile);
+		}
+	}
 	if (htransform) {
 		lut = std::make_unique_for_overwrite<uint16_t[]>(WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * 4);
 		cmsDoTransform(htransform, WIV_CMS_LUT.data(), lut.get(), WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE);

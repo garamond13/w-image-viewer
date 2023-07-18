@@ -31,3 +31,19 @@ cmsHPROFILE cms_create_profile_linear_srgb() noexcept
 	cmsFreeToneCurve(tone_curve[0]);
 	return profile;
 }
+
+//source https://docs.acescentral.com/specifications/acescg/
+cmsHPROFILE cms_create_profile_aces_cg() noexcept
+{
+	static constinit const cmsCIExyY whitepoint{ 0.32168, 0.33767, 1.0 };
+	static constinit const cmsCIExyYTRIPLE primaries{
+		{ 0.713, 0.293, 1.0 },
+		{ 0.165, 0.830, 1.0 },
+		{ 0.128, 0.044, 1.0 }
+	};
+	std::array<cmsToneCurve*, 3> tone_curve;
+	tone_curve[2] = tone_curve[1] = tone_curve[0] = cmsBuildGamma(nullptr, 1.0);
+	cmsHPROFILE profile{ cmsCreateRGBProfile(&whitepoint, &primaries, tone_curve.data()) };
+	cmsFreeToneCurve(tone_curve[0]);
+	return profile;
+}
