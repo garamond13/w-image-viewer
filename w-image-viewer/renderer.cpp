@@ -738,21 +738,20 @@ void Renderer::update_scale_and_dims_output() noexcept
 	if (is_not_zero(frac(user_interface.image_rotation / 180.0f)))
 		std::swap(image_w, image_h);
 
+	float auto_zoom;
 	if (user_interface.image_no_scale) {
-		scale = 1.0f;
+		auto_zoom = 0.0f;
 	}
 
 	//fit inside the window
 	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image_w, image_h)) {
-		scale = get_ratio<float>(dims_swap_chain.height, image_h);
+		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.height, image_h));
 	}
 	else {
-		scale = get_ratio<float>(dims_swap_chain.width, image_w);
+		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.width, image_w));
 	}
 
-	//apply image_zoom to scale and limit minimum scale
-	scale = std::max(scale + user_interface.image_zoom * scale, 1e-3f);
-
+	scale = std::pow(2.0f, auto_zoom + user_interface.image_zoom);
 	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
 	dims_output.height = static_cast<int>(std::ceil(image_h * scale));
 }
