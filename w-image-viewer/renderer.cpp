@@ -739,17 +739,14 @@ void Renderer::update_scale_and_dims_output() noexcept
 		std::swap(image_w, image_h);
 
 	float auto_zoom;
-	if (user_interface.image_no_scale) {
+	if (user_interface.image_no_scale)
 		auto_zoom = 0.0f;
-	}
 
 	//fit inside the window
-	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image_w, image_h)) {
+	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image_w, image_h))
 		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.height, image_h));
-	}
-	else {
+	else
 		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.width, image_w));
-	}
 
 	scale = std::pow(2.0f, auto_zoom + user_interface.image_zoom);
 	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
