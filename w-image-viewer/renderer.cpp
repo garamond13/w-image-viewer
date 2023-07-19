@@ -761,7 +761,8 @@ void Renderer::update_scale_profile() noexcept
 			return;
 		}
 	}
-	//use default profile
+
+	//else use default profile
 	p_scale_profile = &g_config.scale_profiles[0].config;
 }
 
