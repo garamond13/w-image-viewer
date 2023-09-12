@@ -32,15 +32,15 @@ void Window::set_window_name() const
 {
     std::wstring name;
     switch (g_config.window_name) {
-    case WIV_WINDOW_NAME_DEFAULT:
-        name = WIV_WINDOW_NAME;
-        break;
-    case WIV_WINDOW_NAME_FILE_NAME:
-        name = renderer.user_interface.file_manager.file_current.filename().wstring() + L" - " + WIV_WINDOW_NAME;
-        break;
-    case WIV_WINDOW_NAME_FILE_NAME_FULL:
-        name = renderer.user_interface.file_manager.file_current.wstring() + L" - " + WIV_WINDOW_NAME;
-        break;
+        case WIV_WINDOW_NAME_DEFAULT:
+            name = WIV_WINDOW_NAME;
+            break;
+        case WIV_WINDOW_NAME_FILE_NAME:
+            name = renderer.user_interface.file_manager.file_current.filename().wstring() + L" - " + WIV_WINDOW_NAME;
+            break;
+        case WIV_WINDOW_NAME_FILE_NAME_FULL:
+            name = renderer.user_interface.file_manager.file_current.wstring() + L" - " + WIV_WINDOW_NAME;
+            break;
     }
     wiv_assert(SetWindowTextW(hwnd, name.c_str()), != 0);
 }
@@ -78,64 +78,65 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     auto* window{ reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA)) };
 
     switch (message) {
+        
         //WM_NCCREATE is not guarantied to be the first message
-    [[unlikely]] case WM_NCCREATE:
-        window = reinterpret_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lparam)->lpCreateParams);
-        window->hwnd = hwnd;
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
-        return DefWindowProcW(hwnd, message, wparam, lparam);
+        [[unlikely]] case WM_NCCREATE:
+            window = reinterpret_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lparam)->lpCreateParams);
+            window->hwnd = hwnd;
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
+            return DefWindowProcW(hwnd, message, wparam, lparam);
 
-    case WM_ERASEBKGND:
-        return 1;
+        case WM_ERASEBKGND:
+            return 1;
 
-        //set minimum window size
-    case WM_GETMINMAXINFO:
-        reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = GetSystemMetrics(SM_CXMIN);
-        reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.y = GetSystemMetrics(SM_CYMIN) + 1;
-        break;
+            //set minimum window size
+        case WM_GETMINMAXINFO:
+            reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = GetSystemMetrics(SM_CXMIN);
+            reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.y = GetSystemMetrics(SM_CYMIN) + 1;
+            break;
 
-        //provides the mosuse cursor in fullscren on mousemove
-        //without this, after exiting from fullscreen the mosue cursor may stay hidden
-    case WM_MOUSEMOVE:
-        while (ShowCursor(TRUE) < 0);
-        break;
-    case WM_NCMOUSEMOVE:
-        while (ShowCursor(TRUE) < 0);
-        break;
+            //provides the mosuse cursor in fullscren on mousemove
+            //without this, after exiting from fullscreen the mosue cursor may stay hidden
+        case WM_MOUSEMOVE:
+            while (ShowCursor(TRUE) < 0);
+            break;
+        case WM_NCMOUSEMOVE:
+            while (ShowCursor(TRUE) < 0);
+            break;
 
-    case WIV_WM_OPEN_FILE:
-        window->renderer.create_image();
-        if(g_config.window_autowh)
-            window->renderer.user_interface.auto_window_size();
-        window->renderer.user_interface.reset_image_panzoom();
-        window->reset_image_rotation();
-        window->set_window_name();
-        window->renderer.should_update = true;
-        break;
-    case WM_SIZE:
-        window->renderer.on_window_resize();
-        window->renderer.user_interface.reset_image_panzoom();
-        window->renderer.should_update = true;
-        break;
-    case WM_DROPFILES:
-        if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
+        case WIV_WM_OPEN_FILE:
             window->renderer.create_image();
-            if (g_config.window_autowh)
+            if(g_config.window_autowh)
                 window->renderer.user_interface.auto_window_size();
             window->renderer.user_interface.reset_image_panzoom();
             window->reset_image_rotation();
             window->set_window_name();
             window->renderer.should_update = true;
-        }
-        break;
-    case WIV_WM_RESET_RESOURCES:
-        window->renderer.reset_resources();
-        break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProcW(hwnd, message, wparam, lparam);
+            break;
+        case WM_SIZE:
+            window->renderer.on_window_resize();
+            window->renderer.user_interface.reset_image_panzoom();
+            window->renderer.should_update = true;
+            break;
+        case WM_DROPFILES:
+            if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
+                window->renderer.create_image();
+                if (g_config.window_autowh)
+                    window->renderer.user_interface.auto_window_size();
+                window->renderer.user_interface.reset_image_panzoom();
+                window->reset_image_rotation();
+                window->set_window_name();
+                window->renderer.should_update = true;
+            }
+            break;
+        case WIV_WM_RESET_RESOURCES:
+            window->renderer.reset_resources();
+            break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        default:
+            return DefWindowProcW(hwnd, message, wparam, lparam);
     }
     return 0;
 }

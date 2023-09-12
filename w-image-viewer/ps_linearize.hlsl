@@ -19,13 +19,13 @@ float4 main(Vs_out vs_out) : SV_Target
     float4 color = saturate(tex.SampleLevel(smp, vs_out.texcoord, 0.0));
     
     [forcecase] switch (index) {
-    case WIV_CMS_TRC_GAMMA:
-        return float4(gamma(color.rgb), color.a);
-    case WIV_CMS_TRC_SRGB:
-        return float4(srgb(color.rgb), color.a);
-    
-    //red image
-    default:
-        return float4(1.0, 0.0, 0.0, 1.0);
+        case WIV_CMS_TRC_GAMMA:
+            return float4(gamma(color.rgb), color.a);
+        case WIV_CMS_TRC_SRGB:
+            return float4(srgb(color.rgb), color.a);
+        
+        //red image
+        default:
+            return float4(1.0, 0.0, 0.0, 1.0);
     }
 }

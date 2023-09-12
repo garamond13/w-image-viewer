@@ -30,36 +30,36 @@ float get_weight(float x)
 {
     if (x < radius) {
         [forcecase] switch (index) {
-        case WIV_KERNEL_FUNCTION_LANCZOS:
-            return base(x, blur) * sinc(x, radius);
-        case WIV_KERNEL_FUNCTION_GINSENG:
-            return base(x, blur) * jinc(x, radius);
-        case WIV_KERNEL_FUNCTION_HAMMING:
-            return base(x, blur) * hamming(x, radius);
-        case WIV_KERNEL_FUNCTION_POW_COSINE:
-            return base(x, blur) * power_of_cosine(x, radius, p1);
-        case WIV_KERNEL_FUNCTION_GARAMOND_KAISER:
-            return base(x, blur) * garamond_kaiser(x, radius, p1, p2);
-        case WIV_KERNEL_FUNCTION_POW_GARAMOND:
-            return base(x, blur) * power_of_garamond(x, radius, p1, p2);
-        case WIV_KERNEL_FUNCTION_POW_BLACKMAN:
-            return base(x, blur) * power_of_blackman(x, radius, p1, p2);
-        case WIV_KERNEL_FUNCTION_GNW:
-            return base(x, blur) * generalized_normal_window(x, p1, p2);
-        case WIV_KERNEL_FUNCTION_SAID:
-            return base(x, blur) * said(x, p1, p2);
-        case WIV_KERNEL_FUNCTION_NEAREST:
-            return nearest_neighbor(x);
-        case WIV_KERNEL_FUNCTION_LINEAR:
-            return linear_kernel(x);
-        case WIV_KERNEL_FUNCTION_BICUBIC:
-            return bicubic(x, p1);
-        case WIV_KERNEL_FUNCTION_FSR:
-            return modified_fsr_kernel(x, p1, p2);
-        case WIV_KERNEL_FUNCTION_BCSPLINE:
-            return bc_spline(x, p1, p2);
-        default: //black image
-            return 0.0;
+            case WIV_KERNEL_FUNCTION_LANCZOS:
+                return base(x, blur) * sinc(x, radius);
+            case WIV_KERNEL_FUNCTION_GINSENG:
+                return base(x, blur) * jinc(x, radius);
+            case WIV_KERNEL_FUNCTION_HAMMING:
+                return base(x, blur) * hamming(x, radius);
+            case WIV_KERNEL_FUNCTION_POW_COSINE:
+                return base(x, blur) * power_of_cosine(x, radius, p1);
+            case WIV_KERNEL_FUNCTION_GARAMOND_KAISER:
+                return base(x, blur) * garamond_kaiser(x, radius, p1, p2);
+            case WIV_KERNEL_FUNCTION_POW_GARAMOND:
+                return base(x, blur) * power_of_garamond(x, radius, p1, p2);
+            case WIV_KERNEL_FUNCTION_POW_BLACKMAN:
+                return base(x, blur) * power_of_blackman(x, radius, p1, p2);
+            case WIV_KERNEL_FUNCTION_GNW:
+                return base(x, blur) * generalized_normal_window(x, p1, p2);
+            case WIV_KERNEL_FUNCTION_SAID:
+                return base(x, blur) * said(x, p1, p2);
+            case WIV_KERNEL_FUNCTION_NEAREST:
+                return nearest_neighbor(x);
+            case WIV_KERNEL_FUNCTION_LINEAR:
+                return linear_kernel(x);
+            case WIV_KERNEL_FUNCTION_BICUBIC:
+                return bicubic(x, p1);
+            case WIV_KERNEL_FUNCTION_FSR:
+                return modified_fsr_kernel(x, p1, p2);
+            case WIV_KERNEL_FUNCTION_BCSPLINE:
+                return bc_spline(x, p1, p2);
+            default: //black image
+                return 0.0;
         }
     }
     else //x >= radius

@@ -254,28 +254,28 @@ void Renderer::create_vertex_shader() const noexcept
 void Renderer::create_cms_profile_display()
 {
 	switch (g_config.cms_profile_display) {
-	case WIV_CMS_PROFILE_DISPLAY_AUTO: {
+		case WIV_CMS_PROFILE_DISPLAY_AUTO: {
 
-		//get system default icc profile
-		auto dc{ GetDC(nullptr) };
-		DWORD size;
-		GetICMProfileA(dc, &size, nullptr);
-		auto path{ std::make_unique_for_overwrite<char[]>(size) };
-		wiv_assert(GetICMProfileA(dc, &size, path.get()), == TRUE);
-		wiv_assert(ReleaseDC(nullptr, dc), == 1);
-		
-		cms_profile_display.reset(cmsOpenProfileFromFile(path.get(), "r"));
-		break;
-	}
-	case WIV_CMS_PROFILE_DISPLAY_SRGB:
-		cms_profile_display.reset(cmsCreate_sRGBProfile());
-		break;
-	case WIV_CMS_PROFILE_DISPLAY_ADOBE:
-		cms_profile_display.reset(cms_create_profile_adobe_rgb());
-		break;
-	case WIV_CMS_PROFILE_DISPLAY_CUSTOM:
-		cms_profile_display.reset(cmsOpenProfileFromFile(g_config.cms_profile_display_custom.string().c_str(), "r"));
-		break;
+			//get system default icc profile
+			auto dc{ GetDC(nullptr) };
+			DWORD size;
+			GetICMProfileA(dc, &size, nullptr);
+			auto path{ std::make_unique_for_overwrite<char[]>(size) };
+			wiv_assert(GetICMProfileA(dc, &size, path.get()), == TRUE);
+			wiv_assert(ReleaseDC(nullptr, dc), == 1);
+			
+			cms_profile_display.reset(cmsOpenProfileFromFile(path.get(), "r"));
+			break;
+		}
+		case WIV_CMS_PROFILE_DISPLAY_SRGB:
+			cms_profile_display.reset(cmsCreate_sRGBProfile());
+			break;
+		case WIV_CMS_PROFILE_DISPLAY_ADOBE:
+			cms_profile_display.reset(cms_create_profile_adobe_rgb());
+			break;
+		case WIV_CMS_PROFILE_DISPLAY_CUSTOM:
+			cms_profile_display.reset(cmsOpenProfileFromFile(g_config.cms_profile_display_custom.string().c_str(), "r"));
+			break;
 	}
 }
 
@@ -323,18 +323,18 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 	else {
 		cmsHPROFILE hprofile{};
 		switch (image.get_tagged_color_space()) {
-		case WIV_COLOR_SPACE_SRGB:
-			hprofile = cmsCreate_sRGBProfile();
-			break;
-		case WIV_COLOR_SPACE_ADOBE:
-			hprofile = cms_create_profile_adobe_rgb();
-			break;
-		case WIV_COLOR_SPACE_ACES:
-			hprofile = cms_create_profile_aces_cg();
-			break;
-		case WIV_COLOR_SPACE_LINEAR_SRGB:
-			hprofile = cms_create_profile_linear_srgb();
-			break;
+			case WIV_COLOR_SPACE_SRGB:
+				hprofile = cmsCreate_sRGBProfile();
+				break;
+			case WIV_COLOR_SPACE_ADOBE:
+				hprofile = cms_create_profile_adobe_rgb();
+				break;
+			case WIV_COLOR_SPACE_ACES:
+				hprofile = cms_create_profile_aces_cg();
+				break;
+			case WIV_COLOR_SPACE_LINEAR_SRGB:
+				hprofile = cms_create_profile_linear_srgb();
+				break;
 		}
 		if (hprofile) {
 			htransform = cmsCreateTransform(hprofile, TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent, flags);

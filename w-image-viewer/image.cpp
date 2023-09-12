@@ -5,22 +5,22 @@
 std::unique_ptr<uint8_t[]> Image::get_data(DXGI_FORMAT& format, UINT& sys_mem_pitch)
 {
 	switch (image_input->spec().format.basetype) {
-	case OIIO::TypeDesc::UINT8:
-		format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sys_mem_pitch = image_input->spec().width * 4;
-		return read_image<uint8_t>();
-	case OIIO::TypeDesc::UINT16:
-		format = DXGI_FORMAT_R16G16B16A16_UNORM;
-		sys_mem_pitch = image_input->spec().width * 4 * 2;
-		return read_image<uint16_t>();
-	case OIIO::TypeDesc::HALF:
-		format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		sys_mem_pitch = image_input->spec().width * 4 * 2;
-		return read_image<uint16_t>();
-	case OIIO::TypeDesc::FLOAT:
-		format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		sys_mem_pitch = image_input->spec().width * 4 * 4;
-		return read_image<uint32_t>();
+		case OIIO::TypeDesc::UINT8:
+			format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			sys_mem_pitch = image_input->spec().width * 4;
+			return read_image<uint8_t>();
+		case OIIO::TypeDesc::UINT16:
+			format = DXGI_FORMAT_R16G16B16A16_UNORM;
+			sys_mem_pitch = image_input->spec().width * 4 * 2;
+			return read_image<uint16_t>();
+		case OIIO::TypeDesc::HALF:
+			format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			sys_mem_pitch = image_input->spec().width * 4 * 2;
+			return read_image<uint16_t>();
+		case OIIO::TypeDesc::FLOAT:
+			format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			sys_mem_pitch = image_input->spec().width * 4 * 4;
+			return read_image<uint32_t>();
 	}
 }
 

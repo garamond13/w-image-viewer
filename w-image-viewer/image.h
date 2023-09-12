@@ -39,18 +39,18 @@ private:
 
 			//convert single channel greyscale image into a 3 channel greyscale image
 			//channels layout: (grey null null null) into (grey grey grey null)
-		case 1:
-			for (int i{}; i < image_input->spec().width * image_input->spec().height; ++i)
-				reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
-			break;
+			case 1:
+				for (int i{}; i < image_input->spec().width * image_input->spec().height; ++i)
+					reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
+				break;
 
 			//convert single channel greyscale image + alpha into a 3 channel greyscale image + alpha
 			//channels layout: (grey alpha null null) into (grey grey grey alpha)
-		case 2:
-			for (int i{}; i < image_input->spec().width * image_input->spec().height; ++i) {
-				reinterpret_cast<T*>(data.get())[4 * i + 3] = reinterpret_cast<T*>(data.get())[4 * i + 1];
-				reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
-			}
+			case 2:
+				for (int i{}; i < image_input->spec().width * image_input->spec().height; ++i) {
+					reinterpret_cast<T*>(data.get())[4 * i + 3] = reinterpret_cast<T*>(data.get())[4 * i + 1];
+					reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
+				}
 		}
 		
 		//at this point we dont need raw_input data anymore
