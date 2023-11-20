@@ -96,8 +96,11 @@ void Renderer::create_image()
 
 	//create texture
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
-		.Width{ image.get_width<UINT>() },
-		.Height{ image.get_height<UINT>() },
+
+		//max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same
+		.Width{ std::clamp(image.get_width<UINT>(), 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
+		.Height{ std::clamp(image.get_height<UINT>(), 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
+
 		.MipLevels{ 1 },
 		.ArraySize{ 1 },
 		.Format{ format },
@@ -659,8 +662,11 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 {
 	//cereate texture
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
-		.Width{ width },
-		.Height{ height },
+		
+		//max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same
+		.Width{ std::clamp(width, 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
+		.Height{ std::clamp(height, 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
+		
 		.MipLevels{ 1 },
 		.ArraySize{ 1 },
 		.Format{ WIV_PASS_FORMATS[g_config.pass_format] },
@@ -671,7 +677,7 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
 	wiv_assert(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.ReleaseAndGetAddressOf()), == S_OK);
-
+	
 	//create render target view
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
 	wiv_assert(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.ReleaseAndGetAddressOf()), == S_OK);
