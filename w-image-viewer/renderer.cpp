@@ -19,6 +19,23 @@
 #include "ps_delinearize_hlsl.h"
 #include "ps_cms_hlsl.h"
 
+//note that in hlsl sizeof bool is 4 bytes
+union Cb_types
+{
+	float f;
+	int32_t i;
+	uint32_t ui;
+};
+
+//use for constant buffer data
+struct alignas(16) Cb4
+{
+	Cb_types x;
+	Cb_types y;
+	Cb_types z;
+	Cb_types w;
+};
+
 void Renderer::create(HWND hwnd)
 {
 	create_device();
