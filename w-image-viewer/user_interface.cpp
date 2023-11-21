@@ -6,6 +6,7 @@
 #include "shader_config.h"
 #include "version.h"
 #include "supported_extensions.h"
+#include "window.h"
 
 User_interface::~User_interface()
 {

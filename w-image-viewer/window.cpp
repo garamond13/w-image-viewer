@@ -4,6 +4,15 @@
 #include "helpers.h"
 #include "resource.h"
 
+constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
+
+enum WIV_WINDOW_NAME_
+{
+    WIV_WINDOW_NAME_DEFAULT,
+    WIV_WINDOW_NAME_FILE_NAME,
+    WIV_WINDOW_NAME_FILE_NAME_FULL
+};
+
 Window::Window(HINSTANCE hinstance, int ncmdshow)
 {
     //register window class

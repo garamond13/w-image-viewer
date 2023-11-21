@@ -21,21 +21,6 @@ enum WIV_CMS_PROFILE_DISPLAY_
 	WIV_CMS_PROFILE_DISPLAY_CUSTOM
 };
 
-enum WIV_WINDOW_NAME_
-{
-	WIV_WINDOW_NAME_DEFAULT,
-	WIV_WINDOW_NAME_FILE_NAME,
-	WIV_WINDOW_NAME_FILE_NAME_FULL
-};
-
-inline constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
-inline constexpr auto WIV_WINDOW_STYLE{ WS_OVERLAPPEDWINDOW };
-inline constexpr auto WIV_WINDOW_EX_STYLE{ WS_EX_ACCEPTFILES };
-
-//window messages
-inline constexpr auto WIV_WM_OPEN_FILE{ WM_USER + 0 };
-inline constexpr auto WIV_WM_RESET_RESOURCES{ WM_USER + 1 };
-
 inline constexpr std::array WIV_PASS_FORMATS{
 	DXGI_FORMAT_R32G32B32A32_FLOAT,
 	DXGI_FORMAT_R16G16B16A16_FLOAT
