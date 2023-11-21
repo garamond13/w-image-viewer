@@ -5,6 +5,14 @@
 #include "user_interface.h"
 #include "dims.h"
 
+enum WIV_CMS_PROFILE_DISPLAY_
+{
+	WIV_CMS_PROFILE_DISPLAY_AUTO,
+	WIV_CMS_PROFILE_DISPLAY_SRGB,
+	WIV_CMS_PROFILE_DISPLAY_ADOBE,
+	WIV_CMS_PROFILE_DISPLAY_CUSTOM
+};
+
 class Renderer
 {
 public:

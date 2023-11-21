@@ -19,6 +19,11 @@
 #include "ps_delinearize_hlsl.h"
 #include "ps_cms_hlsl.h"
 
+constexpr std::array WIV_PASS_FORMATS{
+	DXGI_FORMAT_R32G32B32A32_FLOAT,
+	DXGI_FORMAT_R16G16B16A16_FLOAT
+};
+
 //note that in hlsl sizeof bool is 4 bytes
 union Cb_types
 {
