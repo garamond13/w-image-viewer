@@ -2,6 +2,15 @@
 
 #include "pch.h"
 
+enum WIV_COLOR_SPACE_
+{
+	WIV_COLOR_SPACE_NONE,
+	WIV_COLOR_SPACE_SRGB,
+	WIV_COLOR_SPACE_ADOBE,
+	WIV_COLOR_SPACE_ACES,
+	WIV_COLOR_SPACE_LINEAR_SRGB
+};
+
 class Image
 {
 public:
