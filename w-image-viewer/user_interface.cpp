@@ -407,7 +407,7 @@ void User_interface::window_settings()
 				"Ginseng",
 				"Hamming",
 				"Power of cosine",
-				"Garamond-Kaiser",
+				"Kaiser",
 				"Power of Garamond",
 				"Power of Blackman",
 				"GNW",

@@ -39,8 +39,8 @@ float get_weight(float x)
                 return base(x, blur) * hamming(x, radius);
             case WIV_KERNEL_FUNCTION_POW_COSINE:
                 return base(x, blur) * power_of_cosine(x, radius, p1);
-            case WIV_KERNEL_FUNCTION_GARAMOND_KAISER:
-                return base(x, blur) * garamond_kaiser(x, radius, p1, p2);
+            case WIV_KERNEL_FUNCTION_KAISER:
+                return base(x, blur) * kaiser(x, radius, p1);
             case WIV_KERNEL_FUNCTION_POW_GARAMOND:
                 return base(x, blur) * power_of_garamond(x, radius, p1, p2);
             case WIV_KERNEL_FUNCTION_POW_BLACKMAN:

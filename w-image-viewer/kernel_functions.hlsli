@@ -51,7 +51,7 @@
 #define power_of_cosine(x,r,n) (pow(cos(M_PI_2 / (r) * (x)), (n)))
 
 //normalized version is divided by bessel_I0(beta)
-#define garamond_kaiser(x,r,beta,n) (bessel_I0((beta) * sqrt(1.0 - pow((x) / (r), (n)))))
+#define kaiser(x,r,beta) (bessel_I0((beta) * sqrt(1.0 - (x) * (x) / ((r) * (r)))))
 
 #define power_of_garamond(x,r,n,m) (pow(1.0 - pow((x) / (r), (n)), (m)))
 
