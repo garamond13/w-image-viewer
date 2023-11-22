@@ -332,6 +332,12 @@ void User_interface::window_settings()
 		if (ImGui::CollapsingHeader("General")) {
 			ImGui::Spacing();
 			ImGui::TextUnformatted("Default window dimensions:");
+			if (ImGui::Button("Use current dimensions")) {
+				RECT rect;
+				wiv_assert(GetClientRect(hwnd, &rect), != 0);
+				g_config.window_width = rect.right;
+				g_config.window_height = rect.bottom;
+			}
 			ImGui::InputInt("Width", &g_config.window_width, 0, 0);
 			ImGui::InputInt("Height", &g_config.window_height, 0, 0);
 			ImGui::Spacing();

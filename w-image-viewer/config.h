@@ -45,10 +45,16 @@ public:
 	void write();
 
 	//WIV_NAME_WINDOW_
+	//
+
+	//client area
 	int WIV_NAME_WINDOW_WIDTH_VAL{ 1000 };
 	int WIV_NAME_WINDOW_HEIGHT_VAL{ 618 };
+	
 	bool WIV_NAME_WINDOW_USE_AUTO_DIMS_VAL;
 	int WIV_NAME_WINDOW_NAME_VAL;
+
+	//
 
 	//WIV_NAME_CLEAR_
 	std::array<float, 4> WIV_NAME_CLEAR_COLOR_VAL{ 0.5f, 0.5f, 0.5f, 1.0f };
