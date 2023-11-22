@@ -12,12 +12,12 @@ enum WIV_OPEN_
 class User_interface
 {
 public:
-	~User_interface();
 	void create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update);
 	void update();
 	void draw() const;
 	void auto_window_size() const;
 	void reset_image_panzoom() noexcept;
+	~User_interface();
 	File_manager file_manager;
 	bool is_fullscreen;
 	bool is_dialog_file_open;

@@ -8,13 +8,6 @@
 #include "supported_extensions.h"
 #include "window.h"
 
-User_interface::~User_interface()
-{
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
-}
-
 void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
 {
 	this->hwnd = hwnd;
@@ -114,6 +107,13 @@ void User_interface::reset_image_panzoom() noexcept
 	image_no_scale = false;
 }
 
+User_interface::~User_interface()
+{
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+}
+
 void User_interface::input()
 {
 	//workaround for IsMouseDoubleClicked(0) triggering IsMouseDragging(0)
@@ -122,6 +122,8 @@ void User_interface::input()
 		is_double_click = false;
 
 	//mouse
+	//
+
 	if (!ImGui::GetIO().WantCaptureMouse) {
 		if (ImGui::IsMouseDoubleClicked(0)) {
 			toggle_fullscreen();
@@ -153,10 +155,16 @@ void User_interface::input()
 		}
 	}
 
+	//
+
 	//keyboard
+	//
+
 	if (!ImGui::GetIO().WantCaptureKeyboard) {
 
 		//ctrl + key
+		//
+
 		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
 			if (ImGui::IsKeyPressed(ImGuiKey_O, false)) {
 				
@@ -202,7 +210,11 @@ void User_interface::input()
 			}
 		}
 
+		//
+
 		//alt + key
+		//
+
 		if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
 			if (ImGui::IsKeyPressed(ImGuiKey_Enter, false)) {
 				toggle_fullscreen();
@@ -210,7 +222,11 @@ void User_interface::input()
 			}
 		}
 
+		//
+
 		//free keys
+		//
+
 		if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
 			if (file_manager.file_current.empty())
 				return;
@@ -225,6 +241,9 @@ void User_interface::input()
 			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
 		}
+
+		//
+
 	}
 
 	//leave escape key with higher priority
@@ -235,6 +254,8 @@ void User_interface::input()
 			wiv_assert(DestroyWindow(hwnd), != 0);
 		return;
 	}
+
+	//
 }
 
 void User_interface::context_menu()
