@@ -337,20 +337,20 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable window auto dimensions", &g_config.window_autowh);
 			ImGui::Spacing();
-			ImGui::ColorEdit4("Background color", g_config.clear_color.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
-			ImGui::Spacing();
-			static constinit const std::array items{
+			static constinit const std::array window_name_items{
 				"Defualt name",
 				"Filename",
 				"Full filename"
 			};
-			ImGui::Combo("Window name", &g_config.window_name, items.data(), items.size());
+			ImGui::Combo("Window name", &g_config.window_name, window_name_items.data(), window_name_items.size());
 			ImGui::Spacing();
-			static constinit const std::array items2{
+			static constinit const std::array internal_format_items{
 				"RGBA32F",
 				"RGBA16F"
 			};
-			ImGui::Combo("Internal format", &g_config.pass_format, items2.data(), items2.size());
+			ImGui::Combo("Internal format", &g_config.pass_format, internal_format_items.data(), internal_format_items.size());
+			ImGui::Spacing();
+			ImGui::ColorEdit4("Background color", g_config.clear_color.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
 			ImGui::Checkbox("Read only thumbnail in RAW image", &g_config.raw_thumb);
 			ImGui::Spacing();
