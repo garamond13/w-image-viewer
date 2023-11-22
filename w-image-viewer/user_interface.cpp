@@ -352,7 +352,7 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::ColorEdit4("Background color", g_config.clear_color.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
-			ImGui::Checkbox("Read only thumbnail in RAW image", &g_config.raw_thumb);
+			ImGui::Checkbox("Read only thumbnail in RAW images", &g_config.raw_thumb);
 			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Scale")) {
