@@ -241,6 +241,10 @@ void User_interface::input()
 			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
 		}
+		if (ImGui::IsKeyPressed(ImGuiKey_F11)) {
+			toggle_fullscreen();
+			return;
+		}
 
 		//
 
