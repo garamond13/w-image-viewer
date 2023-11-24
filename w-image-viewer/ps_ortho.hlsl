@@ -1,3 +1,4 @@
+//orhogonal resampling (separable)
 
 #include "vs_out.hlsli"
 #include "kernel_functions.hlsli"
