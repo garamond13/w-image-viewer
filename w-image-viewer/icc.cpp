@@ -11,7 +11,7 @@ cmsHPROFILE cms_create_profile_adobe_rgb() noexcept
 		{ 0.1500, 0.0600, 1.0 }
 	};
 	std::array<cmsToneCurve*, 3> tone_curve;
-	tone_curve[2] = tone_curve[1] = tone_curve[0] = cmsBuildGamma(nullptr, 2.19921875);
+	tone_curve[2] = tone_curve[1] = tone_curve[0] = cmsBuildGamma(nullptr, ADOBE_RGB_GAMMA<double>);
 	cmsHPROFILE profile{ cmsCreateRGBProfile(&whitepoint, &primaries, tone_curve.data()) };
 	cmsFreeToneCurve(tone_curve[0]);
 	return profile;

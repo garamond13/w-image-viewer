@@ -813,7 +813,7 @@ void Renderer::update_trc()
 			trc = { WIV_CMS_TRC_GAMMA, gamma < 0.0f ? 1.0f : gamma };
 		}
 		else if (g_config.cms_profile_display == WIV_CMS_PROFILE_DISPLAY_ADOBE)
-			trc = { WIV_CMS_TRC_GAMMA, 2.19921875f /* source https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf */ };
+			trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
 		else if (g_config.cms_profile_display == WIV_CMS_PROFILE_DISPLAY_SRGB)
 			trc = { WIV_CMS_TRC_SRGB, 0.0f /* will be ignored */ };
 	}
@@ -822,7 +822,7 @@ void Renderer::update_trc()
 		trc = { WIV_CMS_TRC_GAMMA, gamma < 0.0f ? 1.0f : gamma };
 	}
 	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_ADOBE)
-		trc = { WIV_CMS_TRC_GAMMA, 2.19921875f /* source https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf */ };
+		trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
 	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_SRGB || g_config.cms_use_defualt_to_srgb)
 		trc = { WIV_CMS_TRC_SRGB, 1.0f /* will be ignored */ };
 	else
