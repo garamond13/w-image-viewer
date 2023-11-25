@@ -8,7 +8,7 @@
 #define wiv_assert(keep, discard_if_ndebug) (assert(keep discard_if_ndebug))
 #endif
 
-//safe floating comparations
+// Safe floating point comparations.
 //
 
 inline constexpr double WIV_DBL_EPS{ 1e-15 };
@@ -52,16 +52,18 @@ constexpr T get_ratio(auto a, auto b) noexcept
 	return static_cast<T>(a) / static_cast<T>(b);
 }
 
-//returns fractional part
-inline auto frac(auto f) noexcept
+// Returns fractional part.
+template<std::floating_point T>
+inline auto frac(T f) noexcept
 {
-	static_assert(std::is_same_v<decltype(f), float> || std::is_same_v<decltype(f), double> || std::is_same_v<decltype(f), long double>, "f is not floating-point type");
 	return f - std::floor(f);
 }
 
+// Needed in c++20.
 template<typename>
 inline constexpr bool always_false_v{ false };
 
+// Convert string to value.
 inline void strtoval(const std::string& str, auto& val, size_t* idx = nullptr, [[maybe_unused]] int base = 10)
 {
 	if constexpr (std::is_same_v<decltype(val), bool&>)
