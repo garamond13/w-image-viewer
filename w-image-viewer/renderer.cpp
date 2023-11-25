@@ -796,11 +796,12 @@ void Renderer::update_scale_profile() noexcept
 
 float Renderer::get_kernel_radius() const noexcept
 {
-	if (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_NEAREST || (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_LINEAR && !p_scale_profile->kernel_use_cyl))
+	const auto& i{ p_scale_profile->kernel_index };
+	if (i == WIV_KERNEL_FUNCTION_NEAREST || (i == WIV_KERNEL_FUNCTION_LINEAR && !p_scale_profile->kernel_use_cyl))
 		return 1.0f;
-	else if (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_LINEAR && p_scale_profile->kernel_use_cyl)
+	else if (i == WIV_KERNEL_FUNCTION_LINEAR && p_scale_profile->kernel_use_cyl)
 		return std::numbers::sqrt2_v<float>;
-	else if (p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_BICUBIC || p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_FSR || p_scale_profile->kernel_index == WIV_KERNEL_FUNCTION_BCSPLINE)
+	else if (i == WIV_KERNEL_FUNCTION_BICUBIC || i == WIV_KERNEL_FUNCTION_FSR || i == WIV_KERNEL_FUNCTION_BCSPLINE)
 		return 2.0f;
 	return p_scale_profile->kernel_radius;
 }
