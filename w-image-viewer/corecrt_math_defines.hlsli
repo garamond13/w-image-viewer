@@ -2,8 +2,8 @@
 #ifndef __CORECRT_MATH_DEFINES_HLSLI__
 #define __CORECRT_MATH_DEFINES_HLSLI__
 
-//source corecrt_math_defines.h
-//rounded to 7 decimal places
+// Source corecrt_math_defines.h.
+// Rounded to 7 decimal places.
 
 #define M_E 2.7182818 // e
 #define M_LOG2E 1.442695 // log2(e)

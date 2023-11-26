@@ -6,8 +6,10 @@ SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-    int index;
-    float rcp_gamma; // example: 1.0 / 2.2
+    int index; // x
+    
+    // Example: 1.0 / 2.2.
+    float rcp_gamma; // y
 }
 
 #define gamma(rgb) (pow((rgb), rcp_gamma))
@@ -24,7 +26,7 @@ float4 main(Vs_out vs_out) : SV_Target
         case WIV_CMS_TRC_SRGB:
             return float4(srgb(color.rgb), color.a);
     
-        //red image
+        // Red image.
         default:
             return float4(1.0, 0.0, 0.0, 1.0);
     }

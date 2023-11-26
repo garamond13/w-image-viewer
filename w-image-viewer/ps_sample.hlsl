@@ -6,12 +6,12 @@ SamplerState smp : register(s1);
 
 cbuffer cb0 : register(b0)
 {
-    float theta; //x
+    float theta; // x
 }
 
 float4 main(Vs_out vs_out) : SV_Target
 {
-    //check is theta divisible by 360, if it is we dont need to rotate texcoord
+    // Check is theta divisible by 360, if it is we dont need to rotate texcoord.
     if (is_not_zero(frac(theta / 360.0)))
         rotate_texcoord(vs_out.texcoord, theta);
         

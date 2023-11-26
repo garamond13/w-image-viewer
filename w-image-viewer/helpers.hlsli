@@ -1,10 +1,10 @@
 #ifndef __HELPERS_HLSLI__
 #define __HELPERS_HLSLI__
 
-//safe floating comparations
+// Safe floating point comparations.
 //
 
-#define WIV_FLT_EPS 1e-6 
+#define WIV_FLT_EPS 1e-6
 
 inline bool is_equal(float a, float b)
 {
@@ -23,6 +23,7 @@ inline bool is_not_zero(float a)
 
 //
 
+// Rotates given texture coordinates by a given angle theta in degrees.
 inline void rotate_texcoord(inout float2 texcoord, float theta)
 {
     texcoord -= 0.5;

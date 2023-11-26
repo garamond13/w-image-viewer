@@ -1,4 +1,4 @@
-//cylindrical resampling (not separable)
+// Cylindrical resampling (not separable).
 
 #include "vs_out.hlsli"
 #include "shader_config.h"
@@ -11,30 +11,37 @@ SamplerState smp : register(s1);
 
 cbuffer cb0 : register(b0)
 {
-    int index; //x
-    float radius; //y
-    float blur; //z
-    float p1; //w
-    float p2; //xx
-    float ar; //yy
-    float2 dims; //zz, ww
-    float scale; //xxx
+    int index; // x
+    float radius; // y
+    float blur; // z
+    
+    // Free parameters.
+    float p1; // w
+    float p2; // xx
+    
+    // Antiringing strenght.
+    float ar; // yy
+    
+    float2 dims; // zz, ww
+    float scale; // xxx
 }
 
-//get texel size
+// Get texel size.
 static float2 pt = 1.0 / dims;
 
-//antiringing shouldnt be used when downsampling
+// Antiringing shouldnt be used when downsampling!
+// When upscaling scale = 1.
 static bool use_ar = ar > 0.0 && is_equal(scale, 1.0);
 
+// Expects abs(x).
 float get_weight(float x)
 {
     if (x < radius) {
         [forcecase] switch (index) {
             case WIV_KERNEL_FUNCTION_LANCZOS:
-                return base(x, blur) * jinc(x, radius); //ewa lanczos
+                return base(x, blur) * jinc(x, radius); // EWA Lanczos.
             case WIV_KERNEL_FUNCTION_GINSENG:
-                return base(x, blur) * sinc(x, radius); //ewa ginseng
+                return base(x, blur) * sinc(x, radius); // EWA Ginseng.
             case WIV_KERNEL_FUNCTION_HAMMING:
                 return base(x, blur) * hamming(x, radius);
             case WIV_KERNEL_FUNCTION_POW_COSINE:
@@ -59,11 +66,11 @@ float get_weight(float x)
                 return modified_fsr_kernel(x, p1, p2);
             case WIV_KERNEL_FUNCTION_BCSPLINE:
                 return bc_spline(x, p1, p2);
-            default: //black image
+            default: // Black image.
                 return 0.0;
         }
     }
-    else //x >= radius
+    else // x >= radius
         return 0.0;
 }
 
@@ -72,16 +79,16 @@ float4 main(Vs_out vs_out) : SV_TARGET
     float2 fcoord = frac(vs_out.texcoord * dims - 0.5);
     float2 base = vs_out.texcoord - fcoord * pt;
     float4 color;
-    float4 csum = 0.0; //weighted color sum
+    float4 csum = 0.0; // Weighted color sum.
     float weight;
-    float wsum = 0.0; //weight sum
+    float wsum = 0.0; // Weight sum.
 
-    //antiringing
+    // Antiringing.
     float4 low = 1e9;
     float4 high = -1e9;
 
-    //get required radius
-    float r = ceil(radius * scale);    
+    // Get required radius.
+    const float r = ceil(radius * scale);    
     
     [loop] for (float j = 1.0 - r; j <= r; ++j) {
         [loop] for (float i = 1.0 - r; i <= r; ++i) {
@@ -90,17 +97,16 @@ float4 main(Vs_out vs_out) : SV_TARGET
             csum += color * weight;
             wsum += weight;
 
-            //antiringing
+            // Antiringing.
             if (use_ar && j >= 0.0 && j <= 1.0 && i >= 0.0 && i <= 1.0) {
                 low = min(low, color);
                 high = max(high, color);
             }
         }
     }
-    //normalize color values
     csum /= wsum;
 
-    //antiringing
+    // Antiringing.
     if (use_ar)
         return lerp(csum, clamp(csum, low, high), ar);
 

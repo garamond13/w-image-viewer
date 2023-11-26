@@ -1,5 +1,5 @@
-//color managment system
-//tetrahedral interpolation
+// Color managment system (CMS).
+// Tetrahedral interpolation.
 
 #include "vs_out.hlsli"
 #include "shader_config.h"
@@ -15,8 +15,8 @@ float4 main(Vs_out vs_out) : SV_Target
     float4 color = tex.SampleLevel(smp, vs_out.texcoord, 0.0); 
     float3 index = saturate(color.rgb) * (LUT_SIZE - 1.0);
     
-    //get barycentric weights
-    //see https://doi.org/10.2312/egp.20211031
+    // Get barycentric weights.
+    // See https://doi.org/10.2312/egp.20211031
     //
     
     float3 r = frac(index);

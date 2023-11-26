@@ -1,6 +1,6 @@
 #include "vs_out.hlsli"
 
-//fullscreen triangle
+// Fullscreen triangle.
 Vs_out main(uint id : SV_VertexID)
 {
     Vs_out vs_out;
