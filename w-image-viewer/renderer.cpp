@@ -744,11 +744,15 @@ void Renderer::create_pixel_shader(const BYTE* shader, size_t shader_size) const
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept
 {
 	D3D11_VIEWPORT viewport{
-		.Width{ width },
-		.Height{ height }
+
+		// Limit to maximum texture size, even it can go beyond.
+		// Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
+		.Width{ std::min(width, static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
+		.Height{ std::min(height, static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) }
+
 	};
 
-	//offset image in order to center it in the window + apply panning
+	// Offset image in order to center it in the window + apply panning.
 	if (adjust) {
 		viewport.TopLeftX = (dims_swap_chain.width - viewport.Width) / 2.0f + user_interface.image_pan.x;
 		viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f + user_interface.image_pan.y;
@@ -802,7 +806,7 @@ float Renderer::get_kernel_radius() const noexcept
 		case WIV_KERNEL_FUNCTION_LINEAR:
 			if (p_scale_profile->kernel_use_cyl)
 				return std::numbers::sqrt2_v<float>;
-			return 1.0;
+			return 1.0f;
 		case WIV_KERNEL_FUNCTION_BICUBIC:
 		case WIV_KERNEL_FUNCTION_FSR:
 		case WIV_KERNEL_FUNCTION_BCSPLINE:
