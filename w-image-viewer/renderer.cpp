@@ -6,7 +6,7 @@
 #include "icc.h"
 #include "cms_lut.h"
 
-//compiled shaders
+// Compiled shaders.
 #include "vs_quad_hlsl.h"
 #include "ps_sample_hlsl.h"
 #include "ps_sample_alpha_hlsl.h"
@@ -24,7 +24,8 @@ constexpr std::array WIV_PASS_FORMATS{
 	DXGI_FORMAT_R16G16B16A16_FLOAT
 };
 
-//note that in hlsl sizeof bool is 4 bytes
+// Constant buffer types.
+// Note that in hlsl sizeof bool is 4 bytes.
 union Cb_types
 {
 	float f;
@@ -32,7 +33,7 @@ union Cb_types
 	uint32_t ui;
 };
 
-//use for constant buffer data
+// Use for constant buffer data.
 struct alignas(16) Cb4
 {
 	Cb_types x;
@@ -48,7 +49,7 @@ void Renderer::create(HWND hwnd)
 	create_samplers();
 	create_vertex_shader();
 	if(g_config.cms_use)
-		create_cms_profile_display();
+		init_cms_profile_display();
 	user_interface.create(hwnd, device.Get(), device_context.Get(), &should_update);
 }
 
@@ -63,7 +64,7 @@ void Renderer::update()
 				pass_cms();
 			if (!is_equal(scale, 1.0f)) {
 				update_trc();
-				bool sigmoidize{ scale > 1.0f && p_scale_profile->sigmoid_use };
+				const bool sigmoidize{ scale > 1.0f && p_scale_profile->sigmoid_use };
 				bool linearize{ scale < 1.0f || sigmoidize || p_scale_profile->blur_use };
 				if (linearize)
 					pass_linearize(image.get_width<UINT>(), image.get_height<UINT>());
@@ -109,17 +110,18 @@ void Renderer::draw() const
 	wiv_assert(swap_chain->Present(1, 0), == S_OK);
 }
 
+// Creates the first texture from the loaded image.
 void Renderer::create_image()
 {
-	//get data from image
+	// Get data from the image.
 	DXGI_FORMAT format;
 	UINT sys_mem_pitch;
 	std::unique_ptr<uint8_t[]> data{ image.get_data(format, sys_mem_pitch) };
 
-	//create texture
+	// Create texture.
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
 
-		//max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same
+		// Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
 		.Width{ std::clamp(image.get_width<UINT>(), 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
 		.Height{ std::clamp(image.get_height<UINT>(), 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
 
@@ -146,11 +148,12 @@ void Renderer::create_image()
 
 void Renderer::on_window_resize() noexcept
 {
+	// This function may get called to early, so check do we have swap chain.
 	if (swap_chain) {
 		rtv_back_buffer.Reset();
 		wiv_assert(swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), == S_OK);
 
-		//set swapchain dims
+		// Set swapchain dims.
 		DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1;
 		wiv_assert(swap_chain->GetDesc1(&swap_chain_desc1), == S_OK);
 		dims_swap_chain.width = swap_chain_desc1.Width;
@@ -166,6 +169,7 @@ void Renderer::reset_resources() noexcept
 	create_viewport(0.0f, 0.0f);
 }
 
+// This is defined here only cause of code organization.
 void Renderer::fullscreen_hide_cursor() const
 {
 	if (user_interface.is_fullscreen && !ImGui::GetIO().WantCaptureMouse && !user_interface.is_dialog_file_open)
@@ -191,7 +195,7 @@ void Renderer::create_device()
 
 void Renderer::create_swapchain(HWND hwnd)
 {
-	//query interfaces
+	// Query interfaces.
 	Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device2;
 	wiv_assert(device->QueryInterface(IID_PPV_ARGS(dxgi_device2.ReleaseAndGetAddressOf())), == S_OK);
 	Microsoft::WRL::ComPtr<IDXGIAdapter> dxgi_adapter;
@@ -199,7 +203,7 @@ void Renderer::create_swapchain(HWND hwnd)
 	Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
 	wiv_assert(dxgi_adapter->GetParent(IID_PPV_ARGS(dxgi_factory2.ReleaseAndGetAddressOf())), == S_OK);
 
-	//create swap chain
+	// Create swap chain.
 	//
 
 	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1{
@@ -212,11 +216,11 @@ void Renderer::create_swapchain(HWND hwnd)
 		.SwapEffect{ DXGI_SWAP_EFFECT_FLIP_DISCARD }
 	};
 	
-	//get primary output
+	// Get primary output.
 	Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 	wiv_assert(dxgi_adapter->EnumOutputs(0, dxgi_output.ReleaseAndGetAddressOf()), == S_OK);
 
-	//get display color bit depth
+	// Get display color bit depth.
 	Microsoft::WRL::ComPtr<IDXGIOutput6> dxgi_output6;
 	wiv_assert(dxgi_output->QueryInterface(IID_PPV_ARGS(dxgi_output6.ReleaseAndGetAddressOf())), == S_OK);
 	DXGI_OUTPUT_DESC1 output_desc1;
@@ -227,12 +231,12 @@ void Renderer::create_swapchain(HWND hwnd)
 
 	//
 
-	//set swapchain dims
+	// Set member swapchain dims.
 	wiv_assert(swap_chain->GetDesc1(&swap_chain_desc1), == S_OK);
 	dims_swap_chain.width = swap_chain_desc1.Width;
 	dims_swap_chain.height = swap_chain_desc1.Height;
 
-	//disable exclusive fullscreen
+	// Disable exclusive fullscreen.
 	wiv_assert(dxgi_factory2->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER), == S_OK);
 
 	create_rtv_back_buffer();
@@ -247,7 +251,7 @@ void Renderer::create_rtv_back_buffer() noexcept
 
 void Renderer::create_samplers() const
 {
-	//create point sampler
+	// Create point sampler.
 	D3D11_SAMPLER_DESC sampler_desc{
 		.AddressU{ D3D11_TEXTURE_ADDRESS_CLAMP },
 		.AddressV{ D3D11_TEXTURE_ADDRESS_CLAMP },
@@ -259,7 +263,7 @@ void Renderer::create_samplers() const
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_point;
 	wiv_assert(device->CreateSamplerState(&sampler_desc, sampler_state_point.ReleaseAndGetAddressOf()), == S_OK);
 
-	//create linear sampler
+	// Create linear sampler.
 	sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_linear;
 	wiv_assert(device->CreateSamplerState(&sampler_desc, sampler_state_linear.ReleaseAndGetAddressOf()), == S_OK);
@@ -276,17 +280,17 @@ void Renderer::create_vertex_shader() const noexcept
 	device_context->VSSetShader(vertex_shader.Get(), nullptr, 0);
 }
 
-void Renderer::create_cms_profile_display()
+void Renderer::init_cms_profile_display()
 {
 	switch (g_config.cms_profile_display) {
 		case WIV_CMS_PROFILE_DISPLAY_AUTO: {
 
-			//get system default icc profile
+			// Get system default icc profile.
 			auto dc{ GetDC(nullptr) };
-			DWORD size;
-			GetICMProfileA(dc, &size, nullptr);
-			auto path{ std::make_unique_for_overwrite<char[]>(size) };
-			wiv_assert(GetICMProfileA(dc, &size, path.get()), == TRUE);
+			DWORD buffer_size;
+			GetICMProfileA(dc, &buffer_size, nullptr);
+			auto path{ std::make_unique_for_overwrite<char[]>(buffer_size) };
+			wiv_assert(GetICMProfileA(dc, &buffer_size, path.get()), == TRUE);
 			wiv_assert(ReleaseDC(nullptr, dc), == 1);
 			
 			cms_profile_display.reset(cmsOpenProfileFromFile(path.get(), "r"));
@@ -312,7 +316,7 @@ void Renderer::create_cms_lut()
 		return;
 	}
 
-	//bind lut as 3d texture
+	// Bind lut as 3d texture.
 	static constinit const D3D11_TEXTURE3D_DESC texture3d_desc{
 		.Width{ WIV_CMS_LUT_SIZE },
 		.Height{ WIV_CMS_LUT_SIZE },
@@ -324,8 +328,8 @@ void Renderer::create_cms_lut()
 	};
 	const D3D11_SUBRESOURCE_DATA subresource_data{
 		.pSysMem{ lut.get() },
-		.SysMemPitch{ WIV_CMS_LUT_SIZE * 4 * 2 }, //width * nchannals * bytedepth
-		.SysMemSlicePitch{ WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * 4 * 2 }, //width * height * nchannals * bytedepth
+		.SysMemPitch{ WIV_CMS_LUT_SIZE * 4 * 2 }, // width * nchannals * byte_depth
+		.SysMemSlicePitch{ WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * 4 * 2 }, // width * height * nchannals * byte_depth
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
 	wiv_assert(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.ReleaseAndGetAddressOf()), == S_OK);
@@ -381,7 +385,7 @@ void Renderer::pass_cms()
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
@@ -392,7 +396,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 	alignas(16) const std::array data{
 		Cb4{
 			.x{ .i{ trc.first }},
-			.y{ .f{ trc.second }} //gamma, only relevant if gamma correction is used
+			.y{ .f{ trc.second }} // Gamma, only relevant if gamma correction is used.
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -403,7 +407,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
 	draw_pass(width, height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
@@ -414,7 +418,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 	alignas(16) const std::array data{
 		Cb4{
 			.x{ .i{ trc.first }},
-			.y{ .f{ 1.0f / trc.second }} //1.0 / gamma, only relevant if gamma correction is used
+			.y{ .f{ 1.0f / trc.second }} // 1.0 / gamma, only relevant if gamma correction is used.
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -425,13 +429,13 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
 	draw_pass(width, height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
 void Renderer::pass_sigmoidize()
 {
-	//sigmoidize expects linear light input
+	// Sigmoidize expects linear light input.
 	if (trc.first == WIV_CMS_TRC_NONE)
 		return;
 
@@ -449,13 +453,13 @@ void Renderer::pass_sigmoidize()
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
 void Renderer::pass_desigmoidize()
 {
-	//sigmoidize expects linear light input
+	// Sigmoidize expects linear light input.
 	if (trc.first == WIV_CMS_TRC_NONE)
 		return;
 
@@ -473,7 +477,7 @@ void Renderer::pass_desigmoidize()
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
@@ -483,11 +487,11 @@ void Renderer::pass_blur()
 		Cb4{
 			.x{ .f{ static_cast<float>(p_scale_profile->blur_radius) }},
 			.y{ .f{ p_scale_profile->blur_sigma }},
-			.z{ .f{ 0.0f }}, //unsharp amount, must be 0.0f
+			.z{ .f{ 0.0f }} // Unsharp amount, has to be 0.0f!
 		},
 		Cb4{
-			.x{ .f{ 0.0f }}, //x axis
-			.y{ .f{ 1.0f }}, //y axis
+			.x{ .f{ 0.0f }}, // x axis.
+			.y{ .f{ 1.0f }}, // y axis.
 			.z{ .f{ 0.0f }},
 			.w{ .f{ 1.0f / image.get_height<float>() }}
 		}
@@ -496,18 +500,18 @@ void Renderer::pass_blur()
 	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
 
-	//pass y axis
+	// Pass y axis.
 	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 
-	//pass x axis
-	cb0_data[1].x.f = 1.0f; // x axis
-	cb0_data[1].y.f = 0.0f; // y axis
+	// Pass x axis.
+	cb0_data[1].x.f = 1.0f; // x axis.
+	cb0_data[1].y.f = 0.0f; // y axis.
 	cb0_data[1].z.f = 1.0f / image.get_width<float>();
 	cb0_data[1].w.f = 0.0f;
 	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
@@ -515,7 +519,7 @@ void Renderer::pass_blur()
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
@@ -525,11 +529,11 @@ void Renderer::pass_unsharp()
 		Cb4{
 			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius) }},
 			.y{ .f{ p_scale_profile->unsharp_sigma }},
-			.z{ .f{ p_scale_profile->unsharp_amount }}, //unsharp amount, must be 0.0f
+			.z{ .f{ p_scale_profile->unsharp_amount }}
 		},
 		Cb4{
-			.x{ .f{ 0.0f }}, //x axis
-			.y{ .f{ 1.0f }}, //y axis
+			.x{ .f{ 0.0f }}, // x axis.
+			.y{ .f{ 1.0f }}, // y axis.
 			.z{ .f{ 0.0f }},
 			.w{ .f{ 1.0f / dims_output.get_height<float>() }}
 		}
@@ -540,18 +544,18 @@ void Renderer::pass_unsharp()
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_original = srv_pass;
 
-	//pass y axis
+	// Pass y axis.
 	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 
-	//pass x axis
-	cb0_data[1].x.f = 1.0f; //x axis
-	cb0_data[1].y.f = 0.0f; //y axis
+	// Pass x axis.
+	cb0_data[1].x.f = 1.0f; // x axis.
+	cb0_data[1].y.f = 0.0f; // y axis.
 	cb0_data[1].z.f = 1.0f / dims_output.get_width<float>();
 	cb0_data[1].w.f = 0.0f;
 	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
@@ -560,7 +564,7 @@ void Renderer::pass_unsharp()
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
@@ -576,7 +580,7 @@ void Renderer::pass_orthogonal_resample()
 		Cb4{
 			.x{ .f{ p_scale_profile->kernel_p2 }},
 			.y{ .f{ p_scale_profile->kernel_ar }},
-			.z{ .f{ scale < 1.0f ? 1.0f / scale : 1.0f }},
+			.z{ .f{ scale < 1.0f ? 1.0f / scale : 1.0f }}
 		},
 		Cb4{
 			.x{ .f{ image.get_width<float>() }},
@@ -589,24 +593,24 @@ void Renderer::pass_orthogonal_resample()
 	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
 	create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
 
-	//pass y axis
+	// Pass y axis.
 	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(image.get_width<UINT>(), dims_output.height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 
-	//pass x axis
-	cb0_data[2].z.f = 1.0f; //x axis
-	cb0_data[2].w.f = 0.0f; //y axis
+	// Pass x axis.
+	cb0_data[2].z.f = 1.0f; // x axis.
+	cb0_data[2].w.f = 0.0f; // y axis.
 	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
@@ -637,7 +641,7 @@ void Renderer::pass_cylindrical_resample()
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
-	//unbind render target
+	// Unbind render target.
 	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
 }
 
@@ -682,10 +686,10 @@ void Renderer::pass_last()
 
 void Renderer::draw_pass(UINT width, UINT height) noexcept
 {
-	//cereate texture
+	// Create texture.
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
 		
-		//max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same
+		// Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
 		.Width{ std::clamp(width, 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
 		.Height{ std::clamp(height, 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
 		
@@ -700,17 +704,17 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
 	wiv_assert(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.ReleaseAndGetAddressOf()), == S_OK);
 	
-	//create render target view
+	// Create render target view.
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
 	wiv_assert(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.ReleaseAndGetAddressOf()), == S_OK);
 
-	//draw
+	// Draw
 	device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
 	static constinit const std::array clear_color{ 0.0f, 0.0f, 0.0f, 1.0f };
 	device_context->ClearRenderTargetView(rtv.Get(), clear_color.data());
 	device_context->Draw(3, 0);
 
-	//create shader resource view
+	// Create shader resource view.
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
 }
 
@@ -766,7 +770,7 @@ void Renderer::update_scale_and_dims_output() noexcept
 	auto image_w{ image.get_width<float>() };
 	auto image_h{ image.get_height<float>() };
 
-	//check is the rotation angele divisible by 180, if it is we dont need to swap width and height
+	// Check is the rotation angele divisible by 180, if it is we dont need to swap width and height.
 	if (is_not_zero(frac(user_interface.image_rotation / 180.0f)))
 		std::swap(image_w, image_h);
 
@@ -774,7 +778,7 @@ void Renderer::update_scale_and_dims_output() noexcept
 	if (user_interface.image_no_scale)
 		auto_zoom = 0.0f;
 
-	//fit inside the window
+	// Fit inside the window.
 	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image_w, image_h))
 		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.height, image_h));
 	else
@@ -794,7 +798,7 @@ void Renderer::update_scale_profile() noexcept
 		}
 	}
 
-	//else use default profile
+	// Else use default profile.
 	p_scale_profile = &g_config.scale_profiles[0].config;
 }
 

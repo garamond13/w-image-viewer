@@ -31,7 +31,7 @@ private:
 	void create_rtv_back_buffer() noexcept;
 	void create_samplers() const;
 	void create_vertex_shader() const noexcept;
-	void create_cms_profile_display();
+	void init_cms_profile_display();
 	void create_cms_lut();
 	std::unique_ptr<uint16_t[]> cms_transform_lut();
 	void pass_cms();
@@ -65,6 +65,6 @@ private:
 	float scale;
 	const Config_scale* p_scale_profile;
 	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> cms_profile_display{ nullptr, cmsCloseProfile };
-	std::pair<int, float> trc; //tone responce curve, type and value
+	std::pair<int, float> trc; // Tone responce curve, type and value
 	bool is_cms_valid;
 };
