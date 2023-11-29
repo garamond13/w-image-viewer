@@ -4,8 +4,6 @@
 #include "helpers.h"
 #include "resource.h"
 
-constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
-
 enum WIV_WINDOW_NAME_
 {
     WIV_WINDOW_NAME_DEFAULT,
@@ -13,20 +11,27 @@ enum WIV_WINDOW_NAME_
     WIV_WINDOW_NAME_FILE_NAME_FULL
 };
 
+namespace {
+    constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
+}
+
+// Forward declare message handler from imgui_impl_win32.cpp.
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 Window::Window(HINSTANCE hinstance, int ncmdshow)
 {
-    //register window class
+    // Register window class.
     const WNDCLASSEXW wndclassexw{
         .cbSize{ sizeof(WNDCLASSEXW) },
         .style{ CS_HREDRAW | CS_VREDRAW },
         .lpfnWndProc{ wnd_proc },
         .hInstance{ hinstance },
         .hIcon{ LoadIconW(hinstance, MAKEINTRESOURCEW(IDI_WIMAGEVIEWER)) },
-        .lpszClassName{ L"wiv" }
+        .lpszClassName{ L"WIV" }
     };
     wiv_assert(RegisterClassExW(&wndclassexw), != 0);
 
-    //create window
+    // Create window.
     RECT rect{
         .right{ g_config.window_width },
         .bottom{ g_config.window_height }
@@ -56,41 +61,36 @@ void Window::set_window_name() const
 
 void Window::reset_image_rotation() noexcept
 {
-    //rotated 180
+    // Rotated 180.
     if (renderer.user_interface.file_manager.image.orientation == 2)
         renderer.user_interface.image_rotation = -180.0f;
 
-    //rotated 90 cw
+    // Rotated 90 cw.
     else if (renderer.user_interface.file_manager.image.orientation == 5)
         renderer.user_interface.image_rotation = -90.0f;
 
-    //rotated 90 ccw
+    // Rotated 90 ccw.
     else if (renderer.user_interface.file_manager.image.orientation == 7)
         renderer.user_interface.image_rotation = 90.0f;
 
     else
         renderer.user_interface.image_rotation = 0.0f;
 
-    //reset orientation
+    // Reset orientation.
     renderer.user_interface.file_manager.image.orientation = 0;
 }
-
-//forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
     if (ImGui_ImplWin32_WndProcHandler(hwnd, message, wparam, lparam))
         return 1;
 
-    //get "this pointer"
+    // Get "this" pointer that we passed to CreateWindowExW().
     auto* window{ reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA)) };
-
-    static bool is_minimized{};
 
     switch (message) {
         
-        //WM_NCCREATE is not guarantied to be the first message
+        // WM_NCCREATE is not guarantied to be the first message.
         [[unlikely]] case WM_NCCREATE:
             window = reinterpret_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lparam)->lpCreateParams);
             window->hwnd = hwnd;
@@ -100,14 +100,14 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         case WM_ERASEBKGND:
             return 1;
 
-            //set minimum window size
+            // Set minimum window size.
         case WM_GETMINMAXINFO:
             reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = GetSystemMetrics(SM_CXMIN);
             reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.y = GetSystemMetrics(SM_CYMIN) + 1;
             break;
 
-            //provides the mosuse cursor in fullscren on mousemove
-            //without this, after exiting from fullscreen the mosue cursor may stay hidden
+            // Provides the mosuse cursor in fullscren on mousemove.
+            // Without this, after exiting from fullscreen the mosue cursor may stay hidden.
         case WM_MOUSEMOVE:
             while (ShowCursor(TRUE) < 0);
             break;
