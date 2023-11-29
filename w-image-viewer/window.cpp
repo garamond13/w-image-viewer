@@ -86,6 +86,8 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
     //get "this pointer"
     auto* window{ reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA)) };
 
+    static bool is_minimized{};
+
     switch (message) {
         
         //WM_NCCREATE is not guarantied to be the first message
@@ -123,9 +125,10 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
             window->renderer.should_update = true;
             break;
         case WM_SIZE:
-            window->renderer.on_window_resize();
-            window->renderer.user_interface.reset_image_panzoom();
-            window->renderer.should_update = true;
+            if (wparam != SIZE_MINIMIZED) {
+                window->renderer.on_window_resize();
+                window->renderer.should_update = true;
+            }
             break;
         case WM_DROPFILES:
             if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
