@@ -28,7 +28,7 @@ public:
 	float image_rotation;
 	bool is_rotating;
 
-	//request to show image at the original width and height
+	// Request to show image at the original width and height.
 	bool image_no_scale;
 
 private:

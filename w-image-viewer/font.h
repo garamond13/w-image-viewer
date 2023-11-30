@@ -1,7 +1,7 @@
 #pragma once
 
-//file: 'Roboto-Medium.ttf' (129768 bytes)
-//exported using imgui binary_to_compressed_c.cpp
+// File: 'Roboto-Medium.ttf' (129768 bytes).
+// Exported using imgui binary_to_compressed_c.cpp.
 inline constexpr unsigned int ROBOTO_MEDIUM_COMPRESSED_SIZE{ 91892 };
 inline constexpr unsigned int ROBOTO_MEDIUM_COMPRESSED_DATA[91892 / 4]{
     0x0000bc57, 0x00000000, 0xe8fa0100, 0x00000400, 0x00010025, 0x82120000, 0x045e0804, 0x44472000, 0xb4704645, 0x0100d86d, 0x0000c497, 0x5047ea01,

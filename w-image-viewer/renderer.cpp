@@ -19,11 +19,6 @@
 #include "ps_delinearize_hlsl.h"
 #include "ps_cms_hlsl.h"
 
-constexpr std::array WIV_PASS_FORMATS{
-	DXGI_FORMAT_R32G32B32A32_FLOAT,
-	DXGI_FORMAT_R16G16B16A16_FLOAT
-};
-
 // Constant buffer types.
 // Note that in hlsl sizeof bool is 4 bytes.
 union Cb_types
@@ -41,6 +36,13 @@ struct alignas(16) Cb4
 	Cb_types z;
 	Cb_types w;
 };
+
+namespace {
+	constexpr std::array WIV_PASS_FORMATS{
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		DXGI_FORMAT_R16G16B16A16_FLOAT
+	};
+}
 
 void Renderer::create(HWND hwnd)
 {

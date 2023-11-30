@@ -19,7 +19,7 @@ void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext
 
 	ImGui::CreateContext();
 
-	//font
+	// Font.
 	ImVector<ImWchar> ranges;
 	ImFontGlyphRangesBuilder builder;
 	builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
@@ -36,7 +36,7 @@ void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext
 
 void User_interface::update()
 {
-	//feed inputs to dear imgui, start new frame
+	// Feed inputs to dear imgui, start new frame.
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -46,7 +46,7 @@ void User_interface::update()
 	window_settings();
 	window_about();
 
-	//DEBUG ONLY!
+	// DEBUG ONLY!
 	//
 
 #if 0
@@ -72,15 +72,15 @@ void User_interface::auto_window_size() const
 	if (is_fullscreen || IsZoomed(hwnd))
 		return;
 
-	//get the screen width and height
-	const auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) };
-	const auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) };
+	// Get the screen width and height.
+	const auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) }; // Width.
+	const auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) }; // Height.
 	
 	const auto image_width{ file_manager.image.get_width<double>() };
 	const auto image_height{ file_manager.image.get_height<double>() };
 	RECT rect{};
 
-	//if the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image
+	// If the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image.
 	if (cx_screen / cy_screen > image_width / image_height) {
 		rect.right = image_width > cx_screen * 0.9 ? std::lround(image_width * cy_screen / image_height * 0.9) : static_cast<LONG>(image_width);
 		rect.bottom = image_height > cy_screen * 0.9 ? std::lround(image_height * rect.right / image_width) : static_cast<LONG>(image_height);
@@ -91,12 +91,10 @@ void User_interface::auto_window_size() const
 	}
 
 	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
+	const auto cx{ rect.right - rect.left }; // Window width.
+	const auto cy{ rect.bottom - rect.top }; // Window height.
 
-	//calculate window width and height
-	const auto cx{ rect.right - rect.left };
-	const auto cy{ rect.bottom - rect.top };
-
-	//center the window and apply new dimensions
+	// Center the window and apply new dimensions.
 	SetWindowPos(hwnd, nullptr, static_cast<int>((cx_screen - cx) / 2.0), static_cast<int>((cy_screen - cy) / 2.0), cx, cy, SWP_NOZORDER);
 }
 
@@ -116,12 +114,12 @@ User_interface::~User_interface()
 
 void User_interface::input()
 {
-	//workaround for IsMouseDoubleClicked(0) triggering IsMouseDragging(0)
+	// Workaround for IsMouseDoubleClicked(0) triggering IsMouseDragging(0).
 	static bool is_double_click;
 	if (ImGui::IsMouseReleased(0))
 		is_double_click = false;
 
-	//mouse
+	// Mouse
 	//
 
 	if (!ImGui::GetIO().WantCaptureMouse) {
@@ -131,7 +129,7 @@ void User_interface::input()
 			return;
 		}
 
-		//image panning
+		// Image panning.
 		if (!is_double_click && ImGui::IsMouseDragging(0)) {
 			image_pan += ImGui::GetMouseDragDelta();
 			ImGui::ResetMouseDragDelta();
@@ -140,7 +138,7 @@ void User_interface::input()
 			return;
 		}
 
-		//image zoom
+		// Image zoom.
 		if (ImGui::GetIO().MouseWheel > 0.0f) {
 			image_zoom += 0.1f;
 			is_zooming = true;
@@ -157,18 +155,18 @@ void User_interface::input()
 
 	//
 
-	//keyboard
+	// Keyboard
 	//
 
 	if (!ImGui::GetIO().WantCaptureKeyboard) {
 
-		//ctrl + key
+		// ctrl + key
 		//
 
 		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
 			if (ImGui::IsKeyPressed(ImGuiKey_O, false)) {
 				
-				//it will block the thread, but probably no need to run it from new thread
+				// It will block the thread, but probably no need to run it from new thread.
 				dialog_file_open(WIV_OPEN_IMAGE);
 				
 				return;
@@ -212,7 +210,7 @@ void User_interface::input()
 
 		//
 
-		//alt + key
+		// alt + key
 		//
 
 		if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
@@ -224,7 +222,7 @@ void User_interface::input()
 
 		//
 
-		//free keys
+		// Free keys
 		//
 
 		if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
@@ -250,7 +248,7 @@ void User_interface::input()
 
 	}
 
-	//leave escape key with higher priority
+	// Leave escape key with higher priority.
 	if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
 		if (is_fullscreen)
 			toggle_fullscreen();
@@ -322,6 +320,7 @@ void User_interface::context_menu()
 	}
 }
 
+// FIXME! It's too hacky. 
 void User_interface::window_settings()
 {
 	if (is_window_settings_open) {
@@ -343,17 +342,23 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable window auto dimensions", &g_config.window_autowh);
 			ImGui::Spacing();
+
+			// The order has to same as in the enum WIV_WINDOW_NAME_.
 			static constinit const std::array window_name_items{
 				"Defualt name",
 				"Filename",
 				"Full filename"
 			};
+
 			ImGui::Combo("Window name", &g_config.window_name, window_name_items.data(), window_name_items.size());
 			ImGui::Spacing();
+
+			// The order has to be same as in WIV_PASS_FORMATS array.
 			static constinit const std::array internal_format_items{
 				"RGBA32F",
 				"RGBA16F"
 			};
+
 			ImGui::Combo("Internal format", &g_config.pass_format, internal_format_items.data(), internal_format_items.size());
 			ImGui::Spacing();
 			ImGui::ColorEdit4("Background color", g_config.clear_color.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
@@ -364,7 +369,7 @@ void User_interface::window_settings()
 		if (ImGui::CollapsingHeader("Scale")) {
 			ImGui::Spacing();
 
-			//scale profiles
+			// Scale profiles
 			//
 
 			ImGui::TextUnformatted("Profiles:");
@@ -375,7 +380,7 @@ void User_interface::window_settings()
 			ImGui::SameLine();
 			if (ImGui::Button("Add profile", button_size)) {
 
-				//check first does profile already exists
+				// Check first does profile already exists.
 				bool exists{};
 				for (const auto& profile : g_config.scale_profiles) {
 					if (profile.range == range)
@@ -386,13 +391,13 @@ void User_interface::window_settings()
 					g_config.scale_profiles.push_back({ range, {} });
 			}
 
-			//hold values
-			//cant use vector<const char*> directly, because const char* will be non owning
+			// Hold values.
+			// Can't use vector<const char*> directly, because const char* will be non owning.
 			std::vector<std::string> profile_names;
 			for (const auto& profile_name : g_config.scale_profiles)
 				profile_names.push_back(std::to_string(profile_name.range.lower) + ", " + std::to_string(profile_name.range.upper));
 
-			//cant use string directly in imgui
+			// Can't use std::string directly in imgui.
 			std::vector<const char*> profile_items;
 			for (const auto& profile_item : profile_names)
 				profile_items.push_back(profile_item.c_str());
@@ -411,7 +416,7 @@ void User_interface::window_settings()
 
 			//
 
-			//pre-scale blur
+			// Pre-scale blur
 			ImGui::SeparatorText("Pre-scale blur (downscale only)");
 			ImGui::Checkbox("Enable pre-scale blur", &scale.blur_use);
 			dimm(!scale.blur_use);
@@ -420,7 +425,7 @@ void User_interface::window_settings()
 			dimm();
 			ImGui::Spacing();
 
-			//sigmoidize
+			// Sigmoidize
 			ImGui::SeparatorText("Sigmoidize (upscale only)");
 			ImGui::Checkbox("Enable sigmoidize", &scale.sigmoid_use);
 			dimm(!scale.sigmoid_use);
@@ -429,11 +434,15 @@ void User_interface::window_settings()
 			dimm();
 			ImGui::Spacing();
 
-			//scale
+			// Scale
+			//
+
 			ImGui::SeparatorText("Scale");
-			ImGui::Checkbox("Use cylindrical filtering", &scale.kernel_use_cyl);
+			ImGui::Checkbox("Use cylindrical filtering (Jinc based)", &scale.kernel_use_cyl);
 			ImGui::Spacing();
-			static constinit const std::array items{
+
+			// The order has to be same as in the enum WIV_KERNEL_FUNCTION_. 
+			static constinit const std::array kernel_index_items{
 				"Lanczos",
 				"Ginseng",
 				"Hamming",
@@ -449,7 +458,8 @@ void User_interface::window_settings()
 				"Modified FSR",
 				"BC-Spline"
 			};
-			ImGui::Combo("Kernel-function", &scale.kernel_index, items.data(), items.size());
+
+			ImGui::Combo("Kernel-function", &scale.kernel_index, kernel_index_items.data(), kernel_index_items.size());
 			const auto& i{ scale.kernel_index };
 			dimm(i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC || i == WIV_KERNEL_FUNCTION_FSR || i == WIV_KERNEL_FUNCTION_BCSPLINE);
 			ImGui::InputFloat("Radius##kernel", &scale.kernel_radius, 0.0f, 0.0f, "%.6f");
@@ -464,7 +474,9 @@ void User_interface::window_settings()
 			ImGui::InputFloat("Anti-ringing", &scale.kernel_ar, 0.0f, 0.0f, "%.6f");
 			ImGui::Spacing();
 
-			//post-scale unsharp
+			//
+
+			// Post-scale unsharp
 			ImGui::SeparatorText("Post-scale unsharp mask");
 			ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use);
 			dimm(!scale.unsharp_use);
@@ -473,24 +485,28 @@ void User_interface::window_settings()
 			ImGui::InputFloat("Amount", &scale.unsharp_amount, 0.0f, 0.0f, "%.6f");
 			dimm();
 			ImGui::Spacing();
+
 		}
 		if (ImGui::CollapsingHeader("Color management")) {
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable color management", &g_config.cms_use);
 			ImGui::Spacing();
 			dimm(!g_config.cms_use);
-			static constinit const std::array items2{
+
+			// The order has to be the same as in the enum WIV_CMS_PROFILE_DISPLAY_.
+			static constinit const std::array cms_profile_display_items{
 				"Auto",
 				"sRGB",
 				"AdobeRGB",
 				"Custom"
 			};
-			ImGui::Combo("Display profile", &g_config.cms_profile_display, items2.data(), items2.size());
+
+			ImGui::Combo("Display profile", &g_config.cms_profile_display, cms_profile_display_items.data(), cms_profile_display_items.size());
 			char buffer[MAX_PATH];
 			std::strcpy(buffer, g_config.cms_profile_display_custom.string().c_str());
 			if (g_config.cms_use)
 				dimm(g_config.cms_profile_display != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
-			ImGui::InputText("##custom path", buffer, MAX_PATH);
+			ImGui::InputText("##custom_path", buffer, MAX_PATH);
 			g_config.cms_profile_display_custom = buffer;
 			if (g_config.cms_use)
 				dimm();
@@ -500,13 +516,16 @@ void User_interface::window_settings()
 				t.detach();
 			}
 			ImGui::Spacing();
-			static constinit const std::array items{
+
+			// The order has to be the same as the lcms2 ICC Intents.
+			static constinit const std::array cms_intent_items{
 				"Perceptual",
 				"Relative colorimetric",
 				"Saturation",
 				"Absolute colorimetric"
 			};
-			ImGui::Combo("Rendering intent", &g_config.cms_intent, items.data(), items.size());
+			
+			ImGui::Combo("Rendering intent", &g_config.cms_intent, cms_intent_items.data(), cms_intent_items.size());
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable black point compensation", &g_config.cms_use_bpc);
 			dimm();
@@ -553,7 +572,7 @@ void User_interface::window_about()
 	}
 }
 
-//dont think this can get any uglier
+// FIXME! Dont think this can get any uglier.
 void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 {
 	is_dialog_file_open = true;
@@ -565,7 +584,7 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 		};
 		if (file_type == WIV_OPEN_IMAGE)
 			filterspec.pszSpec = WIV_SUPPORTED_EXTENSIONS;
-		else //WIV_OPEN_ICC
+		else // WIV_OPEN_ICC
 			filterspec.pszSpec = L"*.icc";
 		wiv_assert(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
 		if (file_open_dialog->Show(hwnd) == S_OK) {
@@ -579,7 +598,7 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 						else
 							wiv_assert(PostMessageW(hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
 					}
-					else //WIV_OPEN_ICC
+					else // WIV_OPEN_ICC
 						g_config.cms_profile_display_custom = path;
 					CoTaskMemFree(path);
 				}
@@ -609,7 +628,7 @@ void User_interface::toggle_fullscreen()
 	is_fullscreen = !is_fullscreen;
 }
 
-//imgui dimming helper
+// Imgui dimming helper.
 void User_interface::dimm(bool condition) const
 {
 	static bool is_pushed;
