@@ -81,21 +81,17 @@ void User_interface::auto_window_size() const
 	RECT rect{};
 
 	// If the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image.
-	if (cx_screen / cy_screen > image_width / image_height) {
-		rect.right = image_width > cx_screen * 0.9 ? std::lround(image_width * cy_screen / image_height * 0.9) : static_cast<LONG>(image_width);
-		rect.bottom = image_height > cy_screen * 0.9 ? std::lround(image_height * rect.right / image_width) : static_cast<LONG>(image_height);
-	}
-	else {
-		rect.bottom = image_height > cy_screen * 0.9 ? std::lround(image_height * cx_screen / image_width * 0.9) : static_cast<LONG>(image_height);
-		rect.right = image_width > cx_screen * 0.9 ? std::lround(image_width * rect.bottom / image_height) : static_cast<LONG>(image_width);
-	}
+	const auto factor{ std::min({ cx_screen * 0.9 / image_width, cy_screen * 0.9 / image_height, 1.0 }) };
+	rect.right = std::lround(image_width * factor);
+	rect.bottom = std::lround(image_height * factor);
 
 	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
-	const auto cx{ rect.right - rect.left }; // Window width.
-	const auto cy{ rect.bottom - rect.top }; // Window height.
+	const auto cx_window{ rect.right - rect.left }; // Width.
+	const auto cy_window{ rect.bottom - rect.top }; // Height.
 
 	// Center the window and apply new dimensions.
-	SetWindowPos(hwnd, nullptr, static_cast<int>((cx_screen - cx) / 2.0), static_cast<int>((cy_screen - cy) / 2.0), cx, cy, SWP_NOZORDER);
+	// Ignore the type casting nigtmare.
+	SetWindowPos(hwnd, nullptr, (cx_screen - cx_window) / 2.0, (cy_screen - cy_window) / 2.0, cx_window, cy_window, SWP_NOZORDER);
 }
 
 void User_interface::reset_image_panzoom() noexcept
