@@ -153,6 +153,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="bench.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="config_pairs.h" />
     <ClInclude Include="dims.h" />
