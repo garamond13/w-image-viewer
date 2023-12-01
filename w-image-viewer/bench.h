@@ -23,7 +23,7 @@ inline void bench_end() noexcept
 }
 
 // The result will be in milliseconds (double).
-inline void bench_end(std::wstring what) noexcept
+inline void bench_end(const std::wstring what) noexcept
 {
 	const auto bench_end_time{ std::chrono::high_resolution_clock::now() };
 	std::thread t([=]() noexcept { MessageBoxW(nullptr, std::to_wstring(std::chrono::duration<double, std::chrono::milliseconds::period>(bench_end_time - bench_start_time).count()).c_str(), what.c_str(), 0); });
