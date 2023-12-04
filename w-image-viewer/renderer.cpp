@@ -118,7 +118,8 @@ void Renderer::create_image()
 	// Get data from the image.
 	DXGI_FORMAT format;
 	UINT sys_mem_pitch;
-	std::unique_ptr<uint8_t[]> data{ image.get_data(format, sys_mem_pitch) };
+	std::unique_ptr<uint8_t[]> data;
+	image.get_data_for_d3d(data, format, sys_mem_pitch);
 
 	// Create texture.
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
