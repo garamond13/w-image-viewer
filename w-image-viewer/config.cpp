@@ -2,7 +2,7 @@
 #include "config.h"
 #include "helpers.h"
 
-/* config example
+/* Config example
 
 top_level_key=top_level_value
 top_level_key=top_level_value
@@ -37,14 +37,14 @@ void Config::read()
 		std::string line;
 		while (std::getline(file, line)) {
 
-			//check for sections
+			// Check for sections.
 			if (line[0] == '#' && line[1] != '#')
 				if (line.substr(1) == "scale") {
 					is_section_scale = true;
 					continue;
 				}
 			
-			//top level
+			// Top level
 			if (!is_section_scale) {
 				auto pos{ line.find('=') };
 				if (pos != std::string::npos) {
@@ -52,10 +52,10 @@ void Config::read()
 				}
 			}
 
-			//section #scale
+			// Section #scale
 			if (is_section_scale) {
 
-				//check for subsections
+				// Check for subsections.
 				if (line[0] == '#' && line[1] == '#') {
 					if (line.substr(2) == "end")
 						scale_profiles.push_back({range, scale});
@@ -71,6 +71,7 @@ void Config::read()
 				if (pos != std::string::npos)
 					read_scale(line.substr(0, pos), line.substr(pos + 1), scale);
 			}
+
 		}	
 	}
 	else
@@ -79,11 +80,11 @@ void Config::read()
 
 void Config::write()
 {
-	//top level
+	// Top level
 	std::ofstream file(get_path());
 	write_top_level(file);
 	
-	//scale
+	// Scale
 	file << "#scale\n";
 	if(scale_profiles.empty())
 		scale_profiles.push_back({});
@@ -97,31 +98,27 @@ void Config::write()
 
 void Config::read_top_level(const std::string& key, const std::string& val)
 {
-#ifdef read
 #undef read
-#endif
 #define read(name) if (key == name ## _KEY) { strtoval(val, name ## _VAL); return; }
 
-#ifdef read_array
 #undef read_array
-#endif
 #define read_array(name) for (int i{}; i < name ## _KEY.size(); ++i) if (key == name ## _KEY[i]) { strtoval(val, name ## _VAL[i]); return; }
 
-	//WIV_NAME_WINDOW_
+	// WIV_NAME_WINDOW_
 	read(WIV_NAME_WINDOW_WIDTH)
 	read(WIV_NAME_WINDOW_HEIGHT)
 	read(WIV_NAME_WINDOW_USE_AUTO_DIMS)
 	read(WIV_NAME_WINDOW_NAME)
 
-	//WIV_NAME_CLEAR_
+	// WIV_NAME_CLEAR_
 	read_array(WIV_NAME_CLEAR_COLOR)
 
-	//WIV_NAME_ALPHA_
+	// WIV_NAME_ALPHA_
 	read(WIV_NAME_ALPHA_TILE_SIZE)
 	read_array(WIV_NAME_ALPHA_TILE1_COLOR)
 	read_array(WIV_NAME_ALPHA_TILE2_COLOR)
 
-	//WIV_NAME_CMS_
+	// WIV_NAME_CMS_
 	read(WIV_NAME_CMS_USE)
 	read(WIV_NAME_CMS_INTENT)
 	read(WIV_NAME_CMS_USE_BLACKPOINT_COMPENSATION)
@@ -134,31 +131,29 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 	}
 	read(WIV_NAME_CMS_LUT_SIZE)
 
-	//WIV_NAME_PASS_
+	// WIV_NAME_PASS_
 	read(WIV_NAME_PASS_FORMAT)
 
-	//WIV_NAME_RAW_
+	// WIV_NAME_RAW_
 	read(WIV_NAME_RAW_READ_THUMBNAIL)
 }
 
 void Config::read_scale(const std::string& key, const std::string& val, Config_scale& scale)
 {
-#ifdef read
 #undef read
-#endif
 #define read(name) if (key == name ## _KEY) { strtoval(val, scale.name ## _VAL); return; }
 
-	//WIV_NAME_BLUR_
+	// WIV_NAME_BLUR_
 	read(WIV_NAME_BLUR_USE)
 	read(WIV_NAME_BLUR_RADIUS)
 	read(WIV_NAME_BLUR_SIGMA)
 
-	//WIV_NAME_SIGMOID_
+	// WIV_NAME_SIGMOID_
 	read(WIV_NAME_SIGMOID_USE)
 	read(WIV_NAME_SIGMOID_CONTRAST)
 	read(WIV_NAME_SIGMOID_MIDPOINT)
 
-	//WIV_NAME_KERNEL_
+	// WIV_NAME_KERNEL_
 	read(WIV_NAME_KERNEL_USE_CYLINDRICAL)
 	read(WIV_NAME_KERNEL_INDEX)
 	read(WIV_NAME_KERNEL_RADIUS)
@@ -167,7 +162,7 @@ void Config::read_scale(const std::string& key, const std::string& val, Config_s
 	read(WIV_NAME_KERNEL_PARAMETER1)
 	read(WIV_NAME_KERNEL_PARAMETER2)
 
-	//WIV_NAME_UNSHARP_
+	// WIV_NAME_UNSHARP_
 	read(WIV_NAME_UNSHARP_USE)
 	read(WIV_NAME_UNSHARP_RADIUS)
 	read(WIV_NAME_UNSHARP_SIGMA)
@@ -176,31 +171,27 @@ void Config::read_scale(const std::string& key, const std::string& val, Config_s
 
 void Config::write_top_level(std::ofstream& file)
 {
-#ifdef write
 #undef write
-#endif
 #define write(name) file << name ## _KEY << '=' << name ## _VAL << '\n';
 
-#ifdef write_array
 #undef write_array
-#endif
 #define write_array(name) for (int i{}; i < name ## _KEY.size(); ++i) file << name ## _KEY[i] << '=' << name ## _VAL[i] << '\n';
 
-	//WIV_NAME_WINDOW_
+	// WIV_NAME_WINDOW_
 	write(WIV_NAME_WINDOW_WIDTH)
 	write(WIV_NAME_WINDOW_HEIGHT)
 	write(WIV_NAME_WINDOW_USE_AUTO_DIMS)
 	write(WIV_NAME_WINDOW_NAME)
 
-	//WIV_NAME_CLEAR_
+	// WIV_NAME_CLEAR_
 	write_array(WIV_NAME_CLEAR_COLOR)
 
-	//WIV_NAME_ALPHA_
+	// WIV_NAME_ALPHA_
 	write(WIV_NAME_ALPHA_TILE_SIZE)
 	write_array(WIV_NAME_ALPHA_TILE1_COLOR)
 	write_array(WIV_NAME_ALPHA_TILE2_COLOR)
 
-	//WIV_NAME_CMS_
+	// WIV_NAME_CMS_
 	write(WIV_NAME_CMS_USE)
 	write(WIV_NAME_CMS_INTENT)
 	write(WIV_NAME_CMS_USE_BLACKPOINT_COMPENSATION)
@@ -210,31 +201,29 @@ void Config::write_top_level(std::ofstream& file)
 	file << WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_KEY << '=' << WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_VAL.string() << '\n';
 	write(WIV_NAME_CMS_LUT_SIZE)
 
-	//WIV_NAME_PASS_
+	// WIV_NAME_PASS_
 	write(WIV_NAME_PASS_FORMAT)
 
-	//WIV_NAME_RAW_
+	// WIV_NAME_RAW_
 	write(WIV_NAME_RAW_READ_THUMBNAIL)
 }
 
 void Config::write_scale(std::ofstream& file, const Config_scale& scale)
 {
-#ifdef write
 #undef write
-#endif
 #define write(name) file << name ## _KEY << '=' << scale.name ## _VAL << '\n';
 
-	//WIV_NAME_BLUR_
+	// WIV_NAME_BLUR_
 	write(WIV_NAME_BLUR_USE)
 	write(WIV_NAME_BLUR_RADIUS)
 	write(WIV_NAME_BLUR_SIGMA)
 
-	//WIV_NAME_SIGMOID_
+	// WIV_NAME_SIGMOID_
 	write(WIV_NAME_SIGMOID_USE)
 	write(WIV_NAME_SIGMOID_CONTRAST)
 	write(WIV_NAME_SIGMOID_MIDPOINT)
 
-	//WIV_NAME_KERNEL_
+	// WIV_NAME_KERNEL_
 	write(WIV_NAME_KERNEL_USE_CYLINDRICAL)
 	write(WIV_NAME_KERNEL_INDEX)
 	write(WIV_NAME_KERNEL_RADIUS)
@@ -243,7 +232,7 @@ void Config::write_scale(std::ofstream& file, const Config_scale& scale)
 	write(WIV_NAME_KERNEL_PARAMETER1)
 	write(WIV_NAME_KERNEL_PARAMETER2)
 
-	//WIV_NAME_UNSHARP_
+	// WIV_NAME_UNSHARP_
 	write(WIV_NAME_UNSHARP_USE)
 	write(WIV_NAME_UNSHARP_RADIUS)
 	write(WIV_NAME_UNSHARP_SIGMA)
