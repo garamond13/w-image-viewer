@@ -524,6 +524,43 @@ void User_interface::window_settings()
 			ImGui::Combo("Rendering intent", &g_config.cms_intent, cms_intent_items.data(), cms_intent_items.size());
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable black point compensation", &g_config.cms_use_bpc);
+			ImGui::Spacing();
+			
+			// LUT size
+			//
+
+			static constinit const std::array cms_lut_size_items{
+				"33",
+				"49",
+				"65",
+			};
+			int cms_lut_size_items_index;
+
+			switch (g_config.cms_lut_size) {
+			case 33:
+				cms_lut_size_items_index = 0;
+				break;
+			case 49:
+				cms_lut_size_items_index = 1;
+				break;
+			case 65:
+				cms_lut_size_items_index = 2;
+			}
+			ImGui::Combo("LUT size", &cms_lut_size_items_index, cms_lut_size_items.data(), cms_lut_size_items.size());
+			switch (cms_lut_size_items_index) {
+			case 0:
+				g_config.cms_lut_size = 33;
+				break;
+			case 1:
+				g_config.cms_lut_size = 49;
+				break;
+			case 2:
+				g_config.cms_lut_size = 65;
+			}
+			ImGui::Spacing();
+
+			//
+
 			dimm();
 			ImGui::SeparatorText("Color tags");
 			ImGui::Checkbox("Linear tagged images default to ACEScg", &g_config.cms_use_default_to_aces);

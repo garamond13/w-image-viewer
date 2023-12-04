@@ -75,9 +75,6 @@
     <ClInclude Include="range.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="config_pairs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="supported_extensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>

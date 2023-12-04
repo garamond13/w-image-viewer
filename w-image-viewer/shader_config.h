@@ -3,8 +3,6 @@
 
 //this file is shared by both hlsl and cpp
 
-#define WIV_CMS_LUT_SIZE 65
-
 //enum WIV_CMS_TRC_
 #define WIV_CMS_TRC_NONE 0
 #define WIV_CMS_TRC_GAMMA 1

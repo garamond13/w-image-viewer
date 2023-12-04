@@ -319,10 +319,10 @@ void Renderer::create_cms_lut()
 	}
 
 	// Bind lut as 3d texture.
-	static constinit const D3D11_TEXTURE3D_DESC texture3d_desc{
-		.Width{ WIV_CMS_LUT_SIZE },
-		.Height{ WIV_CMS_LUT_SIZE },
-		.Depth{ WIV_CMS_LUT_SIZE },
+	const D3D11_TEXTURE3D_DESC texture3d_desc{
+		.Width{ static_cast<UINT>(g_config.cms_lut_size) },
+		.Height{ static_cast<UINT>(g_config.cms_lut_size) },
+		.Depth{ static_cast<UINT>(g_config.cms_lut_size) },
 		.MipLevels{ 1 },
 		.Format{ DXGI_FORMAT_R16G16B16A16_UNORM },
 		.Usage{ D3D11_USAGE_IMMUTABLE },
@@ -330,8 +330,8 @@ void Renderer::create_cms_lut()
 	};
 	const D3D11_SUBRESOURCE_DATA subresource_data{
 		.pSysMem{ lut.get() },
-		.SysMemPitch{ WIV_CMS_LUT_SIZE * 4 * 2 }, // width * nchannals * byte_depth
-		.SysMemSlicePitch{ WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * 4 * 2 }, // width * height * nchannals * byte_depth
+		.SysMemPitch{ static_cast<UINT>(g_config.cms_lut_size) * 4 * 2 }, // width * nchannals * byte_depth
+		.SysMemSlicePitch{ static_cast<UINT>(g_config.cms_lut_size * g_config.cms_lut_size * 4 * 2) }, // width * height * nchannals * byte_depth
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
 	wiv_assert(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.ReleaseAndGetAddressOf()), == S_OK);
@@ -344,7 +344,7 @@ void Renderer::create_cms_lut()
 
 std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 {
-	std::unique_ptr<uint16_t[]> lut;
+	// Create the transform.
 	cmsUInt32Number flags{ cmsFLAGS_NOCACHE | cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE };
 	if (g_config.cms_use_bpc)
 		flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
@@ -372,9 +372,27 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 			cmsCloseProfile(hprofile);
 		}
 	}
+
+	// Transform a LUT.
+	std::unique_ptr<uint16_t[]> lut;
 	if (htransform) {
-		lut = std::make_unique_for_overwrite<uint16_t[]>(WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * 4);
-		cmsDoTransform(htransform, WIV_CMS_LUT.data(), lut.get(), WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE * WIV_CMS_LUT_SIZE);
+		const auto cms_lut_size3{ g_config.cms_lut_size * g_config.cms_lut_size * g_config.cms_lut_size };
+		lut = std::make_unique_for_overwrite<uint16_t[]>(cms_lut_size3 * 4);
+		const void* wiv_cms_lut{};
+		
+		// Get the correct LUT.
+		switch (g_config.cms_lut_size) {
+			case 33:
+				wiv_cms_lut = WIV_CMS_LUT_33.data();
+				break;
+			case 49:
+				wiv_cms_lut = WIV_CMS_LUT_49.data();
+				break;
+			case 65:
+				wiv_cms_lut = WIV_CMS_LUT_65.data();
+		}
+		
+		cmsDoTransform(htransform, wiv_cms_lut, lut.get(), cms_lut_size3);
 		cmsDeleteTransform(htransform);
 	}
 	return lut;
@@ -382,6 +400,14 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 
 void Renderer::pass_cms()
 {
+	alignas(16) const std::array data{
+		Cb4{
+			.x{ .f{ static_cast<float>(g_config.cms_lut_size) }},
+		}
+	};
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
+	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
+	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_CMS, sizeof(PS_CMS));
 	create_viewport(image.get_width<float>(), image.get_height<float>());

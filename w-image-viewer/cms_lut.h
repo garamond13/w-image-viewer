@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pch.h"
-#include "shader_config.h"
 
 //DONT CALL THIS AT RUNTIME!
 template <int lut_size>
@@ -15,9 +14,12 @@ consteval auto wiv_fill_lut()
 				lut[i++] = r * 65535 / (lut_size - 1);
 				lut[i++] = g * 65535 / (lut_size - 1);
 				lut[i++] = b * 65535 / (lut_size - 1);
-				i++; //iterate over alpha
+				i++; // Iterate over alpha.
 			}
 	return lut;
 }
 
-inline constexpr auto WIV_CMS_LUT{ wiv_fill_lut<WIV_CMS_LUT_SIZE>() };
+// Precompute LUTs since this would be expensive at runtime.
+inline constexpr auto WIV_CMS_LUT_33{ wiv_fill_lut<33>() };
+inline constexpr auto WIV_CMS_LUT_49{ wiv_fill_lut<49>() };
+inline constexpr auto WIV_CMS_LUT_65{ wiv_fill_lut<65>() };

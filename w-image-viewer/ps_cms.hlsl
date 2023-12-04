@@ -8,12 +8,15 @@ Texture2D tex : register(t0);
 Texture3D lut : register(t2);
 SamplerState smp : register(s0);
 
-#define LUT_SIZE (float)WIV_CMS_LUT_SIZE
+cbuffer cb0 : register(b0)
+{
+    float lut_size; // x
+}
 
 float4 main(Vs_out vs_out) : SV_Target
 {
     const float4 color = tex.SampleLevel(smp, vs_out.texcoord, 0.0); 
-    const float3 index = saturate(color.rgb) * (LUT_SIZE - 1.0);
+    const float3 index = saturate(color.rgb) * (lut_size - 1.0);
     
     // Get barycentric weights.
     // See https://doi.org/10.2312/egp.20211031
@@ -48,5 +51,5 @@ float4 main(Vs_out vs_out) : SV_Target
     //
     
     const float3 base = floor(index) + 0.5;
-    return float4(lut.SampleLevel(smp, base / LUT_SIZE, 0.0).rgb * (1.0 - s.x) + lut.SampleLevel(smp, (base + 1.0) / LUT_SIZE, 0.0).rgb * s.z + lut.SampleLevel(smp, (base + vert2) / LUT_SIZE, 0.0).rgb * (s.x - s.y) + lut.SampleLevel(smp, (base + vert3) / LUT_SIZE, 0.0).rgb * (s.y - s.z), color.a);
+    return float4(lut.SampleLevel(smp, base / lut_size, 0.0).rgb * (1.0 - s.x) + lut.SampleLevel(smp, (base + 1.0) / lut_size, 0.0).rgb * s.z + lut.SampleLevel(smp, (base + vert2) / lut_size, 0.0).rgb * (s.x - s.y) + lut.SampleLevel(smp, (base + vert3) / lut_size, 0.0).rgb * (s.y - s.z), color.a);
 }

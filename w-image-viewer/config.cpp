@@ -132,6 +132,7 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 		WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_VAL = val;
 		return;
 	}
+	read(WIV_NAME_CMS_LUT_SIZE)
 
 	//WIV_NAME_PASS_
 	read(WIV_NAME_PASS_FORMAT)
@@ -207,6 +208,7 @@ void Config::write_top_level(std::ofstream& file)
 	write(WIV_NAME_CMS_USE_DEFUALT_TO_ACES)
 	write(WIV_NAME_CMS_PROFILE_DISPLAY)
 	file << WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_KEY << '=' << WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_VAL.string() << '\n';
+	write(WIV_NAME_CMS_LUT_SIZE)
 
 	//WIV_NAME_PASS_
 	write(WIV_NAME_PASS_FORMAT)
