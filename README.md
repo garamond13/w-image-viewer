@@ -1,6 +1,17 @@
 ![](logo.png)
 # W Image Viewer
-**W Image Viewer** is a simple yet powerful image viewer. Offering GPU renderer, advanced image scaling capabilities, robust color management and more.
+**W Image Viewer** is a simple yet powerful image viewer.
+
+W in the name stands for Windows.
+
+## Key features
+- Extensive image format support (including RAW images).
+- Advanced image scaling capabilities.
+- Color management.
+- GPU rendering (using DirectX 11).
+- Simple to use.
+- Fast and lite.
+- Portable.
 
 ## User manual
 Open [user manual.](MANUAL.md)
