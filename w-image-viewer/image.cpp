@@ -51,7 +51,7 @@ int Image::get_tagged_color_space()
 
 		// Checking for upper case "Linear" and lower case "linear". This should cover all cases.
 		if (std::strstr(tag, "inear") /* Not typo. */ ) {
-			if (g_config.cms_use_default_to_aces)
+			if (g_config.cms_default_to_aces.val)
 				return WIV_COLOR_SPACE_ACES;
 			else
 				return WIV_COLOR_SPACE_LINEAR_SRGB;
@@ -62,7 +62,7 @@ int Image::get_tagged_color_space()
 		if (std::strstr(tag, "lin_srgb"))
 			return WIV_COLOR_SPACE_LINEAR_SRGB;
 	}
-	if (g_config.cms_use_defualt_to_srgb)
+	if (g_config.cms_default_to_srgb.val)
 		return WIV_COLOR_SPACE_SRGB;
 	return WIV_COLOR_SPACE_NONE;
 }
@@ -70,7 +70,7 @@ int Image::get_tagged_color_space()
 bool Image::set_image_input(std::wstring_view path)
 {
 	// First try to open file with libraw, since OIIO cant read thumbnails.
-	if (g_config.raw_thumb && raw_input.open_file(path.data()) == LIBRAW_SUCCESS) {
+	if (g_config.raw_thumb.val && raw_input.open_file(path.data()) == LIBRAW_SUCCESS) {
 		if (raw_input.unpack_thumb() == LIBRAW_SUCCESS) {
 			thumb = { raw_input.imgdata.thumbnail.thumb, raw_input.imgdata.thumbnail.tlength };
 			

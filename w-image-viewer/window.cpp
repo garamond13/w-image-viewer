@@ -33,8 +33,8 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
 
     // Create window.
     RECT rect{
-        .right{ g_config.window_width },
-        .bottom{ g_config.window_height }
+        .right{ g_config.window_width.val },
+        .bottom{ g_config.window_height.val }
     };
     wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
     CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, nullptr, nullptr, hinstance, this);
@@ -45,7 +45,7 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
 void Window::set_window_name() const
 {
     std::wstring name;
-    switch (g_config.window_name) {
+    switch (g_config.window_name.val) {
         case WIV_WINDOW_NAME_DEFAULT:
             name = WIV_WINDOW_NAME;
             break;
@@ -117,7 +117,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 
         case WIV_WM_OPEN_FILE:
             window->renderer.create_image();
-            if(g_config.window_autowh)
+            if(g_config.window_autowh.val)
                 window->renderer.user_interface.auto_window_size();
             window->renderer.user_interface.reset_image_panzoom();
             window->reset_image_rotation();
@@ -133,7 +133,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         case WM_DROPFILES:
             if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
                 window->renderer.create_image();
-                if (g_config.window_autowh)
+                if (g_config.window_autowh.val)
                     window->renderer.user_interface.auto_window_size();
                 window->renderer.user_interface.reset_image_panzoom();
                 window->reset_image_rotation();

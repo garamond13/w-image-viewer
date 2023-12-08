@@ -39,8 +39,8 @@ struct alignas(16) Cb4
 
 namespace {
 	constexpr std::array WIV_PASS_FORMATS{
-		DXGI_FORMAT_R32G32B32A32_FLOAT,
-		DXGI_FORMAT_R16G16B16A16_FLOAT
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT
 	};
 }
 
@@ -50,7 +50,7 @@ void Renderer::create(HWND hwnd)
 	create_swapchain(hwnd);
 	create_samplers();
 	create_vertex_shader();
-	if(g_config.cms_use)
+	if(g_config.cms_use.val)
 		init_cms_profile_display();
 	user_interface.create(hwnd, device.Get(), device_context.Get(), &should_update);
 }
@@ -62,25 +62,25 @@ void Renderer::update()
 		update_scale_profile();
 		if (!(user_interface.is_panning || user_interface.is_zooming || user_interface.is_rotating)) {
 			srv_pass = srv_image;
-			if (g_config.cms_use && is_cms_valid)
+			if (g_config.cms_use.val && is_cms_valid)
 				pass_cms();
 			if (!is_equal(scale, 1.0f)) {
 				update_trc();
-				const bool sigmoidize{ scale > 1.0f && p_scale_profile->sigmoid_use };
-				bool linearize{ scale < 1.0f || sigmoidize || p_scale_profile->blur_use };
+				const bool sigmoidize{ scale > 1.0f && p_scale_profile->sigmoid_use.val };
+				bool linearize{ scale < 1.0f || sigmoidize || p_scale_profile->blur_use.val };
 				if (linearize)
 					pass_linearize(image.get_width<UINT>(), image.get_height<UINT>());
 				if (sigmoidize)
 					pass_sigmoidize();
-				if (scale < 1.0f && p_scale_profile->blur_use)
+				if (scale < 1.0f && p_scale_profile->blur_use.val)
 					pass_blur();
-				if (p_scale_profile->kernel_use_cyl)
+				if (p_scale_profile->kernel_cylindrical_use.val)
 					pass_cylindrical_resample();
 				else
 					pass_orthogonal_resample();
 				if (sigmoidize)
 					pass_desigmoidize();
-				if (p_scale_profile->unsharp_use) {
+				if (p_scale_profile->unsharp_use.val) {
 					if (!linearize) {
 						pass_linearize(dims_output.width, dims_output.height);
 						linearize = true;
@@ -106,7 +106,7 @@ void Renderer::update()
 void Renderer::draw() const
 {
 	device_context->OMSetRenderTargets(1, rtv_back_buffer.GetAddressOf(), nullptr);
-	device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_color.data());
+	device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_color.val.data());
 	device_context->Draw(3, 0);
 	user_interface.draw();
 	wiv_assert(swap_chain->Present(1, 0), == S_OK);
@@ -285,7 +285,7 @@ void Renderer::create_vertex_shader() const noexcept
 
 void Renderer::init_cms_profile_display()
 {
-	switch (g_config.cms_profile_display) {
+	switch (g_config.cms_display_profile.val) {
 		case WIV_CMS_PROFILE_DISPLAY_AUTO: {
 
 			// Get system default icc profile.
@@ -306,7 +306,7 @@ void Renderer::init_cms_profile_display()
 			cms_profile_display.reset(cms_create_profile_adobe_rgb());
 			break;
 		case WIV_CMS_PROFILE_DISPLAY_CUSTOM:
-			cms_profile_display.reset(cmsOpenProfileFromFile(g_config.cms_profile_display_custom.string().c_str(), "r"));
+			cms_profile_display.reset(cmsOpenProfileFromFile(g_config.cms_display_profile_custom.val.string().c_str(), "r"));
 			break;
 	}
 }
@@ -321,9 +321,9 @@ void Renderer::create_cms_lut()
 
 	// Bind lut as 3d texture.
 	const D3D11_TEXTURE3D_DESC texture3d_desc{
-		.Width{ static_cast<UINT>(g_config.cms_lut_size) },
-		.Height{ static_cast<UINT>(g_config.cms_lut_size) },
-		.Depth{ static_cast<UINT>(g_config.cms_lut_size) },
+		.Width{ g_config.cms_lut_size.val },
+		.Height{ g_config.cms_lut_size.val },
+		.Depth{ g_config.cms_lut_size.val },
 		.MipLevels{ 1 },
 		.Format{ DXGI_FORMAT_R16G16B16A16_UNORM },
 		.Usage{ D3D11_USAGE_IMMUTABLE },
@@ -331,8 +331,8 @@ void Renderer::create_cms_lut()
 	};
 	const D3D11_SUBRESOURCE_DATA subresource_data{
 		.pSysMem{ lut.get() },
-		.SysMemPitch{ static_cast<UINT>(g_config.cms_lut_size) * 4 * 2 }, // width * nchannals * byte_depth
-		.SysMemSlicePitch{ static_cast<UINT>(g_config.cms_lut_size * g_config.cms_lut_size * 4 * 2) }, // width * height * nchannals * byte_depth
+		.SysMemPitch{ g_config.cms_lut_size.val * 4 * 2 }, // width * nchannals * byte_depth
+		.SysMemSlicePitch{ g_config.cms_lut_size.val * g_config.cms_lut_size.val * 4 * 2 }, // width * height * nchannals * byte_depth
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
 	wiv_assert(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.ReleaseAndGetAddressOf()), == S_OK);
@@ -347,11 +347,11 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 {
 	// Create the transform.
 	cmsUInt32Number flags{ cmsFLAGS_NOCACHE | cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE };
-	if (g_config.cms_use_bpc)
+	if (g_config.cms_bpc_use.val)
 		flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
 	cmsHTRANSFORM htransform{};
 	if (image.embended_profile)
-		htransform = cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent, flags);
+		htransform = cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
 	else {
 		cmsHPROFILE hprofile{};
 		switch (image.get_tagged_color_space()) {
@@ -369,7 +369,7 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 				break;
 		}
 		if (hprofile) {
-			htransform = cmsCreateTransform(hprofile, TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent, flags);
+			htransform = cmsCreateTransform(hprofile, TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
 			cmsCloseProfile(hprofile);
 		}
 	}
@@ -377,12 +377,12 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 	// Transform a LUT.
 	std::unique_ptr<uint16_t[]> lut;
 	if (htransform) {
-		const auto cms_lut_size3{ g_config.cms_lut_size * g_config.cms_lut_size * g_config.cms_lut_size };
+		const auto cms_lut_size3{ g_config.cms_lut_size.val * g_config.cms_lut_size.val * g_config.cms_lut_size.val };
 		lut = std::make_unique_for_overwrite<uint16_t[]>(cms_lut_size3 * 4);
 		const void* wiv_cms_lut{};
 		
 		// Get the correct LUT.
-		switch (g_config.cms_lut_size) {
+		switch (g_config.cms_lut_size.val) {
 			case 33:
 				wiv_cms_lut = WIV_CMS_LUT_33.data();
 				break;
@@ -403,7 +403,7 @@ void Renderer::pass_cms()
 {
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .f{ static_cast<float>(g_config.cms_lut_size) }},
+			.x{ .f{ static_cast<float>(g_config.cms_lut_size.val) }},
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -470,8 +470,8 @@ void Renderer::pass_sigmoidize()
 
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .f{ p_scale_profile->sigmoid_contrast }},
-			.y{ .f{ p_scale_profile->sigmoid_midpoint }}
+			.x{ .f{ p_scale_profile->sigmoid_contrast.val }},
+			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -494,8 +494,8 @@ void Renderer::pass_desigmoidize()
 
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .f{ p_scale_profile->sigmoid_contrast }},
-			.y{ .f{ p_scale_profile->sigmoid_midpoint }}
+			.x{ .f{ p_scale_profile->sigmoid_contrast.val }},
+			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -514,8 +514,8 @@ void Renderer::pass_blur()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .f{ static_cast<float>(p_scale_profile->blur_radius) }},
-			.y{ .f{ p_scale_profile->blur_sigma }},
+			.x{ .f{ static_cast<float>(p_scale_profile->blur_radius.val) }},
+			.y{ .f{ p_scale_profile->blur_sigma.val }},
 			.z{ .f{ 0.0f }} // Unsharp amount, has to be 0.0f!
 		},
 		Cb4{
@@ -556,9 +556,9 @@ void Renderer::pass_unsharp()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius) }},
-			.y{ .f{ p_scale_profile->unsharp_sigma }},
-			.z{ .f{ p_scale_profile->unsharp_amount }}
+			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius.val) }},
+			.y{ .f{ p_scale_profile->unsharp_sigma.val }},
+			.z{ .f{ p_scale_profile->unsharp_amount.val }}
 		},
 		Cb4{
 			.x{ .f{ 0.0f }}, // x axis.
@@ -601,14 +601,14 @@ void Renderer::pass_orthogonal_resample()
 {
 	alignas(16) std::array cb0_data{
 		Cb4{
-			.x{ .i{ p_scale_profile->kernel_index }},
+			.x{ .i{ p_scale_profile->kernel_index.val }},
 			.y{ .f{ get_kernel_radius() }},
-			.z{ .f{ p_scale_profile->kernel_blur }},
-			.w{ .f{ p_scale_profile->kernel_p1 }}
+			.z{ .f{ p_scale_profile->kernel_blur.val }},
+			.w{ .f{ p_scale_profile->kernel_parameter1.val }}
 		},
 		Cb4{
-			.x{ .f{ p_scale_profile->kernel_p2 }},
-			.y{ .f{ p_scale_profile->kernel_ar }},
+			.x{ .f{ p_scale_profile->kernel_parameter2.val }},
+			.y{ .f{ p_scale_profile->kernel_antiringing.val }},
 			.z{ .f{ scale < 1.0f ? 1.0f / scale : 1.0f }}
 		},
 		Cb4{
@@ -647,14 +647,14 @@ void Renderer::pass_cylindrical_resample()
 {
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .i{ p_scale_profile->kernel_index }},
+			.x{ .i{ p_scale_profile->kernel_index.val }},
 			.y{ .f{ get_kernel_radius() }},
-			.z{ .f{ p_scale_profile->kernel_blur }},
-			.w{ .f{ p_scale_profile->kernel_p1 }}
+			.z{ .f{ p_scale_profile->kernel_blur.val }},
+			.w{ .f{ p_scale_profile->kernel_parameter1.val }}
 		},
 		Cb4{
-			.x{ .f{ p_scale_profile->kernel_p2 }},
-			.y{ .f{ p_scale_profile->kernel_ar }},
+			.x{ .f{ p_scale_profile->kernel_parameter2.val }},
+			.y{ .f{ p_scale_profile->kernel_antiringing.val }},
 			.z{ .f{ image.get_width<float>() }},
 			.w{ .f{ image.get_height<float>() }}
 		},
@@ -680,19 +680,19 @@ void Renderer::pass_last()
 	if (image.has_alpha()) {
 		alignas(16) const std::array cb0_data{
 			Cb4{
-				.x{ .f{ dims_output.get_width<float>() / g_config.alpha_tile_size }},
-				.y{ .f{ dims_output.get_height<float>() / g_config.alpha_tile_size }},
+				.x{ .f{ dims_output.get_width<float>() / g_config.alpha_tile_size.val }},
+				.y{ .f{ dims_output.get_height<float>() / g_config.alpha_tile_size.val }},
 				.z{ .f{ user_interface.image_rotation }}
 			},
 			Cb4{
-				.x{ .f{ g_config.alpha_tile1_color[0] }},
-				.y{ .f{ g_config.alpha_tile1_color[1] }},
-				.z{ .f{ g_config.alpha_tile1_color[2] }}
+				.x{ .f{ g_config.alpha_tile1_color.val[0] }},
+				.y{ .f{ g_config.alpha_tile1_color.val[1] }},
+				.z{ .f{ g_config.alpha_tile1_color.val[2] }}
 			},
 			Cb4{
-				.x{ .f{ g_config.alpha_tile2_color[0] }},
-				.y{ .f{ g_config.alpha_tile2_color[1] }},
-				.z{ .f{ g_config.alpha_tile2_color[2] }}
+				.x{ .f{ g_config.alpha_tile2_color.val[0] }},
+				.y{ .f{ g_config.alpha_tile2_color.val[1] }},
+				.z{ .f{ g_config.alpha_tile2_color.val[2] }}
 			}
 		};
 		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
@@ -724,7 +724,7 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 		
 		.MipLevels{ 1 },
 		.ArraySize{ 1 },
-		.Format{ WIV_PASS_FORMATS[g_config.pass_format] },
+		.Format{ WIV_PASS_FORMATS[g_config.pass_format.val] },
 		.SampleDesc{
 			.Count{ 1 }
 		},
@@ -833,11 +833,11 @@ void Renderer::update_scale_profile() noexcept
 
 float Renderer::get_kernel_radius() const noexcept
 {
-	switch (p_scale_profile->kernel_index) {
+	switch (p_scale_profile->kernel_index.val) {
 		case WIV_KERNEL_FUNCTION_NEAREST:
 			return 1.0f;
 		case WIV_KERNEL_FUNCTION_LINEAR:
-			if (p_scale_profile->kernel_use_cyl)
+			if (p_scale_profile->kernel_cylindrical_use.val)
 				return std::numbers::sqrt2_v<float>;
 			return 1.0f;
 		case WIV_KERNEL_FUNCTION_BICUBIC:
@@ -845,20 +845,20 @@ float Renderer::get_kernel_radius() const noexcept
 		case WIV_KERNEL_FUNCTION_BCSPLINE:
 			return 2.0f;
 		default:
-			return p_scale_profile->kernel_radius;
+			return p_scale_profile->kernel_radius.val;
 	}
 }
 
 void Renderer::update_trc()
 {
-	if (g_config.cms_use) {
-		if ((g_config.cms_profile_display == WIV_CMS_PROFILE_DISPLAY_AUTO || g_config.cms_profile_display == WIV_CMS_PROFILE_DISPLAY_CUSTOM) && cms_profile_display) {
+	if (g_config.cms_use.val) {
+		if ((g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_AUTO || g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_CUSTOM) && cms_profile_display) {
 			auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1)) };
 			trc = { WIV_CMS_TRC_GAMMA, gamma < 0.0f ? 1.0f : gamma };
 		}
-		else if (g_config.cms_profile_display == WIV_CMS_PROFILE_DISPLAY_ADOBE)
+		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_ADOBE)
 			trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
-		else if (g_config.cms_profile_display == WIV_CMS_PROFILE_DISPLAY_SRGB)
+		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_SRGB)
 			trc = { WIV_CMS_TRC_SRGB, 0.0f /* will be ignored */ };
 	}
 	else if (image.embended_profile) {
@@ -867,7 +867,7 @@ void Renderer::update_trc()
 	}
 	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_ADOBE)
 		trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
-	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_SRGB || g_config.cms_use_defualt_to_srgb)
+	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_SRGB || g_config.cms_default_to_srgb.val)
 		trc = { WIV_CMS_TRC_SRGB, 1.0f /* will be ignored */ };
 	else
 		trc = { WIV_CMS_TRC_NONE, 0.0f };

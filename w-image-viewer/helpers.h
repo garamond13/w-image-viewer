@@ -97,3 +97,14 @@ inline void strtoval(const std::string& str, auto& val, size_t* idx = nullptr, [
 	else
 		static_assert(always_false_v<decltype(val)>, "strtoval faild");
 }
+
+// Workaround for string literal as template-argument.
+template <size_t n>
+struct Char_array
+{
+	constexpr Char_array(const char(&str)[n]) :
+		val{ std::to_array(str) }
+	{}
+
+	const std::array<char, n> val;
+};

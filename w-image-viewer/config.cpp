@@ -1,28 +1,27 @@
 #include "pch.h"
 #include "config.h"
-#include "helpers.h"
 
 /* Config example
 
-top_level_key=top_level_value
-top_level_key=top_level_value
-top_level_key=top_level_value
+top_level_key=value
+top_level_key=value
+top_level_key=value0,value1,value2
 #section
 ##subsection
-subsection_key=subsection_value
-subsection_key=subsection_value
-subsection_key=subsection_value
+subsection_key=value
+subsection_key=value
+subsection_key=value
 ##end
 ##subsection
-subsection_key=subsection_value
-subsection_key=subsection_value
-subsection_key=subsection_value
+subsection_key=value0,value1
+subsection_key=value
+subsection_key=value
 ##end
 #end
 #section
-section_key=section_value
-section_key=section_value
-section_key=section_value
+section_key=value
+section_key=value
+section_key=value
 #end
 
 */
@@ -60,7 +59,7 @@ void Config::read()
 					if (line.substr(2) == "end")
 						scale_profiles.push_back({range, scale});
 					else {
-						auto pos{ line.find(';') };
+						auto pos{ line.find(',') };
 						strtoval(line.substr(2, pos), range.lower);
 						strtoval(line.substr(pos + 1), range.upper);
 					}
@@ -89,7 +88,7 @@ void Config::write()
 	if(scale_profiles.empty())
 		scale_profiles.push_back({});
 	for (const auto& profile : scale_profiles) {
-		file << "##" << std::to_string(profile.range.lower) + ";" + std::to_string(profile.range.upper) << '\n';
+		file << "##" << std::to_string(profile.range.lower) + "," + std::to_string(profile.range.upper) << '\n';
 		write_scale(file, profile.config);
 		file << "##end\n";
 	}
@@ -98,145 +97,150 @@ void Config::write()
 
 void Config::read_top_level(const std::string& key, const std::string& val)
 {
+
+// Macro helpers for reading config.
+//
+
 #undef read
-#define read(name) if (key == name ## _KEY) { strtoval(val, name ## _VAL); return; }
+#define read(name)\
+	if (key == name ## .key) {\
+		strtoval(val, name ## .val);\
+		return;\
+	}
 
 #undef read_array
-#define read_array(name) for (int i{}; i < name ## _KEY.size(); ++i) if (key == name ## _KEY[i]) { strtoval(val, name ## _VAL[i]); return; }
+#define read_array(name)\
+	if (key == name ## .key) {\
+		std::string sub_val;\
+		std::stringstream ss{ val };\
+		int i{};\
+		while (std::getline(ss, sub_val, ',')) {\
+			strtoval(sub_val, name ## .val[i]);\
+			++i;\
+		}\
+		return;\
+	}
 
-	// WIV_NAME_WINDOW_
-	read(WIV_NAME_WINDOW_WIDTH)
-	read(WIV_NAME_WINDOW_HEIGHT)
-	read(WIV_NAME_WINDOW_USE_AUTO_DIMS)
-	read(WIV_NAME_WINDOW_NAME)
+//
 
-	// WIV_NAME_CLEAR_
-	read_array(WIV_NAME_CLEAR_COLOR)
-
-	// WIV_NAME_ALPHA_
-	read(WIV_NAME_ALPHA_TILE_SIZE)
-	read_array(WIV_NAME_ALPHA_TILE1_COLOR)
-	read_array(WIV_NAME_ALPHA_TILE2_COLOR)
-
-	// WIV_NAME_CMS_
-	read(WIV_NAME_CMS_USE)
-	read(WIV_NAME_CMS_INTENT)
-	read(WIV_NAME_CMS_USE_BLACKPOINT_COMPENSATION)
-	read(WIV_NAME_CMS_USE_DEFUALT_TO_SRGB)
-	read(WIV_NAME_CMS_USE_DEFUALT_TO_ACES)
-	read(WIV_NAME_CMS_PROFILE_DISPLAY)
-	if (key == WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_KEY) {
-		WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_VAL = val;
+	read(window_width)
+	read(window_height)
+	read(window_autowh)
+	read(window_name)
+	read_array(clear_color)
+	read(alpha_tile_size)
+	read_array(alpha_tile1_color)
+	read_array(alpha_tile2_color)
+	read(cms_use)
+	read(cms_intent)
+	read(cms_bpc_use)
+	read(cms_default_to_srgb)
+	read(cms_default_to_aces)
+	read(cms_display_profile)
+	if (key == cms_display_profile_custom.key) {
+		cms_display_profile_custom.val = val;
 		return;
 	}
-	read(WIV_NAME_CMS_LUT_SIZE)
-
-	// WIV_NAME_PASS_
-	read(WIV_NAME_PASS_FORMAT)
-
-	// WIV_NAME_RAW_
-	read(WIV_NAME_RAW_READ_THUMBNAIL)
+	read(cms_lut_size)
+	read(pass_format)
+	read(raw_thumb)
 }
 
 void Config::read_scale(const std::string& key, const std::string& val, Config_scale& scale)
 {
+
+// Macro helper for reading config.
 #undef read
-#define read(name) if (key == name ## _KEY) { strtoval(val, scale.name ## _VAL); return; }
+#define read(name)\
+	if (key == name ## .key) {\
+		strtoval(val, name ## .val);\
+		return;\
+	}
 
-	// WIV_NAME_BLUR_
-	read(WIV_NAME_BLUR_USE)
-	read(WIV_NAME_BLUR_RADIUS)
-	read(WIV_NAME_BLUR_SIGMA)
-
-	// WIV_NAME_SIGMOID_
-	read(WIV_NAME_SIGMOID_USE)
-	read(WIV_NAME_SIGMOID_CONTRAST)
-	read(WIV_NAME_SIGMOID_MIDPOINT)
-
-	// WIV_NAME_KERNEL_
-	read(WIV_NAME_KERNEL_USE_CYLINDRICAL)
-	read(WIV_NAME_KERNEL_INDEX)
-	read(WIV_NAME_KERNEL_RADIUS)
-	read(WIV_NAME_KERNEL_BLUR)
-	read(WIV_NAME_KERNEL_ANTIRINGING)
-	read(WIV_NAME_KERNEL_PARAMETER1)
-	read(WIV_NAME_KERNEL_PARAMETER2)
-
-	// WIV_NAME_UNSHARP_
-	read(WIV_NAME_UNSHARP_USE)
-	read(WIV_NAME_UNSHARP_RADIUS)
-	read(WIV_NAME_UNSHARP_SIGMA)
-	read(WIV_NAME_UNSHARP_AMOUNT)
+	read(scale.blur_use)
+	read(scale.blur_radius)
+	read(scale.blur_sigma)
+	read(scale.sigmoid_use)
+	read(scale.sigmoid_contrast)
+	read(scale.sigmoid_midpoint)
+	read(scale.kernel_cylindrical_use)
+	read(scale.kernel_index)
+	read(scale.kernel_radius)
+	read(scale.kernel_blur)
+	read(scale.kernel_antiringing)
+	read(scale.kernel_parameter1)
+	read(scale.kernel_parameter2)
+	read(scale.unsharp_use)
+	read(scale.unsharp_radius)
+	read(scale.unsharp_sigma)
+	read(scale.unsharp_amount)
 }
 
 void Config::write_top_level(std::ofstream& file)
 {
+
+// Macro helpers for writing config.
+//
+
 #undef write
-#define write(name) file << name ## _KEY << '=' << name ## _VAL << '\n';
+#define write(name) file << name ## .key << '=' << name ## .val << '\n';
 
 #undef write_array
-#define write_array(name) for (int i{}; i < name ## _KEY.size(); ++i) file << name ## _KEY[i] << '=' << name ## _VAL[i] << '\n';
+#define write_array(name)\
+	file << name ## .key << '=';\
+	for (int i{}; i < name ## .val.size(); ++i) {\
+		file << name ## .val[i];\
+		if (i != name ## .val.size() - 1)\
+			file << ',';\
+	}\
+	file << '\n';
 
-	// WIV_NAME_WINDOW_
-	write(WIV_NAME_WINDOW_WIDTH)
-	write(WIV_NAME_WINDOW_HEIGHT)
-	write(WIV_NAME_WINDOW_USE_AUTO_DIMS)
-	write(WIV_NAME_WINDOW_NAME)
+//
 
-	// WIV_NAME_CLEAR_
-	write_array(WIV_NAME_CLEAR_COLOR)
-
-	// WIV_NAME_ALPHA_
-	write(WIV_NAME_ALPHA_TILE_SIZE)
-	write_array(WIV_NAME_ALPHA_TILE1_COLOR)
-	write_array(WIV_NAME_ALPHA_TILE2_COLOR)
-
-	// WIV_NAME_CMS_
-	write(WIV_NAME_CMS_USE)
-	write(WIV_NAME_CMS_INTENT)
-	write(WIV_NAME_CMS_USE_BLACKPOINT_COMPENSATION)
-	write(WIV_NAME_CMS_USE_DEFUALT_TO_SRGB)
-	write(WIV_NAME_CMS_USE_DEFUALT_TO_ACES)
-	write(WIV_NAME_CMS_PROFILE_DISPLAY)
-	file << WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_KEY << '=' << WIV_NAME_CMS_PROFILE_DISPLAY_CUSTOM_VAL.string() << '\n';
-	write(WIV_NAME_CMS_LUT_SIZE)
-
-	// WIV_NAME_PASS_
-	write(WIV_NAME_PASS_FORMAT)
-
-	// WIV_NAME_RAW_
-	write(WIV_NAME_RAW_READ_THUMBNAIL)
+	write(window_width)
+	write(window_height)
+	write(window_autowh)
+	write(window_name)
+	write_array(clear_color)
+	write(alpha_tile_size)
+	write_array(alpha_tile1_color)
+	write_array(alpha_tile2_color)
+	write(cms_use)
+	write(cms_intent)
+	write(cms_bpc_use)
+	write(cms_default_to_srgb)
+	write(cms_default_to_aces)
+	write(cms_display_profile)
+	file << cms_display_profile_custom.key << '=' << cms_display_profile_custom.val.string() << '\n';
+	write(cms_lut_size)
+	write(pass_format)
+	write(raw_thumb)
 }
 
 void Config::write_scale(std::ofstream& file, const Config_scale& scale)
 {
+
+// Macro helper for writing config.
 #undef write
-#define write(name) file << name ## _KEY << '=' << scale.name ## _VAL << '\n';
+#define write(name) file << name ## .key << '=' << name ## .val << '\n';
 
-	// WIV_NAME_BLUR_
-	write(WIV_NAME_BLUR_USE)
-	write(WIV_NAME_BLUR_RADIUS)
-	write(WIV_NAME_BLUR_SIGMA)
-
-	// WIV_NAME_SIGMOID_
-	write(WIV_NAME_SIGMOID_USE)
-	write(WIV_NAME_SIGMOID_CONTRAST)
-	write(WIV_NAME_SIGMOID_MIDPOINT)
-
-	// WIV_NAME_KERNEL_
-	write(WIV_NAME_KERNEL_USE_CYLINDRICAL)
-	write(WIV_NAME_KERNEL_INDEX)
-	write(WIV_NAME_KERNEL_RADIUS)
-	write(WIV_NAME_KERNEL_BLUR)
-	write(WIV_NAME_KERNEL_ANTIRINGING)
-	write(WIV_NAME_KERNEL_PARAMETER1)
-	write(WIV_NAME_KERNEL_PARAMETER2)
-
-	// WIV_NAME_UNSHARP_
-	write(WIV_NAME_UNSHARP_USE)
-	write(WIV_NAME_UNSHARP_RADIUS)
-	write(WIV_NAME_UNSHARP_SIGMA)
-	write(WIV_NAME_UNSHARP_AMOUNT)
+	write(scale.blur_use)
+	write(scale.blur_radius)
+	write(scale.blur_sigma)
+	write(scale.sigmoid_use)
+	write(scale.sigmoid_contrast)
+	write(scale.sigmoid_midpoint)
+	write(scale.kernel_cylindrical_use)
+	write(scale.kernel_index)
+	write(scale.kernel_radius)
+	write(scale.kernel_blur)
+	write(scale.kernel_antiringing)
+	write(scale.kernel_parameter1)
+	write(scale.kernel_parameter2)
+	write(scale.unsharp_use)
+	write(scale.unsharp_radius)
+	write(scale.unsharp_sigma)
+	write(scale.unsharp_amount)
 }
 
 std::filesystem::path Config::get_path()
