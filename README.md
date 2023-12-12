@@ -18,5 +18,5 @@ W in the name stands for Windows.
 
 ## 
 
-[User manual](MANUAL.md)
+[User manual](MANUAL.md)  
 [Compilation](COMPILE.md)
