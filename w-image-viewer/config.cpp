@@ -152,28 +152,28 @@ void Config::read_scale(const std::string& key, const std::string& val, Config_s
 // Macro helper for reading config.
 #undef read
 #define read(name)\
-	if (key == name ## .key) {\
-		strtoval(val, name ## .val);\
+	if (key == scale. ## name ## .key) {\
+		strtoval(val, scale. ## name ## .val);\
 		return;\
 	}
 
-	read(scale.blur_use)
-	read(scale.blur_radius)
-	read(scale.blur_sigma)
-	read(scale.sigmoid_use)
-	read(scale.sigmoid_contrast)
-	read(scale.sigmoid_midpoint)
-	read(scale.kernel_cylindrical_use)
-	read(scale.kernel_index)
-	read(scale.kernel_radius)
-	read(scale.kernel_blur)
-	read(scale.kernel_antiringing)
-	read(scale.kernel_parameter1)
-	read(scale.kernel_parameter2)
-	read(scale.unsharp_use)
-	read(scale.unsharp_radius)
-	read(scale.unsharp_sigma)
-	read(scale.unsharp_amount)
+	read(blur_use)
+	read(blur_radius)
+	read(blur_sigma)
+	read(sigmoid_use)
+	read(sigmoid_contrast)
+	read(sigmoid_midpoint)
+	read(kernel_cylindrical_use)
+	read(kernel_index)
+	read(kernel_radius)
+	read(kernel_blur)
+	read(kernel_antiringing)
+	read(kernel_parameter1)
+	read(kernel_parameter2)
+	read(unsharp_use)
+	read(unsharp_radius)
+	read(unsharp_sigma)
+	read(unsharp_amount)
 }
 
 void Config::write_top_level(std::ofstream& file)
@@ -222,25 +222,25 @@ void Config::write_scale(std::ofstream& file, const Config_scale& scale)
 
 // Macro helper for writing config.
 #undef write
-#define write(name) file << name ## .key << '=' << name ## .val << '\n';
+#define write(name) file << scale. ## name ## .key << '=' << scale. ## name ## .val << '\n';
 
-	write(scale.blur_use)
-	write(scale.blur_radius)
-	write(scale.blur_sigma)
-	write(scale.sigmoid_use)
-	write(scale.sigmoid_contrast)
-	write(scale.sigmoid_midpoint)
-	write(scale.kernel_cylindrical_use)
-	write(scale.kernel_index)
-	write(scale.kernel_radius)
-	write(scale.kernel_blur)
-	write(scale.kernel_antiringing)
-	write(scale.kernel_parameter1)
-	write(scale.kernel_parameter2)
-	write(scale.unsharp_use)
-	write(scale.unsharp_radius)
-	write(scale.unsharp_sigma)
-	write(scale.unsharp_amount)
+	write(blur_use)
+	write(blur_radius)
+	write(blur_sigma)
+	write(sigmoid_use)
+	write(sigmoid_contrast)
+	write(sigmoid_midpoint)
+	write(kernel_cylindrical_use)
+	write(kernel_index)
+	write(kernel_radius)
+	write(kernel_blur)
+	write(kernel_antiringing)
+	write(kernel_parameter1)
+	write(kernel_parameter2)
+	write(unsharp_use)
+	write(unsharp_radius)
+	write(unsharp_sigma)
+	write(unsharp_amount)
 }
 
 std::filesystem::path Config::get_path()
