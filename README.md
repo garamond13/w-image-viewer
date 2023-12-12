@@ -1,10 +1,13 @@
 ![](logo.png)
+
 # W Image Viewer
+
 **W Image Viewer** is a simple yet powerful image viewer.
 
 W in the name stands for Windows.
 
 ## Key features
+
 - Extensive image format support (including RAW images).
 - Advanced image scaling capabilities.
 - Color management.
@@ -13,5 +16,7 @@ W in the name stands for Windows.
 - Fast and lite.
 - Portable.
 
-## User manual
-Open [user manual.](MANUAL.md)
+## 
+
+[User manual](MANUAL.md)
+[Compilation](COMPILE.md)
