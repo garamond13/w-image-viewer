@@ -15,7 +15,7 @@ bool File_manager::file_open(std::wstring_view path)
 
 void File_manager::file_next()
 {
-    //iterate directory
+    // Iterate directory.
     std::vector<std::filesystem::path> files;
     for (const auto& file : std::filesystem::directory_iterator(file_current.parent_path())) {
         if (!file.is_directory() && PathMatchSpecExW(file.path().c_str(), WIV_SUPPORTED_EXTENSIONS, PMSF_MULTIPLE) == S_OK) {
@@ -27,7 +27,7 @@ void File_manager::file_next()
     if (files.empty())
         return;
     
-    //get next valid file
+    // Get next valid file.
     std::sort(files.begin(), files.end());
     for (const auto& file : files) {
         if (image.set_image_input(file.c_str())) {
@@ -39,7 +39,7 @@ void File_manager::file_next()
 
 void File_manager::file_previous()
 {
-    //iterate directory
+    // Iterate directory.
     std::vector<std::filesystem::path> files;
     for (const auto& file : std::filesystem::directory_iterator(file_current.parent_path())) {
         if (!file.is_directory() && PathMatchSpecExW(file.path().c_str(), WIV_SUPPORTED_EXTENSIONS, PMSF_MULTIPLE) == S_OK) {
@@ -51,7 +51,7 @@ void File_manager::file_previous()
     if (files.empty())
         return;
     
-    //get previous valid file
+    // Get previous valid file.
     std::sort(files.begin(), files.end());
     for (const auto& file : std::ranges::views::reverse(files)) {
         if (image.set_image_input(file.c_str())) {
