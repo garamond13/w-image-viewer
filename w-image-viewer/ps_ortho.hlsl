@@ -28,12 +28,6 @@ cbuffer cb0 : register(b0)
     float2 axis; // zzz www
 }
 
-// Get texel size.
-static float2 pt = 1.0 / dims * axis;
-
-// Antiringing shouldnt be used when downsampling!
-static bool use_ar = ar > 0.0 && is_equal(scale, 1.0);
-
 // Expects abs(x).
 float get_weight(float x)
 {
@@ -79,6 +73,7 @@ float get_weight(float x)
 float4 main(Vs_out vs_out) : SV_Target
 {   
     const float fcoord = dot(frac(vs_out.texcoord * dims - 0.5), axis);
+    const float2 pt = 1.0 / dims * axis; // Texel size.
     const float2 base = vs_out.texcoord - fcoord * pt;
     float4 color;
     float4 csum = 0.0; // Weighted color sum.
@@ -86,8 +81,15 @@ float4 main(Vs_out vs_out) : SV_Target
     float wsum = 0.0; // Weight sum.
      
     // Antiringing.
-    float4 low = 1e9;
-    float4 high = -1e9;
+    //
+    
+    float4 lo = 1e9;
+    float4 hi = -1e9;
+    
+    // Antiringing shouldnt be used when downsampling!
+    const bool use_ar = ar > 0.0 && is_equal(scale, 1.0);
+    
+    //
     
     // Get required radius.
     const float r = ceil(radius * scale);
@@ -100,15 +102,15 @@ float4 main(Vs_out vs_out) : SV_Target
         
         // Antiringing.
         if (use_ar && i >= 0.0 && i <= 1.0) {
-            low = min(low, color);
-            high = max(high, color);
+            lo = min(lo, color);
+            hi = max(hi, color);
         }
     }
     csum /= wsum;
     
     // Antiringing.
     if (use_ar)
-        return lerp(csum, clamp(csum, low, high), ar);
+        return lerp(csum, clamp(csum, lo, hi), ar);
     
     return csum;
 }

@@ -7,8 +7,11 @@ SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-    float c; // Contrast.
-    float m; // Midpoint.
+    // Contrast.
+    float c; // x
+    
+    // Midpoint.
+    float m; // y
 }
 
 // Based on https://github.com/ImageMagick/ImageMagick/blob/main/MagickCore/enhance.c
@@ -16,6 +19,6 @@ cbuffer cb0 : register(b0)
 
 float4 main(Vs_out vs_out) : SV_Target
 {
-    float4 color = tex.SampleLevel(smp, vs_out.texcoord, 0.0);
+    const float4 color = tex.SampleLevel(smp, vs_out.texcoord, 0.0);
     return float4(desigmoidize(color.rgb), color.a);
 }

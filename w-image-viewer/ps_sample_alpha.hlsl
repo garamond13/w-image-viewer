@@ -18,6 +18,6 @@ float4 main(Vs_out vs_out) : SV_Target
     if (is_not_zero(frac(theta / 360.0)))
         rotate_texcoord(vs_out.texcoord, theta);
         
-    float4 color = saturate(tex.SampleLevel(smp, vs_out.texcoord, 0.0));
+    const float4 color = saturate(tex.SampleLevel(smp, vs_out.texcoord, 0.0));
     return float4(color.rgb + (fmod(floor(vs_out.texcoord.x * size.x) + floor(vs_out.texcoord.y * size.y), 2.0) ? tile2 : tile1) * (1.0 - color.a), 1.0);
 }

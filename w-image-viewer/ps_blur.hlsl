@@ -18,6 +18,7 @@ cbuffer cb0 : register(b0)
     // x or y axis, (1, 0) or (0, 1).
     float2 axis; // xx yy
     
+    // Texel size, (1 / width, 0) or (0, 1 / height).
     float2 pt; // zz ww
 };
 
@@ -39,7 +40,7 @@ float4 main(Vs_out vs_out) : SV_Target
     // Unsharp mask.
     // Note that unsharp mask expects x axis to be processed last!
     if (is_not_zero(amount) && is_equal(axis.x, 1.0)) {
-        float4 original = tex_original.SampleLevel(smp, vs_out.texcoord, 0.0);
+        const float4 original = tex_original.SampleLevel(smp, vs_out.texcoord, 0.0);
         return original + (original - csum / wsum) * amount;
     }
     

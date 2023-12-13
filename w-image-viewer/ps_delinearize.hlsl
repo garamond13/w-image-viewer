@@ -18,7 +18,7 @@ cbuffer cb0 : register(b0)
 
 float4 main(Vs_out vs_out) : SV_Target
 {
-    float4 color = saturate(tex.SampleLevel(smp, vs_out.texcoord, 0.0));
+    const float4 color = saturate(tex.SampleLevel(smp, vs_out.texcoord, 0.0));
     
     [forcecase] switch (index) {
         case WIV_CMS_TRC_GAMMA:
