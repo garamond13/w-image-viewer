@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "icc.h"
 
-//source https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
+// Source https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
 cmsHPROFILE cms_create_profile_adobe_rgb() noexcept
 {
 	static constinit const cmsCIExyY whitepoint{ 0.3127, 0.3290, 1.0 };
@@ -32,7 +32,7 @@ cmsHPROFILE cms_create_profile_linear_srgb() noexcept
 	return profile;
 }
 
-//source https://docs.acescentral.com/specifications/acescg/
+// Source https://docs.acescentral.com/specifications/acescg/
 cmsHPROFILE cms_create_profile_aces_cg() noexcept
 {
 	static constinit const cmsCIExyY whitepoint{ 0.32168, 0.33767, 1.0 };
