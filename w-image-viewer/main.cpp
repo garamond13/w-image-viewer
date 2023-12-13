@@ -8,7 +8,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     g_config.read();
     auto window{ std::make_unique<Window>(hInstance, nCmdShow) };
 
-    //"direct" file open
+    // "direct" file open.
     if (lpCmdLine[0] != '\0') {
         [[maybe_unused]] int argc;
         auto argv{ CommandLineToArgvW(lpCmdLine, &argc) };
@@ -17,7 +17,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         LocalFree(argv);
     }
 
-    //message loop
+    // Message loop.
     MSG msg{};
     while (msg.message != WM_QUIT) {
         if (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
