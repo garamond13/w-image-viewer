@@ -7,6 +7,7 @@
 #include "version.h"
 #include "supported_extensions.h"
 #include "window.h"
+#include "message.h"
 
 void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
 {
@@ -372,19 +373,22 @@ void User_interface::window_settings()
 			static Range<float> range;
 			std::array range_array{ &range.lower, &range.upper };
 			ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
-			range.clamp();
 			ImGui::SameLine();
 			if (ImGui::Button("Add profile", button_size)) {
+				if (range.is_valid()) {
 
-				// Check first does profile already exists.
-				bool exists{};
-				for (const auto& profile : g_config.scale_profiles) {
-					if (profile.range == range)
-						exists = true;
+					// Check first does profile already exists.
+					bool exists{};
+					for (const auto& profile : g_config.scale_profiles) {
+						if (profile.range == range)
+							exists = true;
+					}
+
+					if (!exists)
+						g_config.scale_profiles.push_back({ range, {} });
 				}
-
-				if (!exists)
-					g_config.scale_profiles.push_back({ range, {} });
+				else
+					wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
 			}
 
 			// Hold values.

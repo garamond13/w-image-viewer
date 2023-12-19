@@ -24,6 +24,13 @@ struct Range
 			lower = upper;
 	}
 
+	constexpr bool is_valid() noexcept
+	{
+		if (lower <= upper)
+			return true;
+		return false;
+	}
+
 	T lower;
 	T upper;
 };
