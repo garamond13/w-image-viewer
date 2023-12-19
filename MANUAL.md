@@ -90,8 +90,100 @@ Enables cylindrical filtering (Jinc based). If the option is unchecked orthogona
 `Kernel function`  
 Which kernel function will be used for calculation of kernel weights.
 
+`Lanczos`  
+Sinc windowed sinc. If `Use cylindrical filtering (Jinc based)` is checked it will be jinc windowed jinc.
+
+`Ginseng`  
+Jinc windowed sinc. If `Use cylindrical filtering (Jinc based)` is checked it will be sinc widnowed jinc.
+
+`Hamming`  
+Hamming windowed sinc or jinc.
+
+`Power of cosine`  
+Power of cosine windowed sinc or jinc.  
+`Parameter 1` = n (affects window).  
+Has to be satisfied: n >= 0.  
+If n = 0: Box window.  
+If n = 1: Cosine window.  
+If n = 2: Hann window.  
+
+`Kaiser`  
+Kaiser windowed sinc or jinc.  
+`Parameter 1` = beta (affects window).
+
+`Power of Garamond`  
+Power of Garamond windowed sinc or jinc.  
+`Parameter 1` = n (affects window).  
+`Parameter 2` = m (affects window).  
+Has to be satisfied: n >= 0, m >= 0.  
+If n == 0, should explicitly return 1 (Box window).  
+If n = 1.0, m = 1.0: Linear window.  
+If n = 2.0, m = 1.0: Welch window.  
+If n -> inf, m <= 1.0: Box window.  
+If m = 0.0: Box window.  
+If m = 1.0: Garamond window.  
+
+`Power of Blackman`  
+Power of Blackman windowed sinc or jinc.  
+`Parameter 1` = a or alpha (affects window).  
+`Parameter 2` = n (affects window).
+Has to be satisfied: n >= 0.  
+Has to be satisfied: if n != 1, a <= 0.16.  
+If a = 0.0, n = 1.0: Hann window.  
+If a = 0.0, n = 0.5: Cosine window.  
+If n = 1.0: Blackman window.  
+If n = 0.0: Box window.  
+
+`GNW`    
+Generalized Normal Window (GNW) windowed sinc or jinc.  
+`Parameter 1` = s (affects window).  
+`Parameter 2` = n (affects window).  
+Has to be satisfied: s != 0, n >= 0.  
+If n = 2: Gaussian window.  
+If n -> inf: Box window.  
+
+`Said`  
+`Parameter 1` = eta (affects window).  
+`Parameter 2` = chi (affects window). 
+Has to be satisfied: eta != 2.  
+
+`Nearest neighbor`  
+Kernel function.  
+Note that different function will be used if `Use cylindrical filtering (Jinc based)` is checked.  
+
+`Linear`  
+Kernel function.  
+Note that different function will be used if `Use cylindrical filtering (Jinc based)` is checked.
+
+`Bicubic`
+Kernel function.  
+`Parameter 1` = a.
+
+`Modified FSR`  
+Kernel function.  
+`Parameter 1` = b.  
+`Parameter 2` = c.  
+Has to be satisfied: b != 0, b != 2, c != 0.  
+If c = 1.0: FSR kernel.  
+
+`BC-Spline`  
+Kernel function.  
+`Parameter 1` = B.  
+`Parameter 2` = C.  
+Keys kernels: B + 2C = 1.  
+If B = 1.0, C = 0.0: Spline kernel.  
+If B = 0.0, C = 0.0: Hermite kernel.  
+If B = 0.0, C = 0.5: Catmull-Rom kernel.  
+If B = 1 / 3, C = 1 / 3: Mitchell kernel.  
+If B = 12 / (19 + 9 * sqrt(2)), C = 113 / (58 + 216 * sqrt(2)): Robidoux kernel.  
+If B = 6 / (13 + 7 * sqrt(2)), C = 7 / (2 + 12 * sqrt(2)): RobidouxSharp kernel.  
+If B = (9 - 3 * sqrt(2)) / 7, C = 0.1601886205085204: RobidouxSoft kernel.  
+
 `Radius`  
 Sampling kernel radius. In case of orthogonal filtering, kernel size will be 2 * radius. In case of cylindrical filtering, kernel size will be (2 * radius)^2. Note that radius larger than 12 may be huge performance hit.
+
+`Blur`  
+Kernel blur. Controls the width of the main lobe, value of 1 is neutral (no effect), values larger than one will increse the main lobe width (effectively it will blur the image), and values lower than 1 will decrease the main lobe width (effectively it will sharpen the image). Has to be not equal to 0.
 
 `Parameter 1` and `Parameter 2`  
 Some kernel functions take extra parameters, they are set here.

@@ -84,7 +84,7 @@
 // n -> inf: Box window.
 #define generalized_normal_window(x,s,n) (exp(-pow((x) / (s), (n))))
 
-// Has to be satisfied: eta != 2
+// Has to be satisfied: eta != 2.
 #define said(x,eta,chi) (cosh(sqrt(2.0 * (eta)) * M_PI * (chi) / (2.0 - (eta)) * (x)) * exp(-M_PI * M_PI * (chi) * (chi) / ((2.0 - (eta)) * (2.0 - (eta))) * (x) * (x)))
 
 //
@@ -111,7 +111,7 @@
 #define bicubic(x,a) ((x) < 1.0 ? ((a) + 2.0) * (x) * (x) * (x) - ((a) + 3.0) * (x) * (x) + 1.0 : (a) * (x) * (x) * (x) - 5.0 * (a) * (x) * (x) + 8.0 * (a) * (x) - 4.0 * (a))
 
 // Fixed radius 2.0.
-// Has to be satisfied: b != 0, b != 2.
+// Has to be satisfied: b != 0, b != 2, c != 0.
 // c = 1.0: FSR kernel.
 #define modified_fsr_kernel(x,b,c) ((1.0 / (2.0 * (b) - (b) * (b)) * ((b) / ((c) * (c)) * (x) * (x) - 1.0) * ((b) / ((c) * (c)) * (x) * (x) - 1.0) - (1.0 / (2.0 * (b) - (b) * (b)) - 1.0)) * (0.25 * (x) * (x) - 1.0) * (0.25 * (x) * (x) - 1.0))
 
