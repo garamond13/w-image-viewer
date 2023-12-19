@@ -131,6 +131,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
             }
             break;
         case WM_DROPFILES:
+            wiv_assert(SetForegroundWindow(hwnd), != 0);
             if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
                 window->renderer.create_image();
                 if (g_config.window_autowh.val)
