@@ -126,7 +126,7 @@ If m = 1.0: Garamond window.
 `Power of Blackman`  
 Power of Blackman windowed sinc or jinc.  
 `Parameter 1` = a or alpha (affects window).  
-`Parameter 2` = n (affects window).
+`Parameter 2` = n (affects window).  
 Has to be satisfied: n >= 0.  
 Has to be satisfied: if n != 1, a <= 0.16.  
 If a = 0.0, n = 1.0: Hann window.  
