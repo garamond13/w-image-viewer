@@ -3,7 +3,7 @@
 ## Controls
 
 **LMB double click** - toggle fullscreen  
-**F11** - toggle fullscreen
+**F11** - toggle fullscreen  
 **ALT + ENTER** - toggle fullscreen  
 **LMB hold and drag** - pan image  
 **RMB** - open context menu  
@@ -32,7 +32,7 @@ You can access the settings window by right clicking anywhere inside the applica
 `Default window dimensions:`  
 Window client area width and height in pixels.
 
-`Use current dimensions`
+`Use current dimensions`  
 Set current window dimensions as the default window dimensions. 
 
 `Enable window auto dimensions`  
@@ -45,7 +45,7 @@ Window dimensions will be set to the opened image dimensions. If the image dimen
 `Internal format`  
 Sets the internal texture format. There shouldn't be a significant difference in visual quality between two options. `RGBA16F` may be significantly faster.
 
-`Background color`
+`Background color`  
 Color of the background when no image is opened or when the opened image is not covering entire client area of the window.
 
 `Read only thumbnail in RAW image`  
@@ -54,16 +54,14 @@ Reading thumbnail should be significantly faster than processing RAW image itsel
 ### Scale
 
 `Profiles:`  
-**Adding profile:** The left input field is for the lower bound of the scale factor range, and right input field is for the upper bound of the scale factor range. The upper bound shell be entered first since the range will be clamped to prevent lower bound being larger than the upper bound. After that you have to click on add profile to add it to the list of profiles. Note taht scale factor of 1.0 means no scaling, lower than 1.0 means downscaling and larger then 1.0 means upscaling. If current scaling factor is not covered by any profile the default profile `0.000000, 0.000000` will be applied.
-
-**Removing profile:** To remove a profile, select profile and click `Remove profile`. `0.000000, 0.000000` is the default profile, you can't remove it.
-
-**Making changes:** Changes you make in `Scale section` will be applied to the currently selected profile.
+- The left input field is for the lower bound of the scale factor range, and right input field is for the upper bound of the scale factor range. The upper bound shell be entered first since the range will be clamped to prevent lower bound being larger than the upper bound. After that you have to click on add profile to add it to the list of profiles. Note taht scale factor of 1.0 means no scaling, lower than 1.0 means downscaling and larger then 1.0 means upscaling. If current scaling factor is not covered by any profile the default profile `0.000000, 0.000000` will be applied.
+- To remove a profile, select profile and click `Remove profile`. `0.000000, 0.000000` is the default profile, you can't remove it.
+- Changes you make in `Scale section` will be applied to the currently selected profile.
 
 #### Pre-scale blur (downscale only)
 Uses separated (2 pass) Gaussian blur.
 
-`Enable pre-scale blur`
+`Enable pre-scale blur`  
 Enable or disable pre-scale blur.
 
 `Radius`  
@@ -75,7 +73,7 @@ Blur spread, larger values increase the contribution of neighboring pixels.
 #### Sigmoidize (upscale only)
 Applies sigmoidal contrast curve. It can significantly improve upscaling results. Requires linearization.
 
-`Enable sigmoidize`
+`Enable sigmoidize`  
 Enable or disable sigmoidization.
 
 `Contrast`  
@@ -104,7 +102,7 @@ Sets antiringing strenght.
 #### Post-scale unsharp mask
 Separated unsharp mask (2 pass). It uses Gaussian blur to achieve sharpening.
 
-`Enable post-scale unsharp mask`
+`Enable post-scale unsharp mask`  
 Enable or disable post-scale unsharp mask.
 
 `Radius`  
@@ -118,7 +116,7 @@ Amount (strenght) of sharpening.
 
 ### Color management
 
-`Enable color management`
+`Enable color management`  
 Enable or disable color managment.
 
 `Display profile`  
@@ -127,13 +125,13 @@ Sets display color profile. `Auto` automatically picks installed color profile, 
 `Custom...`  
 If you set `Display profile` to `Custom` here you can provide file path to custom profile (example C:\New Folder\display profile.icc). Click on the `Custom...` button to bring up file open dialog.
 
-`Rendering intent`
+`Rendering intent`  
 Which rendering intent to use.
 
-`Enable black point compensation`
+`Enable black point compensation`  
 Enable or disable black point compensation.
 
-`LUT size`
+`LUT size`  
 What lut size will be used to apply color transfomations.
 
 #### Color tags
@@ -146,11 +144,11 @@ Treat images without any embedded color profiles or color tags as sRGB.
 
 ### Transparency
 
-`Tile size`
+`Tile size`  
 The size of the tiles.
 
-`First tile color`
+`First tile color`  
 Color of the first tile.
 
-`Second tile color`
+`Second tile color`  
 Color of the second tile.
