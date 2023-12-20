@@ -100,7 +100,7 @@ void Renderer::update()
 		user_interface.is_zooming = false;
 		user_interface.is_rotating = false;
 	}
-	user_interface.update();
+	user_interface.update(scale);
 }
 
 void Renderer::draw() const

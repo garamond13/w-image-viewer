@@ -65,6 +65,8 @@ public:
 	Config_pair<int, "pass_fmt"> pass_format;
 	Config_pair<bool, "raw_tmb"> raw_thumb{ true };
 	std::vector<Scale_profile> scale_profiles;
+	Config_pair<bool, "ovrl"> overlay_show;
+	Config_pair<int, "ovrl_pos"> overlay_position;
 private:
 	void read_top_level(const std::string& key, const std::string& val);
 	void read_scale(const std::string& key, const std::string& val, Config_scale& scale);

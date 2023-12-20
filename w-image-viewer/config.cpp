@@ -144,6 +144,8 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 	read(cms_lut_size)
 	read(pass_format)
 	read(raw_thumb)
+	read(overlay_show)
+	read(overlay_position)
 }
 
 void Config::read_scale(const std::string& key, const std::string& val, Config_scale& scale)
@@ -215,6 +217,8 @@ void Config::write_top_level(std::ofstream& file)
 	write(cms_lut_size)
 	write(pass_format)
 	write(raw_thumb)
+	write(overlay_show)
+	write(overlay_position)
 }
 
 void Config::write_scale(std::ofstream& file, const Config_scale& scale)

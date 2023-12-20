@@ -35,7 +35,7 @@ void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext
 	ImGui_ImplDX11_Init(device, device_context);
 }
 
-void User_interface::update()
+void User_interface::update(float scale)
 {
 	// Feed inputs to dear imgui, start new frame.
 	ImGui_ImplDX11_NewFrame();
@@ -43,6 +43,7 @@ void User_interface::update()
 	ImGui::NewFrame();
 
 	input();
+	overlay(scale);
 	context_menu();
 	window_settings();
 	window_about();
@@ -257,6 +258,49 @@ void User_interface::input()
 	//
 }
 
+void User_interface::overlay(float scale)
+{
+	if (is_overlay_open) {
+
+		// Set overlay position.
+		const auto viewport{ ImGui::GetMainViewport() };
+		constexpr float pad{ 6.0f };
+		ImVec2 window_pos;
+		window_pos.x = g_config.overlay_position.val & 1 ? viewport->WorkPos.x + viewport->WorkSize.x - pad : viewport->WorkPos.x + pad;
+		window_pos.y = g_config.overlay_position.val & 2 ? viewport->WorkPos.y + viewport->WorkSize.y - pad : viewport->WorkPos.y + pad;
+		ImVec2 window_pos_pivot;
+		window_pos_pivot.x = g_config.overlay_position.val & 1 ? 1.0f : 0.0f;
+		window_pos_pivot.y = g_config.overlay_position.val & 2 ? 1.0f : 0.0f;
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+
+		ImGui::SetNextWindowBgAlpha(0.35f);
+		if (ImGui::Begin("##overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove)) {
+			ImGui::Text("Scale: %.6f", scale);
+
+			// Context menu.
+			if (ImGui::BeginPopupContextWindow()) {
+				if (ImGui::MenuItem("Top-left", nullptr, g_config.overlay_position.val == 0))
+					g_config.overlay_position.val = 0;
+				if (ImGui::MenuItem("Top-right", nullptr, g_config.overlay_position.val == 1))
+					g_config.overlay_position.val = 1;
+				if (ImGui::MenuItem("Bottom-left", nullptr, g_config.overlay_position.val == 2))
+					g_config.overlay_position.val = 2;
+				if (ImGui::MenuItem("Bottom-right", nullptr, g_config.overlay_position.val == 3))
+					g_config.overlay_position.val = 3;
+				ImGui::Separator();
+				if (ImGui::MenuItem("Save position"))
+					g_config.write();
+				ImGui::Separator();
+				if (ImGui::MenuItem("Close"))
+					is_overlay_open = false;
+				ImGui::EndPopup();
+			}
+		}
+
+		ImGui::End();
+	}
+}
+
 void User_interface::context_menu()
 {
 	if (ImGui::BeginPopupContextVoid("Right click menu")) {
@@ -296,6 +340,11 @@ void User_interface::context_menu()
 			image_rotation -= 90.0f;
 			is_rotating = true;
 			*p_renderer_should_update = true;
+			goto end;
+		}
+		ImGui::Separator();
+		if (ImGui::Selectable("Overlay")) {
+			is_overlay_open = !is_overlay_open;
 			goto end;
 		}
 		ImGui::Separator();
@@ -359,6 +408,8 @@ void User_interface::window_settings()
 			ImGui::Combo("Internal format", &g_config.pass_format.val, internal_format_items.data(), internal_format_items.size());
 			ImGui::Spacing();
 			ImGui::ColorEdit4("Background color", g_config.clear_color.val.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
+			ImGui::Spacing();
+			ImGui::Checkbox("Show overlay on start", &g_config.overlay_show.val);
 			ImGui::Spacing();
 			ImGui::Checkbox("Read only thumbnail in RAW images", &g_config.raw_thumb.val);
 			ImGui::Spacing();
@@ -578,6 +629,7 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::ColorEdit3("First tile color", g_config.alpha_tile1_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
 			ImGui::ColorEdit3("Second tile color", g_config.alpha_tile2_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
+			ImGui::Spacing();
 		}
 		ImGui::SeparatorText("Changes");
 		if (ImGui::Button("Write changes")) {

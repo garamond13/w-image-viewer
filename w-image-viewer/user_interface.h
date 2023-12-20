@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "file_manager.h"
+#include "global.h"
 
 enum WIV_OPEN_
 {
@@ -13,7 +14,7 @@ class User_interface
 {
 public:
 	void create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update);
-	void update();
+	void update(float scale);
 	void draw() const;
 	void auto_window_size() const;
 	void reset_image_panzoom() noexcept;
@@ -33,6 +34,7 @@ public:
 
 private:
 	void input();
+	void overlay(float scale);
 	void context_menu();
 	void window_settings();
 	void window_about();
@@ -40,6 +42,7 @@ private:
 	void toggle_fullscreen();
 	void dimm(bool condition = false) const;
 	HWND hwnd;
+	bool is_overlay_open = g_config.overlay_show.val;
 	bool is_window_settings_open;
 	bool is_window_about_open;
 	bool* p_renderer_should_update;
