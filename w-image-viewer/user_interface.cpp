@@ -91,9 +91,10 @@ void User_interface::auto_window_size() const
 	const auto cx_window{ rect.right - rect.left }; // Width.
 	const auto cy_window{ rect.bottom - rect.top }; // Height.
 
-	// Center the window and apply new dimensions.
+	// Optionaly center the window and apply new dimensions.
 	// Ignore the type casting nigtmare.
-	SetWindowPos(hwnd, nullptr, (cx_screen - cx_window) / 2.0, (cy_screen - cy_window) / 2.0, cx_window, cy_window, SWP_NOZORDER);
+	const UINT flags{ static_cast<UINT>(g_config.window_autowh_center.val ? SWP_NOZORDER : SWP_NOZORDER | SWP_NOMOVE) };
+	SetWindowPos(hwnd, nullptr, (cx_screen - cx_window) / 2.0, (cy_screen - cy_window) / 2.0, cx_window, cy_window, flags);
 }
 
 void User_interface::reset_image_panzoom() noexcept
@@ -387,6 +388,9 @@ void User_interface::window_settings()
 			ImGui::InputInt("Height", &g_config.window_height.val, 0, 0);
 			ImGui::Spacing();
 			ImGui::Checkbox("Enable window auto dimensions", &g_config.window_autowh.val);
+			dimm(!g_config.window_autowh.val);
+			ImGui::Checkbox("Center window on auto dimensions", &g_config.window_autowh_center.val);
+			dimm();
 			ImGui::Spacing();
 
 			// The order has to same as in the enum WIV_WINDOW_NAME_.
