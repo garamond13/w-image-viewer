@@ -29,7 +29,12 @@ void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext
 	ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(ROBOTO_MEDIUM_COMPRESSED_DATA, ROBOTO_MEDIUM_COMPRESSED_SIZE, 16, nullptr, ranges.Data);
 	ImGui::GetIO().Fonts->Build();
 	
-	ImGui::GetIO().IniFilename = nullptr;
+	// Set imgui.ini path.
+	static constinit char path[MAX_PATH]; // ImGui does not store the path!
+	GetModuleFileNameA(nullptr, path, MAX_PATH);
+	std::strcpy(path, (std::filesystem::path(path).parent_path() / "imgui.ini").string().c_str());
+	ImGui::GetIO().IniFilename = path;
+	
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX11_Init(device, device_context);
@@ -373,7 +378,7 @@ void User_interface::window_settings()
 	if (is_window_settings_open) {
 		static constinit const ImVec2 window_size{ 430.0f, 430.0f };
 		static constinit const ImVec2 button_size{ -1.0f, 0.0f };
-		ImGui::SetNextWindowSize(window_size, ImGuiCond_Once);
+		ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 		ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
 		if (ImGui::CollapsingHeader("General")) {
 			ImGui::Spacing();
