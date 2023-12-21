@@ -42,6 +42,10 @@ namespace {
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		DXGI_FORMAT_R32G32B32A32_FLOAT
 	};
+	
+	// Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
+	template<typename T>
+	constexpr T MAX_TEX_UV{ D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION };
 }
 
 void Renderer::create(HWND hwnd)
@@ -127,11 +131,8 @@ void Renderer::create_image()
 
 	// Create texture.
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
-
-		// Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
-		.Width{ std::clamp(image.get_width<UINT>(), 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
-		.Height{ std::clamp(image.get_height<UINT>(), 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
-
+		.Width{ image.get_width<UINT>() },
+		.Height{ image.get_height<UINT>() },
 		.MipLevels{ 1 },
 		.ArraySize{ 1 },
 		.Format{ format },
@@ -721,11 +722,8 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 {
 	// Create texture.
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
-		
-		// Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
-		.Width{ std::clamp(width, 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
-		.Height{ std::clamp(height, 1u, static_cast<UINT>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
-		
+		.Width{ width },
+		.Height{ height },
 		.MipLevels{ 1 },
 		.ArraySize{ 1 },
 		.Format{ WIV_PASS_FORMATS[g_config.pass_format.val] },
@@ -781,12 +779,8 @@ void Renderer::create_pixel_shader(const BYTE* shader, size_t shader_size) const
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept
 {
 	D3D11_VIEWPORT viewport{
-
-		// Limit to maximum texture size, even it can go beyond.
-		// Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
-		.Width{ std::min(width, static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) },
-		.Height{ std::min(height, static_cast<float>(D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)) }
-
+		.Width{ width },
+		.Height{ height }
 	};
 
 	// Offset image in order to center it in the window + apply panning.
@@ -818,6 +812,15 @@ void Renderer::update_scale_and_dims_output() noexcept
 		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.width, image_w));
 
 	scale = std::pow(2.0f, auto_zoom + user_interface.image_zoom);
+	
+	// Limit scale so we don't exceed min or max texture dims, or stretch image.
+	const auto ws{ image_w * scale };
+	const auto hs{ image_h * scale };
+	if (ws > MAX_TEX_UV<float> || hs > MAX_TEX_UV<float>)
+		scale = std::min(MAX_TEX_UV<float> / image_w, MAX_TEX_UV<float> / image_h);
+	else if (ws < 1.0f || hs < 1.0f)
+		scale = std::max(1.0f / image_w, 1.0f / image_h);
+	
 	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
 	dims_output.height = static_cast<int>(std::ceil(image_h * scale));
 
