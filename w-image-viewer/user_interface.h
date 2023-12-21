@@ -14,7 +14,7 @@ class User_interface
 {
 public:
 	void create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update);
-	void update(float scale);
+	void update();
 	void draw() const;
 	void auto_window_size() const;
 	void reset_image_panzoom() noexcept;
@@ -34,7 +34,7 @@ public:
 
 private:
 	void input();
-	void overlay(float scale);
+	void overlay();
 	void context_menu();
 	void window_settings();
 	void window_about();

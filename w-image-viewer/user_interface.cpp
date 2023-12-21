@@ -9,6 +9,36 @@
 #include "window.h"
 #include "message.h"
 
+enum WIV_OVERLAY_SHOW_ : uint64_t
+{
+	WIV_OVERLAY_SHOW_IMAGE_DIMS = 1 << 0,
+	WIV_OVERLAY_SHOW_SCALE = 1 << 1,
+	WIV_OVERLAY_SHOW_SCALED_DIMS = 1 << 2,
+	WIV_OVERLAY_SHOW_KERNEL_INDEX = 1 << 3,
+	WIV_OVERLAY_SHOW_KERNEL_SIZE = 1 << 4
+};
+
+namespace
+{
+	// The order has to be same as in the enum WIV_KERNEL_FUNCTION_. 
+	constexpr std::array kernel_function_names{
+		"Lanczos",
+		"Ginseng",
+		"Hamming",
+		"Power of cosine",
+		"Kaiser",
+		"Power of Garamond",
+		"Power of Blackman",
+		"GNW",
+		"Said",
+		"Nearest neighbor",
+		"Linear",
+		"Bicubic",
+		"Modified FSR",
+		"BC-Spline"
+	};
+}
+
 void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
 {
 	this->hwnd = hwnd;
@@ -40,7 +70,7 @@ void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext
 	ImGui_ImplDX11_Init(device, device_context);
 }
 
-void User_interface::update(float scale)
+void User_interface::update()
 {
 	// Feed inputs to dear imgui, start new frame.
 	ImGui_ImplDX11_NewFrame();
@@ -48,7 +78,7 @@ void User_interface::update(float scale)
 	ImGui::NewFrame();
 
 	input();
-	overlay(scale);
+	overlay();
 	context_menu();
 	window_settings();
 	window_about();
@@ -264,7 +294,7 @@ void User_interface::input()
 	//
 }
 
-void User_interface::overlay(float scale)
+void User_interface::overlay()
 {
 	if (is_overlay_open) {
 
@@ -280,27 +310,21 @@ void User_interface::overlay(float scale)
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 
 		ImGui::SetNextWindowBgAlpha(0.35f);
-		if (ImGui::Begin("##overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove)) {
-			ImGui::Text("Scale: %.6f", scale);
-
-			// Context menu.
-			if (ImGui::BeginPopupContextWindow()) {
-				if (ImGui::MenuItem("Top-left", nullptr, g_config.overlay_position.val == 0))
-					g_config.overlay_position.val = 0;
-				if (ImGui::MenuItem("Top-right", nullptr, g_config.overlay_position.val == 1))
-					g_config.overlay_position.val = 1;
-				if (ImGui::MenuItem("Bottom-left", nullptr, g_config.overlay_position.val == 2))
-					g_config.overlay_position.val = 2;
-				if (ImGui::MenuItem("Bottom-right", nullptr, g_config.overlay_position.val == 3))
-					g_config.overlay_position.val = 3;
-				ImGui::Separator();
-				if (ImGui::MenuItem("Save position"))
-					g_config.write();
-				ImGui::Separator();
-				if (ImGui::MenuItem("Close"))
-					is_overlay_open = false;
-				ImGui::EndPopup();
+		if (ImGui::Begin("##overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize)) {
+			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS) {
+				ImGui::Text("Image W: %i", g_info.image_width);
+				ImGui::Text("Image H: %i", g_info.image_height);
 			}
+			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE)
+				ImGui::Text("Scale: %.6f", g_info.scale);
+			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS) {
+				ImGui::Text("Scaled W: %i", g_info.scaled_width);
+				ImGui::Text("Scaled H: %i", g_info.scaled_height);
+			}
+			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX)
+				ImGui::Text(kernel_function_names[g_info.kernel_index]);
+			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE)
+				ImGui::Text("Kernel size: %i", g_info.kernel_size);
 		}
 
 		ImGui::End();
@@ -418,8 +442,6 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::ColorEdit4("Background color", g_config.clear_color.val.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
 			ImGui::Spacing();
-			ImGui::Checkbox("Show overlay on start", &g_config.overlay_show.val);
-			ImGui::Spacing();
 			ImGui::Checkbox("Read only thumbnail in RAW images", &g_config.raw_thumb.val);
 			ImGui::Spacing();
 		}
@@ -500,26 +522,7 @@ void User_interface::window_settings()
 			ImGui::SeparatorText("Scale");
 			ImGui::Checkbox("Use cylindrical filtering (Jinc based)", &scale.kernel_cylindrical_use.val);
 			ImGui::Spacing();
-
-			// The order has to be same as in the enum WIV_KERNEL_FUNCTION_. 
-			static constinit const std::array kernel_index_items{
-				"Lanczos",
-				"Ginseng",
-				"Hamming",
-				"Power of cosine",
-				"Kaiser",
-				"Power of Garamond",
-				"Power of Blackman",
-				"GNW",
-				"Said",
-				"Nearest neighbor",
-				"Linear",
-				"Bicubic",
-				"Modified FSR",
-				"BC-Spline"
-			};
-
-			ImGui::Combo("Kernel-function", &scale.kernel_index.val, kernel_index_items.data(), kernel_index_items.size());
+			ImGui::Combo("Kernel-function", &scale.kernel_index.val, kernel_function_names.data(), kernel_function_names.size());
 			const auto& i{ scale.kernel_index.val };
 			dimm(i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC || i == WIV_KERNEL_FUNCTION_FSR || i == WIV_KERNEL_FUNCTION_BCSPLINE);
 			ImGui::InputFloat("Radius##kernel", &scale.kernel_radius.val, 0.0f, 0.0f, "%.6f");
@@ -638,6 +641,30 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 			ImGui::ColorEdit3("First tile color", g_config.alpha_tile1_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
 			ImGui::ColorEdit3("Second tile color", g_config.alpha_tile2_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
+			ImGui::Spacing();
+		}
+		if (ImGui::CollapsingHeader("Overlay")) {
+			ImGui::Checkbox("Show overlay on start", &g_config.overlay_show.val);
+			ImGui::Spacing();
+			static constinit const std::array overlay_position_items{
+				"Top-left",
+				"Top-right",
+				"Bottom-left",
+				"Bottom-right"
+			};
+			ImGui::Combo("Overlay position", &g_config.overlay_position.val, overlay_position_items.data(), overlay_position_items.size());
+			ImGui::Spacing();
+			ImGui::TextUnformatted("Show:");
+			if (ImGui::Selectable("Image dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS))
+				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_IMAGE_DIMS;
+			if (ImGui::Selectable("Scale factor", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE))
+				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALE;
+			if (ImGui::Selectable("Scaled dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS))
+				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALED_DIMS;
+			if (ImGui::Selectable("Kernel function", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX))
+				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_INDEX;
+			if (ImGui::Selectable("Scale kernel size", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE))
+				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_SIZE;
 			ImGui::Spacing();
 		}
 		ImGui::SeparatorText("Changes");

@@ -100,7 +100,7 @@ void Renderer::update()
 		user_interface.is_zooming = false;
 		user_interface.is_rotating = false;
 	}
-	user_interface.update(scale);
+	user_interface.update();
 }
 
 void Renderer::draw() const
@@ -120,6 +120,10 @@ void Renderer::create_image()
 	UINT sys_mem_pitch;
 	std::unique_ptr<uint8_t[]> data;
 	image.get_data_for_d3d(data, format, sys_mem_pitch);
+
+	// Info.
+	g_info.image_width = image.get_width<int>();
+	g_info.image_height = image.get_height<int>();
 
 	// Create texture.
 	const D3D11_TEXTURE2D_DESC texture2d_desc{
@@ -816,6 +820,11 @@ void Renderer::update_scale_and_dims_output() noexcept
 	scale = std::pow(2.0f, auto_zoom + user_interface.image_zoom);
 	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
 	dims_output.height = static_cast<int>(std::ceil(image_h * scale));
+
+	// Info.
+	g_info.scale = scale;
+	g_info.scaled_width = dims_output.width;
+	g_info.scaled_height = dims_output.height;
 }
 
 void Renderer::update_scale_profile() noexcept
@@ -823,12 +832,23 @@ void Renderer::update_scale_profile() noexcept
 	for (const auto& profile : g_config.scale_profiles) {
 		if (profile.range.is_inrange(scale)) {
 			p_scale_profile = &profile.config;
-			return;
+			goto info;
 		}
 	}
 
 	// Else use default profile.
 	p_scale_profile = &g_config.scale_profiles[0].config;
+
+	// Info.
+	info:
+	g_info.kernel_index = p_scale_profile->kernel_index.val;
+	if (p_scale_profile->kernel_cylindrical_use.val) {
+		const auto a{ static_cast<int>(std::ceil(get_kernel_radius() / scale)) };
+		g_info.kernel_size = a * a;
+	}
+	else
+		g_info.kernel_size = static_cast<int>(std::ceil(get_kernel_radius() / scale)) * 2;
+	
 }
 
 float Renderer::get_kernel_radius() const noexcept
