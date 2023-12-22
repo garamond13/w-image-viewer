@@ -472,28 +472,41 @@ void User_interface::window_settings()
 				else
 					wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
 			}
+			static int scale_profile_index;
+			if (ImGui::Button("Edit profile", button_size)) {
+				if (range.is_valid()) {
+					
+					// The default profile should always be at index 0.
+					// We don't wanna allow edits on the default profile!
+					if (scale_profile_index > 0)
+						g_config.scale_profiles[scale_profile_index].range = range;
+
+				}
+				else
+					wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
+			}
 
 			// Hold values.
 			// Can't use vector<const char*> directly, because const char* will be non owning.
-			std::vector<std::string> profile_names;
-			for (const auto& profile_name : g_config.scale_profiles)
-				profile_names.push_back(std::to_string(profile_name.range.lower) + ", " + std::to_string(profile_name.range.upper));
+			std::vector<std::string> scale_profile_names;
+			for (const auto& scale_profile_name : g_config.scale_profiles)
+				scale_profile_names.push_back(std::to_string(scale_profile_name.range.lower) + ", " + std::to_string(scale_profile_name.range.upper));
 
 			// Can't use std::string directly in imgui.
 			std::vector<const char*> profile_items;
-			for (const auto& profile_item : profile_names)
+			for (const auto& profile_item : scale_profile_names)
 				profile_items.push_back(profile_item.c_str());
 
-			static int current_profile;
-			ImGui::Combo("##profile", &current_profile, profile_items.data(), profile_items.size());
+			
+			ImGui::Combo("##profile", &scale_profile_index, profile_items.data(), profile_items.size());
 			ImGui::SameLine();
 			if (ImGui::Button("Remove profile", button_size)) {
-				if (current_profile > 0) {
-					g_config.scale_profiles.erase(g_config.scale_profiles.begin() + current_profile);
-					--current_profile;
+				if (scale_profile_index > 0) {
+					g_config.scale_profiles.erase(g_config.scale_profiles.begin() + scale_profile_index);
+					--scale_profile_index;
 				}
 			}
-			auto& scale{ g_config.scale_profiles[current_profile].config };
+			auto& scale{ g_config.scale_profiles[scale_profile_index].config };
 			ImGui::Spacing();
 
 			//
