@@ -614,7 +614,7 @@ void Renderer::pass_orthogonal_resample()
 		Cb4{
 			.x{ .f{ p_scale_profile->kernel_parameter2.val }},
 			.y{ .f{ p_scale_profile->kernel_antiringing.val }},
-			.z{ .f{ scale < 1.0f ? 1.0f / scale : 1.0f }}
+			.z{ .f{ scale < 1.0f ? scale : 1.0f }}
 		},
 		Cb4{
 			.x{ .f{ image.get_width<float>() }},
@@ -664,7 +664,7 @@ void Renderer::pass_cylindrical_resample()
 			.w{ .f{ image.get_height<float>() }}
 		},
 		Cb4{
-			.x{ .f{ scale < 1.0f ? 1.0f / scale : 1.0f }}
+			.x{ .f{ scale < 1.0f ? scale : 1.0f }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;

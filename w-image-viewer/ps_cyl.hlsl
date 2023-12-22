@@ -89,12 +89,12 @@ float4 main(Vs_out vs_out) : SV_TARGET
     //
 
     // Get required radius.
-    const float r = ceil(radius * scale);    
+    const float r = ceil(radius / scale);
     
     [loop] for (float j = 1.0 - r; j <= r; ++j) {
         [loop] for (float i = 1.0 - r; i <= r; ++i) {
             color = tex.SampleLevel(smp, base + pt * float2(i, j), 0.0);
-            weight = get_weight(length(float2(i, j) - fcoord) / scale);
+            weight = get_weight(length(float2(i, j) - fcoord) * scale);
             csum += color * weight;
             wsum += weight;
 
