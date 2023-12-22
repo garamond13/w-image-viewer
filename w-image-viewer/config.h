@@ -22,8 +22,8 @@ struct Config_scale
 	Config_pair<int, "k_i"> kernel_index;
 	Config_pair<float, "k_r"> kernel_radius{ 2.0f };
 	Config_pair<float, "k_b"> kernel_blur{ 1.0f };
-	Config_pair<float, "k_p1"> kernel_parameter1;
-	Config_pair<float, "k_p2"> kernel_parameter2;
+	Config_pair<float, "k_p1"> kernel_parameter1{ 0.16f };
+	Config_pair<float, "k_p2"> kernel_parameter2{ 1.0f };
 	Config_pair<float, "k_ar"> kernel_antiringing{ 1.0f };
 	Config_pair<bool, "k_cyl"> kernel_cylindrical_use;
 	Config_pair<bool, "us"> unsharp_use;
