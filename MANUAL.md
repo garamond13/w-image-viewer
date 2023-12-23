@@ -249,11 +249,11 @@ Color of the second tile.
 
 ### Overlay
 
-`Show overlay on start`
+`Show overlay on start`  
 If enabled overlay will shown from application start, otherwise it will be hidden.
 
-`Overlay position`
+`Overlay position`  
 Overlay's postion inside the application window.
 
-`Show:`
+`Show:`  
 Select what do you want to be shown by overlay.
