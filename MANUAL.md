@@ -54,7 +54,9 @@ Reading thumbnail should be significantly faster than processing RAW image itsel
 ### Scale
 
 `Profiles:`  
-- The left input field is for the lower bound of the scale factor range, and right input field is for the upper bound of the scale factor range. The upper bound shell be entered first since the range will be clamped to prevent lower bound being larger than the upper bound. After that you have to click on add profile to add it to the list of profiles. Note taht scale factor of 1.0 means no scaling, lower than 1.0 means downscaling and larger then 1.0 means upscaling. If current scaling factor is not covered by any profile the default profile `0.000000, 0.000000` will be applied.
+- The left input field is for the lower bound of the scale factor range, and right input field is for the upper bound of the scale factor range. The range is right-open "[a, b)". After that you can click on `Add profile` to add it to the list of profiles, or `Edit profile` to edit currently selected profile (you can't edit the default profile `0.000000, 0.000000`).
+- You can't have any overlapping profiles.
+- Note that scale factor of 1.0 means no scaling, lower than 1.0 means downscaling and larger then 1.0 means upscaling. If current scaling factor is not covered by any profile the default profile `0.000000, 0.000000` will be applied.
 - To remove a profile, select profile and click `Remove profile`. `0.000000, 0.000000` is the default profile, you can't remove it.
 - Changes you make in `Scale section` will be applied to the currently selected profile.
 
@@ -244,3 +246,14 @@ Color of the first tile.
 
 `Second tile color`  
 Color of the second tile.
+
+### Overlay
+
+`Show overlay on start`
+If enabled overlay will shown from application start, otherwise it will be hidden.
+
+`Overlay position`
+Overlay's postion inside the application window.
+
+`Show:`
+Select what do you want to be shown by overlay.
