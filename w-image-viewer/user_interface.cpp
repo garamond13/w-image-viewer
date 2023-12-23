@@ -452,17 +452,17 @@ void User_interface::window_settings()
 			//
 
 			ImGui::TextUnformatted("Profiles:");
-			static Range<float> range;
+			static Right_open_range<float> range;
 			std::array range_array{ &range.lower, &range.upper };
 			ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
 			ImGui::SameLine();
 			if (ImGui::Button("Add profile", button_size)) {
 				if (range.is_valid()) {
 
-					// Check first does profile already exists.
+					// Check first does profile already exists (overlaps with any other profile).
 					bool exists{};
 					for (const auto& profile : g_config.scale_profiles) {
-						if (profile.range == range)
+						if (profile.range.is_overlapping(range))
 							exists = true;
 					}
 
@@ -472,13 +472,20 @@ void User_interface::window_settings()
 				else
 					wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
 			}
+
+			// The default profile should always be at index 0.
 			static int scale_profile_index;
+
 			if (ImGui::Button("Edit profile", button_size)) {
 				if (range.is_valid()) {
-					
-					// The default profile should always be at index 0.
-					// We don't wanna allow edits on the default profile!
-					if (scale_profile_index > 0)
+								
+					// Check first is profile overlapping with any other profile.
+					bool overlaps{};
+					for (int i{}; i < g_config.scale_profiles.size(); ++i)
+						if (i != scale_profile_index && g_config.scale_profiles[i].range.is_overlapping(range))
+							overlaps = true;
+
+					if (scale_profile_index > 0 && !overlaps) // We don't wanna allow edits on the default profile, nor overlaps with other profiles!
 						g_config.scale_profiles[scale_profile_index].range = range;
 
 				}
@@ -501,7 +508,7 @@ void User_interface::window_settings()
 			ImGui::Combo("##profile", &scale_profile_index, profile_items.data(), profile_items.size());
 			ImGui::SameLine();
 			if (ImGui::Button("Remove profile", button_size)) {
-				if (scale_profile_index > 0) {
+				if (scale_profile_index > 0) { // Can't delete the default range!
 					g_config.scale_profiles.erase(g_config.scale_profiles.begin() + scale_profile_index);
 					--scale_profile_index;
 				}

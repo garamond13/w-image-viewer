@@ -29,7 +29,7 @@ section_key=value
 void Config::read()
 {
 	bool is_section_scale{};
-	Range<float> range;
+	Right_open_range<float> range;
 	Config_scale scale;
 	std::ifstream file(get_path());
 	if (file.is_open()) {

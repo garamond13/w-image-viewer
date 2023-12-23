@@ -34,7 +34,7 @@ struct Config_scale
 
 struct Scale_profile
 {
-	Range<float> range;
+	Right_open_range<float> range;
 	Config_scale config;
 };
 
