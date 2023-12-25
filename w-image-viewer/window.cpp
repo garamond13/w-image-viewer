@@ -151,10 +151,10 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         case WM_SYSCOMMAND: {
             static RECT rect;
             if ((wparam & 0xFFF0) == SC_MAXIMIZE && !IsZoomed(hwnd))
-                GetWindowRect(hwnd, &rect);
+                wiv_assert(GetWindowRect(hwnd, &rect), != 0);
             else if ((wparam & 0xFFF0) == SC_RESTORE) {
                 ShowWindow(hwnd, SW_SHOWNORMAL);
-                SetWindowPos(hwnd, 0, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+                wiv_assert(SetWindowPos(hwnd, 0, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER), != 0);
                 break;
             }
             [[fallthrough]];
