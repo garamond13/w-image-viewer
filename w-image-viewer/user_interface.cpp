@@ -112,15 +112,23 @@ void User_interface::auto_window_size() const
 	// Get the screen width and height.
 	const auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) }; // Width.
 	const auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) }; // Height.
-	
+
 	const auto image_width{ file_manager.image.get_width<double>() };
 	const auto image_height{ file_manager.image.get_height<double>() };
-	RECT rect{};
+	RECT rect;
+	
+	// At this point we only care about RECT::top.
+	if (!g_config.window_autowh_center.val)
+		GetWindowRect(hwnd, &rect);
+	else
+		rect.top = 0;
 
 	// If the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image.
-	const auto factor{ std::min({ cx_screen * 0.9 / image_width, cy_screen * 0.9 / image_height, 1.0 }) };
+	const auto factor{ std::min({ cx_screen * 0.9 / image_width, (cy_screen - rect.top) * 0.9 / image_height, 1.0 }) };
 	rect.right = std::lround(image_width * factor);
 	rect.bottom = std::lround(image_height * factor);
+	rect.left = 0;
+	rect.top = 0;
 
 	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
 	const auto cx_window{ rect.right - rect.left }; // Width.
