@@ -84,7 +84,7 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
     if (ImGui_ImplWin32_WndProcHandler(hwnd, message, wparam, lparam))
         return 1;
-
+    
     // Get "this" pointer that we passed to CreateWindowExW().
     auto* window{ reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA)) };
 
@@ -148,6 +148,17 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
+        case WM_SYSCOMMAND: {
+            static RECT rect;
+            if ((wparam & 0xFFF0) == SC_MAXIMIZE && !IsZoomed(hwnd))
+                GetWindowRect(hwnd, &rect);
+            else if ((wparam & 0xFFF0) == SC_RESTORE) {
+                ShowWindow(hwnd, SW_SHOWNORMAL);
+                SetWindowPos(hwnd, 0, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+                break;
+            }
+            [[fallthrough]];
+        }
         default:
             return DefWindowProcW(hwnd, message, wparam, lparam);
     }

@@ -757,17 +757,17 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 void User_interface::toggle_fullscreen()
 {
 	static RECT rect;
-	static bool is_maximized;
+	static bool maximize;
 	if (is_fullscreen) {
 		SetWindowLongPtrW(hwnd, GWL_STYLE, WIV_WINDOW_STYLE);
-		wiv_assert(SetWindowPos(hwnd, HWND_NOTOPMOST, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_FRAMECHANGED | SWP_NOACTIVATE), != 0);
-		ShowWindow(hwnd, is_maximized ? SW_MAXIMIZE : SW_SHOW);
+		wiv_assert(SetWindowPos(hwnd, 0, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER), != 0);
+		ShowWindow(hwnd, maximize ? SW_MAXIMIZE : SW_SHOW);
 	}
 	else {
-		is_maximized = IsZoomed(hwnd);
+		maximize = IsZoomed(hwnd);
 		wiv_assert(GetWindowRect(hwnd, &rect), != 0);
 		SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP);
-		wiv_assert(SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE), != 0);
+		wiv_assert(SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER), != 0);
 		ShowWindow(hwnd, SW_MAXIMIZE);
 	}
 	is_fullscreen = !is_fullscreen;
