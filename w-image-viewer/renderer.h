@@ -16,7 +16,7 @@ enum WIV_CMS_PROFILE_DISPLAY_
 class Renderer
 {
 public:
-	void create(HWND hwnd);
+	void create();
 	void update();
 	void draw() const;
 	void create_image();
@@ -27,7 +27,7 @@ public:
 	User_interface user_interface;
 private:
 	void create_device();
-	void create_swapchain(HWND hwnd);
+	void create_swapchain();
 	void create_rtv_back_buffer() noexcept;
 	void create_samplers() const;
 	void create_vertex_shader() const noexcept;

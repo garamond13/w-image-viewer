@@ -17,9 +17,8 @@ class Window
 public:
 	Window(HINSTANCE hinstance, int ncmdshow);
 	Renderer renderer;
-	HWND hwnd;
 private:
+	static LRESULT wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 	void set_window_name() const;
 	void reset_image_rotation() noexcept;
-	static LRESULT wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 };

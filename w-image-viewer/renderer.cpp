@@ -48,15 +48,15 @@ namespace {
 	constexpr T MAX_TEX_UV{ D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION };
 }
 
-void Renderer::create(HWND hwnd)
+void Renderer::create()
 {
 	create_device();
-	create_swapchain(hwnd);
+	create_swapchain();
 	create_samplers();
 	create_vertex_shader();
 	if(g_config.cms_use.val)
 		init_cms_profile_display();
-	user_interface.create(hwnd, device.Get(), device_context.Get(), &should_update);
+	user_interface.create(device.Get(), device_context.Get(), &should_update);
 }
 
 void Renderer::update()
@@ -201,7 +201,7 @@ void Renderer::create_device()
 	wiv_assert(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, feature_levels.data(), feature_levels.size(), D3D11_SDK_VERSION, device.ReleaseAndGetAddressOf(), nullptr, device_context.ReleaseAndGetAddressOf()), == S_OK);
 }
 
-void Renderer::create_swapchain(HWND hwnd)
+void Renderer::create_swapchain()
 {
 	// Query interfaces.
 	Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device2;
@@ -235,7 +235,7 @@ void Renderer::create_swapchain(HWND hwnd)
 	wiv_assert(dxgi_output6->GetDesc1(&output_desc1), == S_OK);
 	
 	swap_chain_desc1.Format = output_desc1.BitsPerColor == 10 ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM;
-	wiv_assert(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device2.Get(), hwnd, &swap_chain_desc1, nullptr, nullptr, swap_chain.ReleaseAndGetAddressOf()), == S_OK);
+	wiv_assert(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device2.Get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swap_chain.ReleaseAndGetAddressOf()), == S_OK);
 
 	//
 
@@ -245,7 +245,7 @@ void Renderer::create_swapchain(HWND hwnd)
 	dims_swap_chain.height = swap_chain_desc1.Height;
 
 	// Disable exclusive fullscreen.
-	wiv_assert(dxgi_factory2->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER), == S_OK);
+	wiv_assert(dxgi_factory2->MakeWindowAssociation(g_hwnd, DXGI_MWA_NO_ALT_ENTER), == S_OK);
 
 	create_rtv_back_buffer();
 }

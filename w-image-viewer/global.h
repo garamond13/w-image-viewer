@@ -5,3 +5,4 @@
 
 inline Config g_config;
 inline Info g_info;
+inline HWND g_hwnd; // Main window handle.

@@ -39,9 +39,8 @@ namespace
 	};
 }
 
-void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
+void User_interface::create(ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
 {
-	this->hwnd = hwnd;
 	p_renderer_should_update = should_update;
 
 #ifndef NDEBUG
@@ -66,7 +65,7 @@ void User_interface::create(HWND hwnd, ID3D11Device* device, ID3D11DeviceContext
 	ImGui::GetIO().IniFilename = path;
 	
 	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplWin32_Init(g_hwnd);
 	ImGui_ImplDX11_Init(device, device_context);
 }
 
@@ -106,7 +105,7 @@ void User_interface::draw() const
 
 void User_interface::auto_window_size() const
 {
-	if (is_fullscreen || IsZoomed(hwnd))
+	if (is_fullscreen || IsZoomed(g_hwnd))
 		return;
 
 	// Get the screen width and height.
@@ -119,7 +118,7 @@ void User_interface::auto_window_size() const
 	
 	// At this point we only care about RECT::top.
 	if (!g_config.window_autowh_center.val)
-		GetWindowRect(hwnd, &rect);
+		GetWindowRect(g_hwnd, &rect);
 	else
 		rect.top = 0;
 
@@ -137,7 +136,7 @@ void User_interface::auto_window_size() const
 	// Optionaly center the window and apply new dimensions.
 	// Ignore the type casting nigtmare.
 	const UINT flags{ static_cast<UINT>(g_config.window_autowh_center.val ? SWP_NOZORDER : SWP_NOZORDER | SWP_NOMOVE) };
-	SetWindowPos(hwnd, nullptr, (cx_screen - cx_window) / 2.0, (cy_screen - cy_window) / 2.0, cx_window, cy_window, flags);
+	SetWindowPos(g_hwnd, nullptr, (cx_screen - cx_window) / 2.0, (cy_screen - cy_window) / 2.0, cx_window, cy_window, flags);
 }
 
 void User_interface::reset_image_panzoom() noexcept
@@ -271,14 +270,14 @@ void User_interface::input()
 			if (file_manager.file_current.empty())
 				return;
 			file_manager.file_previous();
-			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
 			if (file_manager.file_current.empty())
 				return;
 			file_manager.file_next();
-			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_F11)) {
@@ -295,7 +294,7 @@ void User_interface::input()
 		if (is_fullscreen)
 			toggle_fullscreen();
 		else
-			wiv_assert(DestroyWindow(hwnd), != 0);
+			wiv_assert(DestroyWindow(g_hwnd), != 0);
 		return;
 	}
 
@@ -352,14 +351,14 @@ void User_interface::context_menu()
 			if (file_manager.file_current.empty())
 				goto end;
 			file_manager.file_next();
-			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			goto end;
 		}
 		if (ImGui::Selectable("Previous")) {
 			if (file_manager.file_current.empty())
 				goto end;
 			file_manager.file_previous();
-			wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			goto end;
 		}
 		ImGui::Separator();
@@ -396,7 +395,7 @@ void User_interface::context_menu()
 		}
 		ImGui::Separator();
 		if (ImGui::Selectable("Exit")) {
-			wiv_assert(DestroyWindow(hwnd), != 0);
+			wiv_assert(DestroyWindow(g_hwnd), != 0);
 			goto end;
 		}
 	end:
@@ -417,7 +416,7 @@ void User_interface::window_settings()
 			ImGui::TextUnformatted("Default window dimensions:");
 			if (ImGui::Button("Use current dimensions##def")) {
 				RECT rect;
-				wiv_assert(GetClientRect(hwnd, &rect), != 0);
+				wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
 				g_config.window_width.val = rect.right;
 				g_config.window_height.val = rect.bottom;
 			}
@@ -427,7 +426,7 @@ void User_interface::window_settings()
 			ImGui::TextUnformatted("Minimum window dimensions:");
 			if (ImGui::Button("Use current dimensions##min")) {
 				RECT rect;
-				wiv_assert(GetClientRect(hwnd, &rect), != 0);
+				wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
 				g_config.window_min_width.val = rect.right;
 				g_config.window_min_height.val = rect.bottom;
 			}
@@ -754,16 +753,16 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 		else // WIV_OPEN_ICC
 			filterspec.pszSpec = L"*.icc";
 		wiv_assert(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
-		if (file_open_dialog->Show(hwnd) == S_OK) {
+		if (file_open_dialog->Show(g_hwnd) == S_OK) {
 			Microsoft::WRL::ComPtr<IShellItem> shell_item;
 			if (file_open_dialog->GetResult(shell_item.ReleaseAndGetAddressOf()) == S_OK) {
 				wchar_t* path;
 				if (shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path) == S_OK) {
 					if (file_type == WIV_OPEN_IMAGE) {
 						if (file_manager.file_open(path))
-							wiv_assert(PostMessageW(hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+							wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 						else
-							wiv_assert(PostMessageW(hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+							wiv_assert(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
 					}
 					else // WIV_OPEN_ICC
 						g_config.cms_display_profile_custom.val = path;
@@ -780,14 +779,14 @@ void User_interface::toggle_fullscreen()
 {
 	static WINDOWPLACEMENT windowplacment;
 	if (is_fullscreen) {
-		SetWindowLongPtrW(hwnd, GWL_STYLE, WIV_WINDOW_STYLE);
-		wiv_assert(SetWindowPlacement(hwnd, &windowplacment), != 0);
-		wiv_assert(SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_SHOWWINDOW), != 0);
+		SetWindowLongPtrW(g_hwnd, GWL_STYLE, WIV_WINDOW_STYLE);
+		wiv_assert(SetWindowPlacement(g_hwnd, &windowplacment), != 0);
+		wiv_assert(SetWindowPos(g_hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_SHOWWINDOW), != 0);
 	}
 	else {
-		wiv_assert(GetWindowPlacement(hwnd, &windowplacment), != 0);
-		SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP);
-		wiv_assert(SetWindowPos(hwnd, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXVIRTUALSCREEN), GetSystemMetrics(SM_CYVIRTUALSCREEN), SWP_FRAMECHANGED | SWP_NOOWNERZORDER | SWP_SHOWWINDOW), != 0);
+		wiv_assert(GetWindowPlacement(g_hwnd, &windowplacment), != 0);
+		SetWindowLongPtrW(g_hwnd, GWL_STYLE, WS_POPUP);
+		wiv_assert(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXVIRTUALSCREEN), GetSystemMetrics(SM_CYVIRTUALSCREEN), SWP_FRAMECHANGED | SWP_NOOWNERZORDER | SWP_SHOWWINDOW), != 0);
 	}
 	is_fullscreen = !is_fullscreen;
 }
