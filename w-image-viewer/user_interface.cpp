@@ -408,14 +408,14 @@ void User_interface::context_menu()
 void User_interface::window_settings()
 {
 	if (is_window_settings_open) {
-		static constinit const ImVec2 window_size{ 430.0f, 430.0f };
+		static constinit const ImVec2 window_size{ 430.0f, 696.0f };
 		static constinit const ImVec2 button_size{ -1.0f, 0.0f };
 		ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 		ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
-		if (ImGui::CollapsingHeader("General")) {
+		if (ImGui::CollapsingHeader("Window")) {
 			ImGui::Spacing();
 			ImGui::TextUnformatted("Default window dimensions:");
-			if (ImGui::Button("Use current dimensions")) {
+			if (ImGui::Button("Use current dimensions##def")) {
 				RECT rect;
 				wiv_assert(GetClientRect(hwnd, &rect), != 0);
 				g_config.window_width.val = rect.right;
@@ -424,13 +424,23 @@ void User_interface::window_settings()
 			ImGui::InputInt("Width", &g_config.window_width.val, 0, 0);
 			ImGui::InputInt("Height", &g_config.window_height.val, 0, 0);
 			ImGui::Spacing();
+			ImGui::TextUnformatted("Minimum window dimensions:");
+			if (ImGui::Button("Use current dimensions##min")) {
+				RECT rect;
+				wiv_assert(GetClientRect(hwnd, &rect), != 0);
+				g_config.window_min_width.val = rect.right;
+				g_config.window_min_height.val = rect.bottom;
+			}
+			ImGui::InputInt("Min width", &g_config.window_min_width.val, 0, 0);
+			ImGui::InputInt("Min height", &g_config.window_min_height.val, 0, 0);
+			ImGui::Spacing;
 			ImGui::Checkbox("Enable window auto dimensions", &g_config.window_autowh.val);
 			dimm(!g_config.window_autowh.val);
 			ImGui::Checkbox("Center window on auto dimensions", &g_config.window_autowh_center.val);
 			dimm();
 			ImGui::Spacing();
 
-			// The order has to same as in the enum WIV_WINDOW_NAME_.
+			// The order has to be same as in the enum WIV_WINDOW_NAME_.
 			static constinit const std::array window_name_items{
 				"Defualt name",
 				"Filename",
@@ -440,17 +450,7 @@ void User_interface::window_settings()
 			ImGui::Combo("Window name", &g_config.window_name.val, window_name_items.data(), window_name_items.size());
 			ImGui::Spacing();
 
-			// The order has to be same as in WIV_PASS_FORMATS array.
-			static constinit const std::array internal_format_items{
-				"RGBA16F",
-				"RGBA32F"
-			};
-
-			ImGui::Combo("Internal format", &g_config.pass_format.val, internal_format_items.data(), internal_format_items.size());
-			ImGui::Spacing();
 			ImGui::ColorEdit4("Background color", g_config.clear_color.val.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
-			ImGui::Spacing();
-			ImGui::Checkbox("Read only thumbnail in RAW images", &g_config.raw_thumb.val);
 			ImGui::Spacing();
 		}
 		if (ImGui::CollapsingHeader("Scale")) {
@@ -693,6 +693,20 @@ void User_interface::window_settings()
 				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_INDEX;
 			if (ImGui::Selectable("Scale kernel size", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE))
 				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_SIZE;
+			ImGui::Spacing();
+		}
+		if (ImGui::CollapsingHeader("Other")) {
+			ImGui::Spacing();
+
+			// The order has to be same as in WIV_PASS_FORMATS array.
+			static constinit const std::array internal_format_items{
+				"RGBA16F",
+				"RGBA32F"
+			};
+
+			ImGui::Combo("Internal format", &g_config.pass_format.val, internal_format_items.data(), internal_format_items.size());
+			ImGui::Spacing();
+			ImGui::Checkbox("Read only thumbnail in RAW images", &g_config.raw_thumb.val);
 			ImGui::Spacing();
 		}
 		ImGui::SeparatorText("Changes");

@@ -101,10 +101,16 @@ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
             return 1;
 
             // Set minimum window size.
-        case WM_GETMINMAXINFO:
-            reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = GetSystemMetrics(SM_CXMIN);
-            reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.y = GetSystemMetrics(SM_CYMIN) + 1;
+        case WM_GETMINMAXINFO: {
+            RECT rect{
+                .right{ g_config.window_min_width.val },
+                .bottom{ g_config.window_min_height.val }
+            };
+            wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+            reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = std::max(static_cast<long>(GetSystemMetrics(SM_CXMIN)), rect.right - rect.left);
+            reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.y = std::max(static_cast<long>(GetSystemMetrics(SM_CYMIN) + 1), rect.bottom - rect.top);
             break;
+        }
 
             // Provides the mosuse cursor in fullscren on mousemove.
             // Without this, after exiting from fullscreen the mosue cursor may stay hidden.

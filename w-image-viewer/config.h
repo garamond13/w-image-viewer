@@ -45,8 +45,10 @@ public:
 	void write();
 
 	// Client area.
-	Config_pair<int, "wnd_w"> window_width{ 1000 };
-	Config_pair<int, "wnd_h"> window_height{ 618 };
+	Config_pair<int, "wnd_w"> window_width{ 1300 };
+	Config_pair<int, "wnd_h"> window_height{ 803 };
+	Config_pair<int, "wnd_mnw"> window_min_width{ 0 };
+	Config_pair<int, "wnd_mnh"> window_min_height{ 0 };
 	
 	Config_pair<bool, "wnd_autwh"> window_autowh;
 	Config_pair<bool, "wnd_autwhc"> window_autowh_center;
