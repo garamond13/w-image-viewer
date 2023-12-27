@@ -14,6 +14,12 @@ enum WIV_CMS_PROFILE_DISPLAY_
 	WIV_CMS_PROFILE_DISPLAY_CUSTOM
 };
 
+struct Tone_response_curve
+{
+	int id; // WIV_CMS_TRC_
+	float val;
+};
+
 class Renderer : Renderer_base
 {
 public:
@@ -56,6 +62,6 @@ private:
 	float scale;
 	const Config_scale* p_scale_profile;
 	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> cms_profile_display{ nullptr, cmsCloseProfile };
-	std::pair<int, float> trc; // Tone responce curve, type and value
+	Tone_response_curve trc;
 	bool is_cms_valid;
 };

@@ -321,12 +321,12 @@ void Renderer::pass_cms()
 
 void Renderer::pass_linearize(UINT width, UINT height)
 {
-	if (trc.first == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .i{ trc.first }},
-			.y{ .f{ trc.second }} // Gamma, only relevant if gamma correction is used.
+			.x{ .i{ trc.id }},
+			.y{ .f{ trc.val }} // Gamma, only relevant if gamma correction is used.
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -343,12 +343,12 @@ void Renderer::pass_linearize(UINT width, UINT height)
 
 void Renderer::pass_delinearize(UINT width, UINT height)
 {
-	if (trc.first == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
 	alignas(16) const std::array data{
 		Cb4{
-			.x{ .i{ trc.first }},
-			.y{ .f{ 1.0f / trc.second }} // 1.0 / gamma, only relevant if gamma correction is used.
+			.x{ .i{ trc.id }},
+			.y{ .f{ 1.0f / trc.val }} // 1.0 / gamma, only relevant if gamma correction is used.
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -366,7 +366,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 void Renderer::pass_sigmoidize()
 {
 	// Sigmoidize expects linear light input.
-	if (trc.first == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
 
 	alignas(16) const std::array data{
@@ -390,7 +390,7 @@ void Renderer::pass_sigmoidize()
 void Renderer::pass_desigmoidize()
 {
 	// Sigmoidize expects linear light input.
-	if (trc.first == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
 
 	alignas(16) const std::array data{
