@@ -25,9 +25,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             DispatchMessageW(&msg);
         }
         else {
-            window->renderer.update();
-            window->renderer.draw();
-            window->renderer.fullscreen_hide_cursor();
+            if (!window->is_minimized) {
+                window->renderer.update();
+                window->renderer.draw();
+                window->renderer.fullscreen_hide_cursor();
+            }
+            else
+                WaitMessage();
         }
     }
 

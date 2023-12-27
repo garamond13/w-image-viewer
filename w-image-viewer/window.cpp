@@ -93,7 +93,8 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
         window->renderer.should_update = true;
         break;
     case WM_SIZE:
-        if (wparam != SIZE_MINIMIZED) {
+        window->is_minimized = wparam == SIZE_MINIMIZED;
+        if (!window->is_minimized) {
             window->renderer.on_window_resize();
             window->renderer.should_update = true;
         }

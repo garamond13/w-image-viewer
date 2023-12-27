@@ -17,6 +17,7 @@ class Window
 public:
 	Window(HINSTANCE hinstance, int ncmdshow);
 	Renderer renderer;
+	bool is_minimized;
 private:
 	static LRESULT wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 	void set_window_name() const;
