@@ -56,7 +56,7 @@ void Renderer::create()
 	create_vertex_shader();
 	if(g_config.cms_use.val)
 		init_cms_profile_display();
-	user_interface.create(device.Get(), device_context.Get(), &should_update);
+	ui.create(device.Get(), device_context.Get(), &should_update);
 }
 
 void Renderer::update()
@@ -64,7 +64,7 @@ void Renderer::update()
 	if (srv_image && should_update) {
 		update_scale_and_dims_output();
 		update_scale_profile();
-		if (!(user_interface.is_panning || user_interface.is_zooming || user_interface.is_rotating)) {
+		if (!(ui.is_panning || ui.is_zooming || ui.is_rotating)) {
 			srv_pass = srv_image;
 			if (g_config.cms_use.val && is_cms_valid)
 				pass_cms();
@@ -96,15 +96,15 @@ void Renderer::update()
 			}
 		}
 		pass_last();
-		if (user_interface.is_zooming)
+		if (ui.is_zooming)
 			should_update = true;
 		else
 			should_update = false;
-		user_interface.is_panning = false;
-		user_interface.is_zooming = false;
-		user_interface.is_rotating = false;
+		ui.is_panning = false;
+		ui.is_zooming = false;
+		ui.is_rotating = false;
 	}
-	user_interface.update();
+	ui.update();
 }
 
 void Renderer::draw() const
@@ -112,7 +112,7 @@ void Renderer::draw() const
 	device_context->OMSetRenderTargets(1, rtv_back_buffer.GetAddressOf(), nullptr);
 	device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_color.val.data());
 	device_context->Draw(3, 0);
-	user_interface.draw();
+	ui.draw();
 	wiv_assert(swap_chain->Present(1, 0), == S_OK);
 }
 
@@ -180,7 +180,7 @@ void Renderer::reset_resources() noexcept
 // This is defined here only cause of code organization.
 void Renderer::fullscreen_hide_cursor() const
 {
-	if (user_interface.is_fullscreen && !ImGui::GetIO().WantCaptureMouse && !user_interface.is_dialog_file_open)
+	if (ui.is_fullscreen && !ImGui::GetIO().WantCaptureMouse && !ui.is_dialog_file_open)
 		while (ShowCursor(FALSE) >= 0);
 }
 
@@ -687,7 +687,7 @@ void Renderer::pass_last()
 			Cb4{
 				.x{ .f{ dims_output.get_width<float>() / g_config.alpha_tile_size.val }},
 				.y{ .f{ dims_output.get_height<float>() / g_config.alpha_tile_size.val }},
-				.z{ .f{ user_interface.image_rotation }}
+				.z{ .f{ ui.image_rotation }}
 			},
 			Cb4{
 				.x{ .f{ g_config.alpha_tile1_color.val[0] }},
@@ -707,7 +707,7 @@ void Renderer::pass_last()
 	else {
 		alignas(16) const std::array cb0_data{
 			Cb4{
-				.x{ .f{ user_interface.image_rotation }}
+				.x{ .f{ ui.image_rotation }}
 			}
 		};
 		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
@@ -785,8 +785,8 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 
 	// Offset image in order to center it in the window + apply panning.
 	if (adjust) {
-		viewport.TopLeftX = (dims_swap_chain.width - viewport.Width) / 2.0f + user_interface.image_pan.x;
-		viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f + user_interface.image_pan.y;
+		viewport.TopLeftX = (dims_swap_chain.width - viewport.Width) / 2.0f + ui.image_pan.x;
+		viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f + ui.image_pan.y;
 	}
 	
 	device_context->RSSetViewports(1, &viewport);
@@ -798,11 +798,11 @@ void Renderer::update_scale_and_dims_output() noexcept
 	auto image_h{ image.get_height<float>() };
 
 	// Check is the rotation angele divisible by 180, if it is we dont need to swap width and height.
-	if (is_not_zero(frac(user_interface.image_rotation / 180.0f)))
+	if (is_not_zero(frac(ui.image_rotation / 180.0f)))
 		std::swap(image_w, image_h);
 
 	float auto_zoom;
-	if (user_interface.image_no_scale)
+	if (ui.image_no_scale)
 		auto_zoom = 0.0f;
 
 	// Fit inside the window.
@@ -811,7 +811,7 @@ void Renderer::update_scale_and_dims_output() noexcept
 	else
 		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.width, image_w));
 
-	scale = std::pow(2.0f, auto_zoom + user_interface.image_zoom);
+	scale = std::pow(2.0f, auto_zoom + ui.image_zoom);
 	
 	// Limit scale so we don't exceed min or max texture dims, or stretch image.
 	const auto ws{ image_w * scale };

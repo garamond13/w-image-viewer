@@ -24,7 +24,7 @@ public:
 	void reset_resources() noexcept;
 	void fullscreen_hide_cursor() const;
 	bool should_update;
-	User_interface user_interface;
+	User_interface ui;
 private:
 	void create_device();
 	void create_swapchain();
@@ -59,7 +59,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv_back_buffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_image;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_pass;
-	Image& image{ user_interface.file_manager.image };
+	Image& image{ ui.file_manager.image };
 	Dims<int> dims_swap_chain;
 	Dims<int> dims_output;
 	float scale;

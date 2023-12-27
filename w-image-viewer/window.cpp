@@ -86,8 +86,8 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
     case WIV_WM_OPEN_FILE:
         window->renderer.create_image();
         if (g_config.window_autowh.val)
-            window->renderer.user_interface.auto_window_size();
-        window->renderer.user_interface.reset_image_panzoom();
+            window->renderer.ui.auto_window_size();
+        window->renderer.ui.reset_image_panzoom();
         window->reset_image_rotation();
         window->set_window_name();
         window->renderer.should_update = true;
@@ -101,11 +101,11 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
         break;
     case WM_DROPFILES:
         wiv_assert(SetForegroundWindow(hwnd), != 0);
-        if (window->renderer.user_interface.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
+        if (window->renderer.ui.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
             window->renderer.create_image();
             if (g_config.window_autowh.val)
-                window->renderer.user_interface.auto_window_size();
-            window->renderer.user_interface.reset_image_panzoom();
+                window->renderer.ui.auto_window_size();
+            window->renderer.ui.reset_image_panzoom();
             window->reset_image_rotation();
             window->set_window_name();
             window->renderer.should_update = true;
@@ -131,10 +131,10 @@ void Window::set_window_name() const
             name = WIV_WINDOW_NAME;
             break;
         case WIV_WINDOW_NAME_FILE_NAME:
-            name = renderer.user_interface.file_manager.file_current.filename().wstring() + L" - " + WIV_WINDOW_NAME;
+            name = renderer.ui.file_manager.file_current.filename().wstring() + L" - " + WIV_WINDOW_NAME;
             break;
         case WIV_WINDOW_NAME_FILE_NAME_FULL:
-            name = renderer.user_interface.file_manager.file_current.wstring() + L" - " + WIV_WINDOW_NAME;
+            name = renderer.ui.file_manager.file_current.wstring() + L" - " + WIV_WINDOW_NAME;
             break;
     }
     wiv_assert(SetWindowTextW(g_hwnd, name.c_str()), != 0);
@@ -143,20 +143,20 @@ void Window::set_window_name() const
 void Window::reset_image_rotation() noexcept
 {
     // Rotated 180.
-    if (renderer.user_interface.file_manager.image.orientation == 2)
-        renderer.user_interface.image_rotation = -180.0f;
+    if (renderer.ui.file_manager.image.orientation == 2)
+        renderer.ui.image_rotation = -180.0f;
 
     // Rotated 90 cw.
-    else if (renderer.user_interface.file_manager.image.orientation == 5)
-        renderer.user_interface.image_rotation = -90.0f;
+    else if (renderer.ui.file_manager.image.orientation == 5)
+        renderer.ui.image_rotation = -90.0f;
 
     // Rotated 90 ccw.
-    else if (renderer.user_interface.file_manager.image.orientation == 7)
-        renderer.user_interface.image_rotation = 90.0f;
+    else if (renderer.ui.file_manager.image.orientation == 7)
+        renderer.ui.image_rotation = 90.0f;
 
     else
-        renderer.user_interface.image_rotation = 0.0f;
+        renderer.ui.image_rotation = 0.0f;
 
     // Reset orientation.
-    renderer.user_interface.file_manager.image.orientation = 0;
+    renderer.ui.file_manager.image.orientation = 0;
 }
