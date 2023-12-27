@@ -87,6 +87,9 @@
     <ClInclude Include="info.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="renderer_base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -114,6 +117,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="icc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

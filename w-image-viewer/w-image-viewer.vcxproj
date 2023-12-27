@@ -165,6 +165,7 @@
     <ClInclude Include="cms_lut.h" />
     <ClInclude Include="info.h" />
     <ClInclude Include="range.h" />
+    <ClInclude Include="renderer_base.h" />
     <ClInclude Include="supported_extensions.h" />
     <ClInclude Include="message.h" />
     <ClInclude Include="wiv_imconfig.h" />
@@ -188,6 +189,7 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="renderer_base.cpp" />
     <ClCompile Include="user_interface.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>

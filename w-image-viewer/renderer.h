@@ -4,6 +4,7 @@
 #include "config.h"
 #include "user_interface.h"
 #include "dims.h"
+#include "renderer_base.h"
 
 enum WIV_CMS_PROFILE_DISPLAY_
 {
@@ -13,7 +14,7 @@ enum WIV_CMS_PROFILE_DISPLAY_
 	WIV_CMS_PROFILE_DISPLAY_CUSTOM
 };
 
-class Renderer
+class Renderer : Renderer_base
 {
 public:
 	void create();
@@ -26,11 +27,6 @@ public:
 	bool should_update;
 	User_interface ui;
 private:
-	void create_device();
-	void create_swapchain();
-	void create_rtv_back_buffer() noexcept;
-	void create_samplers() const;
-	void create_vertex_shader() const noexcept;
 	void init_cms_profile_display();
 	void create_cms_lut();
 	std::unique_ptr<uint16_t[]> cms_transform_lut();
@@ -53,14 +49,9 @@ private:
 	void update_scale_profile() noexcept;
 	float get_kernel_radius() const noexcept;
 	void update_trc();
-	Microsoft::WRL::ComPtr<ID3D11Device> device;
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> device_context;
-	Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain;
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv_back_buffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_image;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_pass;
 	Image& image{ ui.file_manager.image };
-	Dims<int> dims_swap_chain;
 	Dims<int> dims_output;
 	float scale;
 	const Config_scale* p_scale_profile;
