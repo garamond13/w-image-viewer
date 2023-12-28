@@ -97,6 +97,14 @@ bool Image::set_image_input(std::wstring_view path)
 	return true;
 }
 
+bool Image::close() noexcept
+{
+	if (!image_input)
+		return false;
+	image_input.reset();
+	return true;
+}
+
 cmsHPROFILE Image::get_embended_profile()
 {
 	// Source https://www.color.org/technotes/ICC-Technote-ProfileEmbedding.pdf

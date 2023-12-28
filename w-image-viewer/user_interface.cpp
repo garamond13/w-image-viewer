@@ -284,6 +284,10 @@ void User_interface::input()
 			toggle_fullscreen();
 			return;
 		}
+		if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+			file_manager.delete_file();
+			return;
+		}
 
 		//
 
@@ -377,6 +381,11 @@ void User_interface::context_menu()
 			image_rotation -= 90.0f;
 			is_rotating = true;
 			*p_renderer_should_update = true;
+			goto end;
+		}
+		ImGui::Separator();
+		if (ImGui::Selectable("Delete")) {
+			file_manager.delete_file();
 			goto end;
 		}
 		ImGui::Separator();

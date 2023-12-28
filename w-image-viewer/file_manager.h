@@ -10,6 +10,7 @@ public:
 	void file_next();
 	void file_previous();
 	bool drag_and_drop(HDROP hdrop);
+	void delete_file();
 	std::filesystem::path file_current;
 	Image image;
 };

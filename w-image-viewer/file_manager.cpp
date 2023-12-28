@@ -3,6 +3,8 @@
 #include "config.h"
 #include "helpers.h"
 #include "supported_extensions.h"
+#include "global.h"
+#include "window.h"
 
 bool File_manager::file_open(std::wstring_view path)
 {
@@ -71,4 +73,36 @@ bool File_manager::drag_and_drop(HDROP hdrop)
         return true;
     }
     return false;
+}
+
+// Sends file to the recycle bin!
+void File_manager::delete_file()
+{
+    if (!image.close())
+        return;
+
+    // SHFILEOPSTRUCTW::pFrom must be double null terminated.
+    wchar_t path[MAX_PATH + 1];
+    wcscpy(path, file_current.c_str());
+    path[std::char_traits<wchar_t>::length(path) + 1] = '\0';
+
+    // Configured to send file to the recycle bin.
+    SHFILEOPSTRUCTW fileopenstruct{
+        .wFunc{ FO_DELETE },
+        .pFrom{ path },
+        .fFlags{ FOF_ALLOWUNDO },
+    };
+
+    if (SHFileOperationW(&fileopenstruct) == 0) {
+        const auto deleted_file{ file_current };
+        file_next();
+        if (file_current == deleted_file) // Do we have a next file?
+            file_previous();
+        if (file_current == deleted_file) { // At this point do we have a next or previous file?
+            file_current.clear();
+            wiv_assert(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+        }
+        else
+            wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+    }
 }

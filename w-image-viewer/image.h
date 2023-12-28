@@ -18,6 +18,7 @@ public:
 	bool has_alpha() const noexcept;
 	int get_tagged_color_space();
 	bool set_image_input(std::wstring_view path);
+	bool close() noexcept;
 	
 	template<typename T>
 	T get_width() const noexcept
