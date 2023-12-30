@@ -114,19 +114,19 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
                 const auto new_client_width{ std::lround(client_height * client_aspect_ratio - client_width) };
                 const auto new_client_height{ std::lround(client_width / client_aspect_ratio - client_height) };
                 switch (wparam) {
-                case WMSZ_LEFT:
-                case WMSZ_RIGHT:
-                case WMSZ_BOTTOMLEFT:
-                case WMSZ_BOTTOMRIGHT:
-                    rect->bottom += new_client_height;
-                    break;
-                case WMSZ_TOP:
-                case WMSZ_BOTTOM:
-                    rect->right += new_client_width;
-                    break;
-                case WMSZ_TOPLEFT:
-                case WMSZ_TOPRIGHT:
-                    rect->top -= new_client_height;
+                    case WMSZ_LEFT:
+                    case WMSZ_RIGHT:
+                    case WMSZ_BOTTOMLEFT:
+                    case WMSZ_BOTTOMRIGHT:
+                        rect->bottom += new_client_height;
+                        break;
+                    case WMSZ_TOP:
+                    case WMSZ_BOTTOM:
+                        rect->right += new_client_width;
+                        break;
+                    case WMSZ_TOPLEFT:
+                    case WMSZ_TOPRIGHT:
+                        rect->top -= new_client_height;
                 }
                 return 1;
             }
