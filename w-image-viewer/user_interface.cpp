@@ -467,6 +467,7 @@ void User_interface::window_settings()
 			//
 
 			ImGui::TextUnformatted("Profiles:");
+			static int scale_profile_index; // The default profile should always be at index 0!
 			static Right_open_range<float> range;
 			std::array range_array{ &range.lower, &range.upper };
 			ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
@@ -481,16 +482,14 @@ void User_interface::window_settings()
 							exists = true;
 					}
 
-					if (!exists)
+					if (!exists) {
 						g_config.scale_profiles.push_back({ range, {} });
+						scale_profile_index = g_config.scale_profiles.size() - 1;
+					}
 				}
 				else
 					wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
 			}
-
-			// The default profile should always be at index 0.
-			static int scale_profile_index;
-
 			if (ImGui::Button("Edit profile", button_size)) {
 				if (range.is_valid()) {
 								
