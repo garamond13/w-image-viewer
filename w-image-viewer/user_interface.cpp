@@ -130,13 +130,10 @@ void User_interface::auto_window_size() const
 	rect.top = 0;
 
 	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
-	const auto cx_window{ rect.right - rect.left }; // Width.
-	const auto cy_window{ rect.bottom - rect.top }; // Height.
 
 	// Optionaly center the window and apply new dimensions.
-	// Ignore the type casting nigtmare.
 	const UINT flags{ static_cast<UINT>(g_config.window_autowh_center.val ? SWP_NOZORDER : SWP_NOZORDER | SWP_NOMOVE) };
-	SetWindowPos(g_hwnd, nullptr, (cx_screen - cx_window) / 2.0, (cy_screen - cy_window) / 2.0, cx_window, cy_window, flags);
+	SetWindowPos(g_hwnd, nullptr, static_cast<int>((cx_screen - rc_w<double>(rect)) / 2.0), static_cast<int>((cy_screen - rc_h<double>(rect)) / 2.0), rc_w<int>(rect), rc_h<int>(rect), flags);
 }
 
 void User_interface::reset_image_panzoom() noexcept
