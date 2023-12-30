@@ -95,12 +95,14 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
             window->set_window_name();
             window->renderer.should_update = true;
             return 0;
-        case WM_ENTERSIZEMOVE: {
-            RECT rect;
-            wiv_assert(GetClientRect(hwnd, &rect), != 0);
-            client_aspect_ratio = get_ratio<double>(rect.right, rect.bottom);
-            return 0;
-        }
+        case WM_ENTERSIZEMOVE:
+            if (g_config.window_keep_aspect.val) {
+                RECT rect;
+                wiv_assert(GetClientRect(hwnd, &rect), != 0);
+                client_aspect_ratio = get_ratio<double>(rect.right, rect.bottom);
+                return 0;
+            }
+            break;
         case WM_SIZING:
             if (g_config.window_keep_aspect.val) {
                 auto rect{ reinterpret_cast<RECT*>(lparam) };
