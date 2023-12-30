@@ -72,8 +72,8 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
             };
             wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
             auto minmaxinfo{ reinterpret_cast<MINMAXINFO*>(lparam) };
-            minmaxinfo->ptMinTrackSize.x = std::max(static_cast<long>(GetSystemMetrics(SM_CXMIN)), rc_w<LONG>(rect));
-            minmaxinfo->ptMinTrackSize.y = std::max(static_cast<long>(GetSystemMetrics(SM_CYMIN) + 1), rc_h<LONG>(rect));
+            minmaxinfo->ptMinTrackSize.x = std::max(static_cast<LONG>(GetSystemMetrics(SM_CXMIN)), rc_w<LONG>(rect));
+            minmaxinfo->ptMinTrackSize.y = std::max(static_cast<LONG>(GetSystemMetrics(SM_CYMIN) + 1), rc_h<LONG>(rect));
             return 0;
         }
 
