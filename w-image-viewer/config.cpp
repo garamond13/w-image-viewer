@@ -32,6 +32,7 @@ void Config::read()
 	Right_open_range<float> range;
 	Config_scale scale;
 	std::ifstream file(get_path());
+	scale_profiles.clear();
 	if (file.is_open()) {
 		std::string line;
 		while (std::getline(file, line)) {

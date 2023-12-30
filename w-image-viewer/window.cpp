@@ -61,7 +61,6 @@ int Window::message_loop()
                 WaitMessage();
         }
     }
-
     return static_cast<int>(msg.wParam);
 }
 

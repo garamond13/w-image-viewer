@@ -415,6 +415,7 @@ void User_interface::window_settings()
 	if (is_window_settings_open) {
 		static constinit const ImVec2 window_size{ 430.0f, 696.0f };
 		static constinit const ImVec2 button_size{ -1.0f, 0.0f };
+		static int scale_profile_index; // The default profile should always be at index 0!
 		ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 		ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
 		if (ImGui::CollapsingHeader("Window")) {
@@ -467,7 +468,6 @@ void User_interface::window_settings()
 			//
 
 			ImGui::TextUnformatted("Profiles:");
-			static int scale_profile_index; // The default profile should always be at index 0!
 			static Right_open_range<float> range;
 			std::array range_array{ &range.lower, &range.upper };
 			ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
@@ -716,9 +716,12 @@ void User_interface::window_settings()
 			ImGui::Spacing();
 		}
 		ImGui::SeparatorText("Changes");
-		if (ImGui::Button("Write changes")) {
-			g_config.write();
+		if (ImGui::Button("Revert changes", button_size)) {
+			scale_profile_index = 0;
+			g_config.read();
 		}
+		if (ImGui::Button("Write changes", button_size))
+			g_config.write();
 		ImGui::Spacing();
 		ImGui::End();
 	}
