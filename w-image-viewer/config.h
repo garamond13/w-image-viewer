@@ -49,6 +49,7 @@ public:
 	Config_pair<int, "wnd_h"> window_height{ 803 };
 	Config_pair<int, "wnd_mnw"> window_min_width{ 0 };
 	Config_pair<int, "wnd_mnh"> window_min_height{ 0 };
+	Config_pair<bool, "wnd_kpasp"> window_keep_aspect;
 	
 	Config_pair<bool, "wnd_autwh"> window_autowh;
 	Config_pair<bool, "wnd_autwhc"> window_autowh_center;

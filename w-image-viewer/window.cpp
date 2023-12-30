@@ -50,6 +50,8 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
     // Get "this" pointer that we passed to CreateWindowExW().
     auto* window{ reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA)) };
 
+    static double client_aspect_ratio;
+
     switch (message) {
 
         // WM_NCCREATE is not guarantied to be the first message.
@@ -92,6 +94,42 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
         window->set_window_name();
         window->renderer.should_update = true;
         break;
+    case WM_ENTERSIZEMOVE: {
+        RECT rect;
+        wiv_assert(GetClientRect(hwnd, &rect), != 0);
+        client_aspect_ratio = get_ratio<double>(rect.right, rect.bottom);
+        break;
+    }
+    case WM_SIZING:
+        if (g_config.window_keep_aspect.val) {
+            auto rect{ reinterpret_cast<RECT*>(lparam) };
+
+            // Get client area.
+            RECT unadjusted_rect{ *rect };
+            wiv_assert(un_AdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+            const auto client_width{ rc_w<double>(unadjusted_rect) };
+            const auto client_height{ rc_h<double>(unadjusted_rect) };
+
+            const auto new_client_width{ std::lround(client_height * client_aspect_ratio - client_width) };
+            const auto new_client_height{ std::lround(client_width / client_aspect_ratio - client_height) };
+            switch (wparam) {
+            case WMSZ_LEFT:
+            case WMSZ_RIGHT:
+            case WMSZ_BOTTOMLEFT:
+            case WMSZ_BOTTOMRIGHT:
+                rect->bottom += new_client_height;
+                break;
+            case WMSZ_TOP:
+            case WMSZ_BOTTOM:
+                rect->right += new_client_width;
+                break;
+            case WMSZ_TOPLEFT:
+            case WMSZ_TOPRIGHT:
+                rect->top -= new_client_height;
+            }
+            return 1;
+        }
+        return DefWindowProcW(hwnd, message, wparam, lparam);
     case WM_SIZE:
         window->is_minimized = wparam == SIZE_MINIMIZED;
         if (!window->is_minimized) {

@@ -108,3 +108,31 @@ struct Char_array
 
 	const std::array<char, n> val;
 };
+
+// Get width from RECT.
+template<typename T>
+constexpr T rc_w(const RECT& rect) noexcept
+{
+	return static_cast<T>(rect.right - rect.left);
+}
+
+// Get height from RECT.
+template<typename T>
+constexpr T rc_h(const RECT& rect) noexcept
+{
+	return static_cast<T>(rect.bottom - rect.top);
+}
+
+// Reverse AdjustWindowRectEx().
+inline BOOL un_AdjustWindowRectEx(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
+{
+	RECT rect{};
+	BOOL result{ AdjustWindowRectEx(&rect, dwStyle, bMenu, dwExStyle) };
+	if (result) {
+		lpRect->left -= rect.left;
+		lpRect->top -= rect.top;
+		lpRect->right -= rect.right;
+		lpRect->bottom -= rect.bottom;
+	}
+	return result;
+}
