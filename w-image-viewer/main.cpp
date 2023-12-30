@@ -17,23 +17,5 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         LocalFree(argv);
     }
 
-    // Message loop.
-    MSG msg{};
-    while (msg.message != WM_QUIT) {
-        if (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        }
-        else {
-            if (!window->is_minimized) {
-                window->renderer.update();
-                window->renderer.draw();
-                window->renderer.fullscreen_hide_cursor();
-            }
-            else
-                WaitMessage();
-        }
-    }
-
-    return static_cast<int>(msg.wParam);
+    return window->message_loop();
 }

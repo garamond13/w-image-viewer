@@ -38,8 +38,31 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
     };
     wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
     g_hwnd = CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rc_w<int>(rect), rc_h<int>(rect), nullptr, nullptr, hinstance, this);
+
     renderer.create();
     ShowWindow(g_hwnd, ncmdshow);
+}
+
+int Window::message_loop()
+{
+    MSG msg{};
+    while (msg.message != WM_QUIT) {
+        if (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+        else {
+            if (!is_minimized) {
+                renderer.update();
+                renderer.draw();
+                renderer.fullscreen_hide_cursor();
+            }
+            else
+                WaitMessage();
+        }
+    }
+
+    return static_cast<int>(msg.wParam);
 }
 
 /* static */ LRESULT Window::wndproc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)

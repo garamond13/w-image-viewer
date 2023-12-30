@@ -16,6 +16,7 @@ class Window
 {
 public:
 	Window(HINSTANCE hinstance, int ncmdshow);
+	int message_loop();
 	Renderer renderer;
 	bool is_minimized;
 private:
