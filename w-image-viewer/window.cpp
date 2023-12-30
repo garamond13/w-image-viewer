@@ -24,7 +24,7 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
     const WNDCLASSEXW wndclassexw{
         .cbSize{ sizeof(WNDCLASSEXW) },
         .style{ CS_HREDRAW | CS_VREDRAW },
-        .lpfnWndProc{ wnd_proc },
+        .lpfnWndProc{ wndproc },
         .hInstance{ hinstance },
         .hIcon{ LoadIconW(hinstance, MAKEINTRESOURCEW(IDI_WIMAGEVIEWER)) },
         .lpszClassName{ L"WIV" }
@@ -42,7 +42,7 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
     ShowWindow(g_hwnd, ncmdshow);
 }
 
-/* static */ LRESULT Window::wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+/* static */ LRESULT Window::wndproc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
     if (ImGui_ImplWin32_WndProcHandler(hwnd, message, wparam, lparam))
         return 1;
@@ -55,91 +55,38 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
     switch (message) {
 
         // WM_NCCREATE is not guarantied to be the first message.
-    [[unlikely]] case WM_NCCREATE:
-        window = reinterpret_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lparam)->lpCreateParams);
-        g_hwnd = hwnd;
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
-        return DefWindowProcW(hwnd, message, wparam, lparam);
+        [[unlikely]] case WM_NCCREATE:
+            window = reinterpret_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lparam)->lpCreateParams);
+            g_hwnd = hwnd;
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
+            break;
 
-    case WM_ERASEBKGND:
-        return 1;
+        case WM_ERASEBKGND:
+            return 1;
 
         // Set minimum window size.
-    case WM_GETMINMAXINFO: {
-        RECT rect{
-            .right{ g_config.window_min_width.val },
-            .bottom{ g_config.window_min_height.val }
-        };
-        wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
-        reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.x = std::max(static_cast<long>(GetSystemMetrics(SM_CXMIN)), rect.right - rect.left);
-        reinterpret_cast<MINMAXINFO*>(lparam)->ptMinTrackSize.y = std::max(static_cast<long>(GetSystemMetrics(SM_CYMIN) + 1), rect.bottom - rect.top);
-        break;
-    }
-
-                         // Provides the mosuse cursor in fullscren on mousemove.
-                         // Without this, after exiting from fullscreen the mosue cursor may stay hidden.
-    case WM_MOUSEMOVE:
-        while (ShowCursor(TRUE) < 0);
-        break;
-    case WM_NCMOUSEMOVE:
-        while (ShowCursor(TRUE) < 0);
-        break;
-
-    case WIV_WM_OPEN_FILE:
-        window->renderer.create_image();
-        if (g_config.window_autowh.val)
-            window->renderer.ui.auto_window_size();
-        window->renderer.ui.reset_image_panzoom();
-        window->reset_image_rotation();
-        window->set_window_name();
-        window->renderer.should_update = true;
-        break;
-    case WM_ENTERSIZEMOVE: {
-        RECT rect;
-        wiv_assert(GetClientRect(hwnd, &rect), != 0);
-        client_aspect_ratio = get_ratio<double>(rect.right, rect.bottom);
-        break;
-    }
-    case WM_SIZING:
-        if (g_config.window_keep_aspect.val) {
-            auto rect{ reinterpret_cast<RECT*>(lparam) };
-
-            // Get client area.
-            RECT unadjusted_rect{ *rect };
-            wiv_assert(un_AdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
-            const auto client_width{ rc_w<double>(unadjusted_rect) };
-            const auto client_height{ rc_h<double>(unadjusted_rect) };
-
-            const auto new_client_width{ std::lround(client_height * client_aspect_ratio - client_width) };
-            const auto new_client_height{ std::lround(client_width / client_aspect_ratio - client_height) };
-            switch (wparam) {
-            case WMSZ_LEFT:
-            case WMSZ_RIGHT:
-            case WMSZ_BOTTOMLEFT:
-            case WMSZ_BOTTOMRIGHT:
-                rect->bottom += new_client_height;
-                break;
-            case WMSZ_TOP:
-            case WMSZ_BOTTOM:
-                rect->right += new_client_width;
-                break;
-            case WMSZ_TOPLEFT:
-            case WMSZ_TOPRIGHT:
-                rect->top -= new_client_height;
-            }
-            return 1;
+        case WM_GETMINMAXINFO: {
+            RECT rect{
+                .right{ g_config.window_min_width.val },
+                .bottom{ g_config.window_min_height.val }
+            };
+            wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+            auto minmaxinfo{ reinterpret_cast<MINMAXINFO*>(lparam) };
+            minmaxinfo->ptMinTrackSize.x = std::max(static_cast<long>(GetSystemMetrics(SM_CXMIN)), rc_w<LONG>(rect));
+            minmaxinfo->ptMinTrackSize.y = std::max(static_cast<long>(GetSystemMetrics(SM_CYMIN) + 1), rc_h<LONG>(rect));
+            return 0;
         }
-        return DefWindowProcW(hwnd, message, wparam, lparam);
-    case WM_SIZE:
-        window->is_minimized = wparam == SIZE_MINIMIZED;
-        if (!window->is_minimized) {
-            window->renderer.on_window_resize();
-            window->renderer.should_update = true;
-        }
-        break;
-    case WM_DROPFILES:
-        wiv_assert(SetForegroundWindow(hwnd), != 0);
-        if (window->renderer.ui.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
+
+        // Provides the mosuse cursor in fullscren on mousemove.
+        // Without this, after exiting from fullscreen the mosue cursor may stay hidden.
+        case WM_MOUSEMOVE:
+            while (ShowCursor(TRUE) < 0);
+            return 0;
+        case WM_NCMOUSEMOVE:
+            while (ShowCursor(TRUE) < 0);
+            return 0;
+
+        case WIV_WM_OPEN_FILE:
             window->renderer.create_image();
             if (g_config.window_autowh.val)
                 window->renderer.ui.auto_window_size();
@@ -147,18 +94,70 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
             window->reset_image_rotation();
             window->set_window_name();
             window->renderer.should_update = true;
+            return 0;
+        case WM_ENTERSIZEMOVE: {
+            RECT rect;
+            wiv_assert(GetClientRect(hwnd, &rect), != 0);
+            client_aspect_ratio = get_ratio<double>(rect.right, rect.bottom);
+            return 0;
         }
-        break;
-    case WIV_WM_RESET_RESOURCES:
-        window->renderer.reset_resources();
-        break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProcW(hwnd, message, wparam, lparam);
+        case WM_SIZING:
+            if (g_config.window_keep_aspect.val) {
+                auto rect{ reinterpret_cast<RECT*>(lparam) };
+
+                // Get client area.
+                RECT unadjusted_rect{ *rect };
+                wiv_assert(un_AdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+                const auto client_width{ rc_w<double>(unadjusted_rect) };
+                const auto client_height{ rc_h<double>(unadjusted_rect) };
+
+                const auto new_client_width{ std::lround(client_height * client_aspect_ratio - client_width) };
+                const auto new_client_height{ std::lround(client_width / client_aspect_ratio - client_height) };
+                switch (wparam) {
+                case WMSZ_LEFT:
+                case WMSZ_RIGHT:
+                case WMSZ_BOTTOMLEFT:
+                case WMSZ_BOTTOMRIGHT:
+                    rect->bottom += new_client_height;
+                    break;
+                case WMSZ_TOP:
+                case WMSZ_BOTTOM:
+                    rect->right += new_client_width;
+                    break;
+                case WMSZ_TOPLEFT:
+                case WMSZ_TOPRIGHT:
+                    rect->top -= new_client_height;
+                }
+                return 1;
+            }
+            break;
+        case WM_SIZE:
+            window->is_minimized = wparam == SIZE_MINIMIZED;
+            if (!window->is_minimized) {
+                window->renderer.on_window_resize();
+                window->renderer.should_update = true;
+            }
+            return 0;
+        case WM_DROPFILES:
+            wiv_assert(SetForegroundWindow(hwnd), != 0);
+            if (window->renderer.ui.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
+                window->renderer.create_image();
+                if (g_config.window_autowh.val)
+                    window->renderer.ui.auto_window_size();
+                window->renderer.ui.reset_image_panzoom();
+                window->reset_image_rotation();
+                window->set_window_name();
+                window->renderer.should_update = true;
+            }
+            return 0;
+        case WIV_WM_RESET_RESOURCES:
+            window->renderer.reset_resources();
+            return 0;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
     }
-    return 0;
+    return DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
 void Window::set_window_name() const

@@ -19,7 +19,7 @@ public:
 	Renderer renderer;
 	bool is_minimized;
 private:
-	static LRESULT wnd_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
+	static LRESULT wndproc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 	void set_window_name() const;
 	void reset_image_rotation() noexcept;
 };
