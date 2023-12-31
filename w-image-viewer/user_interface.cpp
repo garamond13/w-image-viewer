@@ -50,16 +50,16 @@ void User_interface::create(ID3D11Device* device, ID3D11DeviceContext* device_co
 	ImGui::CreateContext();
 
 	// Font.
-	ImVector<ImWchar> ranges;
 	ImFontGlyphRangesBuilder builder;
 	builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
 	builder.AddChar(0x0161); // š
+	ImVector<ImWchar> ranges;
 	builder.BuildRanges(&ranges);
 	ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(ROBOTO_MEDIUM_COMPRESSED_DATA, ROBOTO_MEDIUM_COMPRESSED_SIZE, 16, nullptr, ranges.Data);
 	ImGui::GetIO().Fonts->Build();
 	
 	// Set imgui.ini path.
-	static constinit char path[MAX_PATH]; // ImGui does not store the path!
+	static char path[MAX_PATH]; // ImGui does not store the path!
 	GetModuleFileNameA(nullptr, path, MAX_PATH);
 	std::strcpy(path, (std::filesystem::path(path).parent_path() / "imgui.ini").string().c_str());
 	ImGui::GetIO().IniFilename = path;
