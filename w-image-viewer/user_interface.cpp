@@ -302,7 +302,7 @@ void User_interface::input()
 	//
 }
 
-void User_interface::overlay()
+void User_interface::overlay() const
 {
 	// Early return.
 	if (!is_overlay_open)

@@ -34,7 +34,7 @@ public:
 
 private:
 	void input();
-	void overlay();
+	void overlay() const;
 	void context_menu();
 	void window_settings();
 	void window_about();
