@@ -304,39 +304,40 @@ void User_interface::input()
 
 void User_interface::overlay()
 {
-	if (is_overlay_open) {
+	// Early return.
+	if (!is_overlay_open)
+		return;
 
-		// Set overlay position.
-		const auto viewport{ ImGui::GetMainViewport() };
-		constexpr float pad{ 6.0f };
-		ImVec2 window_pos;
-		window_pos.x = g_config.overlay_position.val & 1 ? viewport->WorkPos.x + viewport->WorkSize.x - pad : viewport->WorkPos.x + pad;
-		window_pos.y = g_config.overlay_position.val & 2 ? viewport->WorkPos.y + viewport->WorkSize.y - pad : viewport->WorkPos.y + pad;
-		ImVec2 window_pos_pivot;
-		window_pos_pivot.x = g_config.overlay_position.val & 1 ? 1.0f : 0.0f;
-		window_pos_pivot.y = g_config.overlay_position.val & 2 ? 1.0f : 0.0f;
-		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+	// Set overlay position.
+	const auto viewport{ ImGui::GetMainViewport() };
+	constexpr float pad{ 6.0f };
+	ImVec2 window_pos;
+	window_pos.x = g_config.overlay_position.val & 1 ? viewport->WorkPos.x + viewport->WorkSize.x - pad : viewport->WorkPos.x + pad;
+	window_pos.y = g_config.overlay_position.val & 2 ? viewport->WorkPos.y + viewport->WorkSize.y - pad : viewport->WorkPos.y + pad;
+	ImVec2 window_pos_pivot;
+	window_pos_pivot.x = g_config.overlay_position.val & 1 ? 1.0f : 0.0f;
+	window_pos_pivot.y = g_config.overlay_position.val & 2 ? 1.0f : 0.0f;
+	ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 
-		ImGui::SetNextWindowBgAlpha(0.35f);
-		if (ImGui::Begin("##overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize)) {
-			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS) {
-				ImGui::Text("Image W: %i", g_info.image_width);
-				ImGui::Text("Image H: %i", g_info.image_height);
-			}
-			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE)
-				ImGui::Text("Scale: %.6f", g_info.scale);
-			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS) {
-				ImGui::Text("Scaled W: %i", g_info.scaled_width);
-				ImGui::Text("Scaled H: %i", g_info.scaled_height);
-			}
-			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX)
-				ImGui::Text(kernel_function_names[g_info.kernel_index]);
-			if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE)
-				ImGui::Text("Kernel size: %i", g_info.kernel_size);
+	ImGui::SetNextWindowBgAlpha(0.35f);
+	if (ImGui::Begin("##overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize)) {
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS) {
+			ImGui::Text("Image W: %i", g_info.image_width);
+			ImGui::Text("Image H: %i", g_info.image_height);
 		}
-
-		ImGui::End();
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE)
+			ImGui::Text("Scale: %.6f", g_info.scale);
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS) {
+			ImGui::Text("Scaled W: %i", g_info.scaled_width);
+			ImGui::Text("Scaled H: %i", g_info.scaled_height);
+		}
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX)
+			ImGui::Text(kernel_function_names[g_info.kernel_index]);
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE)
+			ImGui::Text("Kernel size: %i", g_info.kernel_size);
 	}
+
+	ImGui::End();
 }
 
 void User_interface::context_menu()
@@ -744,23 +745,26 @@ void User_interface::window_settings()
 
 void User_interface::window_about()
 {
-	if (is_window_about_open) {
-		static constinit const ImVec2 size{ 288, 178.0f };
-		ImGui::SetNextWindowSize(size);
-		ImGui::Begin("About", &is_window_about_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-		ImGui::Text("W Image Viewer %d.%d.%d", WIV_VERSION_NUMBER_MAJOR, WIV_VERSION_NUMBER_MINOR, WIV_VERSION_NUMBER_PATCH);
-		ImGui::Separator();
-		ImGui::Spacing();
-		ImGui::TextUnformatted(reinterpret_cast<const char*>(u8"Created by Ivan Bjeliš."));
-		ImGui::Spacing();
-		ImGui::Spacing();
-		if (ImGui::Button("Web page...")) {
-			if (is_fullscreen)
-				toggle_fullscreen();
-			ShellExecuteW(nullptr, L"open", L"https://github.com/garamond13/w-image-viewer", nullptr, nullptr, SW_SHOWNORMAL);
-		}
-		ImGui::End();
+
+	// Early return.
+	if (!is_window_about_open)
+		return;
+
+	static constinit const ImVec2 size{ 288, 178.0f };
+	ImGui::SetNextWindowSize(size);
+	ImGui::Begin("About", &is_window_about_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+	ImGui::Text("W Image Viewer %d.%d.%d", WIV_VERSION_NUMBER_MAJOR, WIV_VERSION_NUMBER_MINOR, WIV_VERSION_NUMBER_PATCH);
+	ImGui::Separator();
+	ImGui::Spacing();
+	ImGui::TextUnformatted(reinterpret_cast<const char*>(u8"Created by Ivan Bjeliš."));
+	ImGui::Spacing();
+	ImGui::Spacing();
+	if (ImGui::Button("Web page...")) {
+		if (is_fullscreen)
+			toggle_fullscreen();
+		ShellExecuteW(nullptr, L"open", L"https://github.com/garamond13/w-image-viewer", nullptr, nullptr, SW_SHOWNORMAL);
 	}
+	ImGui::End();
 }
 
 // FIXME! Dont think this can get any uglier.
