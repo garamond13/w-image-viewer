@@ -409,235 +409,255 @@ void User_interface::context_menu()
 	}
 }
 
-// FIXME! It's too hacky. 
 void User_interface::window_settings()
 {
-	if (is_window_settings_open) {
-		static constinit const ImVec2 window_size{ 430.0f, 696.0f };
-		static constinit const ImVec2 button_size{ -1.0f, 0.0f };
-		static int scale_profile_index; // The default profile should always be at index 0!
-		ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
-		ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
-		if (ImGui::CollapsingHeader("Window")) {
-			ImGui::Spacing();
-			ImGui::TextUnformatted("Default window dimensions:");
-			if (ImGui::Button("Use current dimensions##def")) {
-				RECT rect;
-				wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
-				g_config.window_width.val = rect.right;
-				g_config.window_height.val = rect.bottom;
-			}
-			ImGui::InputInt("Width", &g_config.window_width.val, 0, 0);
-			ImGui::InputInt("Height", &g_config.window_height.val, 0, 0);
-			ImGui::Spacing();
-			ImGui::TextUnformatted("Minimum window dimensions:");
-			if (ImGui::Button("Use current dimensions##min")) {
-				RECT rect;
-				wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
-				g_config.window_min_width.val = rect.right;
-				g_config.window_min_height.val = rect.bottom;
-			}
-			ImGui::InputInt("Min width", &g_config.window_min_width.val, 0, 0);
-			ImGui::InputInt("Min height", &g_config.window_min_height.val, 0, 0);
-			ImGui::Spacing;
-			ImGui::Checkbox("Keep window aspect ratio when sizing", &g_config.window_keep_aspect.val);
-			ImGui::Spacing;
-			ImGui::Checkbox("Enable window auto dimensions", &g_config.window_autowh.val);
-			dimm(!g_config.window_autowh.val);
-			ImGui::Checkbox("Center window on auto dimensions", &g_config.window_autowh_center.val);
-			dimm();
-			ImGui::Spacing();
+	// Early return.
+	if (!is_window_settings_open)
+		return;
 
-			// The order has to be same as in the enum WIV_WINDOW_NAME_.
-			static constinit const std::array window_name_items{
-				"Defualt name",
-				"Filename",
-				"Full filename"
-			};
-
-			ImGui::Combo("Window name", &g_config.window_name.val, window_name_items.data(), window_name_items.size());
-			ImGui::Spacing();
-
-			ImGui::ColorEdit4("Background color", g_config.clear_color.val.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
-			ImGui::Spacing();
+	static constinit const ImVec2 window_size{ 430.0f, 696.0f };
+	static constinit const ImVec2 button_size{ -1.0f, 0.0f };
+	static int scale_profile_index; // The default profile should always be at index 0!
+	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
+	ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
+	if (ImGui::CollapsingHeader("Window")) {
+		ImGui::Spacing();
+		ImGui::SeparatorText("Default dimensions");
+		if (ImGui::Button("Use current dimensions##def")) {
+			RECT rect;
+			wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
+			g_config.window_width.val = rect.right;
+			g_config.window_height.val = rect.bottom;
 		}
-		if (ImGui::CollapsingHeader("Scale")) {
-			ImGui::Spacing();
+		ImGui::InputInt("Width##def", &g_config.window_width.val, 0, 0);
+		ImGui::InputInt("Height##def", &g_config.window_height.val, 0, 0);
+		ImGui::Spacing();
+		ImGui::SeparatorText("Minimum dimensions");
+		if (ImGui::Button("Use current dimensions##min")) {
+			RECT rect;
+			wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
+			g_config.window_min_width.val = rect.right;
+			g_config.window_min_height.val = rect.bottom;
+		}
+		ImGui::InputInt("Width##min", &g_config.window_min_width.val, 0, 0);
+		ImGui::InputInt("Height##min", &g_config.window_min_height.val, 0, 0);
+		ImGui::Spacing;
+		ImGui::SeparatorText("");
+		ImGui::Checkbox("Keep aspect ratio when sizing", &g_config.window_keep_aspect.val);
+		ImGui::Spacing;
+		ImGui::Checkbox("Enable auto dimensions", &g_config.window_autowh.val);
+		dimm(!g_config.window_autowh.val);
+		ImGui::Checkbox("Center on auto dimensions", &g_config.window_autowh_center.val);
+		dimm();
+		ImGui::Spacing();
 
-			// Scale profiles
-			//
+		// The order has to be same as in the enum WIV_WINDOW_NAME_.
+		static constinit const std::array window_name_items{
+			"Defualt name",
+			"Filename",
+			"Full filename"
+		};
 
-			ImGui::TextUnformatted("Profiles:");
-			static Right_open_range<float> range;
-			std::array range_array{ &range.lower, &range.upper };
-			ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
-			ImGui::SameLine();
-			if (ImGui::Button("Add profile", button_size)) {
-				if (range.is_valid()) {
+		ImGui::Combo("Title", &g_config.window_name.val, window_name_items.data(), window_name_items.size());
+		ImGui::Spacing();
 
-					// Check first does profile already exists (overlaps with any other profile).
-					bool exists{};
-					for (const auto& profile : g_config.scale_profiles) {
-						if (profile.range.is_overlapping(range))
-							exists = true;
+		ImGui::ColorEdit4("Background color", g_config.clear_color.val.data(), ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayHSV);
+		ImGui::Spacing();
+	}
+	if (ImGui::CollapsingHeader("Scale")) {
+		ImGui::Spacing();
+
+		// Scale profiles
+		//
+
+		ImGui::SeparatorText("Profiles");
+		static Right_open_range<float> range;
+		std::array range_array{ &range.lower, &range.upper };
+		ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
+		ImGui::SameLine();
+		if (ImGui::Button("Add profile", button_size)) {
+			if (range.is_valid()) {
+
+				// Check first does profile already exists (overlaps with any other profile).
+				bool exists{};
+				for (const auto& profile : g_config.scale_profiles) {
+					if (profile.range.is_overlapping(range)) {
+						exists = true;
+						break;
 					}
+				}
 
-					if (!exists) {
-						g_config.scale_profiles.push_back({ range, {} });
-						scale_profile_index = g_config.scale_profiles.size() - 1;
-					}
+				if (!exists) {
+					g_config.scale_profiles.push_back({ range, {} });
+					scale_profile_index = g_config.scale_profiles.size() - 1;
 				}
 				else
-					wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
+					wiv_message(L"Overlapping profile. Profile overlaps with one of existing profiles.");
 			}
-			if (ImGui::Button("Edit profile", button_size)) {
-				if (range.is_valid()) {
-								
-					// Check first is profile overlapping with any other profile.
-					bool overlaps{};
-					for (int i{}; i < g_config.scale_profiles.size(); ++i)
-						if (i != scale_profile_index && g_config.scale_profiles[i].range.is_overlapping(range))
-							overlaps = true;
-
-					if (scale_profile_index > 0 && !overlaps) // We don't wanna allow edits on the default profile, nor overlaps with other profiles!
-						g_config.scale_profiles[scale_profile_index].range = range;
-
-				}
-				else
-					wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
-			}
-
-			// Hold values.
-			// Can't use vector<const char*> directly, because const char* will be non owning.
-			std::vector<std::string> scale_profile_names;
-			for (const auto& scale_profile_name : g_config.scale_profiles)
-				scale_profile_names.push_back(std::to_string(scale_profile_name.range.lower) + ", " + std::to_string(scale_profile_name.range.upper));
-
-			// Can't use std::string directly in imgui.
-			std::vector<const char*> profile_items;
-			for (const auto& profile_item : scale_profile_names)
-				profile_items.push_back(profile_item.c_str());
-
-			
-			ImGui::Combo("##profile", &scale_profile_index, profile_items.data(), profile_items.size());
-			ImGui::SameLine();
-			if (ImGui::Button("Remove profile", button_size)) {
-				if (scale_profile_index > 0) { // Can't delete the default range!
-					g_config.scale_profiles.erase(g_config.scale_profiles.begin() + scale_profile_index);
-					--scale_profile_index;
-				}
-			}
-			auto& scale{ g_config.scale_profiles[scale_profile_index].config };
-			ImGui::Spacing();
-
-			//
-
-			// Pre-scale blur
-			ImGui::SeparatorText("Pre-scale blur (downscale only)");
-			ImGui::Checkbox("Enable pre-scale blur", &scale.blur_use.val);
-			dimm(!scale.blur_use.val);
-			ImGui::InputInt("Radius##blur", &scale.blur_radius.val, 0, 0);
-			ImGui::InputFloat("Sigma##blur", &scale.blur_sigma.val, 0.0f, 0.0f, "%.6f");
-			dimm();
-			ImGui::Spacing();
-
-			// Sigmoidize
-			ImGui::SeparatorText("Sigmoidize (upscale only)");
-			ImGui::Checkbox("Enable sigmoidize", &scale.sigmoid_use.val);
-			dimm(!scale.sigmoid_use.val);
-			ImGui::InputFloat("Contrast", &scale.sigmoid_contrast.val, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Midpoint", &scale.sigmoid_midpoint.val, 0.0f, 0.0f, "%.6f");
-			dimm();
-			ImGui::Spacing();
-
-			// Scale
-			//
-
-			ImGui::SeparatorText("Scale");
-			ImGui::Checkbox("Use cylindrical filtering (Jinc based)", &scale.kernel_cylindrical_use.val);
-			ImGui::Spacing();
-			ImGui::Combo("Kernel-function", &scale.kernel_index.val, kernel_function_names.data(), kernel_function_names.size());
-			const auto& i{ scale.kernel_index.val };
-			dimm(i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC || i == WIV_KERNEL_FUNCTION_FSR || i == WIV_KERNEL_FUNCTION_BCSPLINE);
-			ImGui::InputFloat("Radius##kernel", &scale.kernel_radius.val, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Blur", &scale.kernel_blur.val, 0.0f, 0.0f, "%.6f");
-			dimm();
-			dimm(i == WIV_KERNEL_FUNCTION_LANCZOS || i == WIV_KERNEL_FUNCTION_GINSENG || i == WIV_KERNEL_FUNCTION_HAMMING || i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR);
-			ImGui::InputFloat("Parameter 1", &scale.kernel_parameter1.val, 0.0f, 0.0f, "%.6f");
-			dimm();
-			dimm(i == WIV_KERNEL_FUNCTION_LANCZOS || i == WIV_KERNEL_FUNCTION_GINSENG || i == WIV_KERNEL_FUNCTION_HAMMING || i == WIV_KERNEL_FUNCTION_POW_COSINE || i == WIV_KERNEL_FUNCTION_KAISER || i == WIV_KERNEL_FUNCTION_NEAREST || i == WIV_KERNEL_FUNCTION_LINEAR || i == WIV_KERNEL_FUNCTION_BICUBIC);
-			ImGui::InputFloat("Parameter 2", &scale.kernel_parameter2.val, 0.0f, 0.0f, "%.6f");
-			dimm();
-			ImGui::InputFloat("Anti-ringing", &scale.kernel_antiringing.val, 0.0f, 0.0f, "%.6f");
-			ImGui::Spacing();
-
-			//
-
-			// Post-scale unsharp
-			ImGui::SeparatorText("Post-scale unsharp mask");
-			ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use.val);
-			dimm(!scale.unsharp_use.val);
-			ImGui::InputInt("Radius##unsharp", &scale.unsharp_radius.val, 0, 0);
-			ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_sigma.val, 0.0f, 0.0f, "%.6f");
-			ImGui::InputFloat("Amount", &scale.unsharp_amount.val, 0.0f, 0.0f, "%.6f");
-			dimm();
-			ImGui::Spacing();
-
+			else
+				wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
 		}
-		if (ImGui::CollapsingHeader("Color management")) {
-			ImGui::Spacing();
-			ImGui::Checkbox("Enable color management", &g_config.cms_use.val);
-			ImGui::Spacing();
-			dimm(!g_config.cms_use.val);
+		if (ImGui::Button("Edit profile", button_size)) {
+			if (range.is_valid()) {
 
-			// The order has to be the same as in the enum WIV_CMS_PROFILE_DISPLAY_.
-			static constinit const std::array cms_display_profile_items{
-				"Auto",
-				"sRGB",
-				"AdobeRGB",
-				"Custom"
-			};
+				// Check first is profile overlapping with any other profile.
+				bool overlaps{};
+				for (int i{}; i < g_config.scale_profiles.size(); ++i)
+					if (i != scale_profile_index && g_config.scale_profiles[i].range.is_overlapping(range)) {
+						overlaps = true;
+						break;
+					}
 
-			ImGui::Combo("Display profile", &g_config.cms_display_profile.val, cms_display_profile_items.data(), cms_display_profile_items.size());
-			char buffer[MAX_PATH];
-			std::strcpy(buffer, g_config.cms_display_profile_custom.val.string().c_str());
-			if (g_config.cms_use.val)
-				dimm(g_config.cms_display_profile.val != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
-			ImGui::InputText("##custom_path", buffer, MAX_PATH);
-			g_config.cms_display_profile_custom.val = buffer;
-			if (g_config.cms_use.val)
-				dimm();
-			ImGui::SameLine();
-			if (ImGui::Button("Custom...", button_size)) {
-				std::thread t(&User_interface::dialog_file_open, this, WIV_OPEN_ICC);
-				t.detach();
+				if (scale_profile_index > 0 && !overlaps) // We don't wanna allow edits on the default profile, nor overlaps with other profiles!
+					g_config.scale_profiles[scale_profile_index].range = range;
+
 			}
-			ImGui::Spacing();
+			else
+				wiv_message(L"Invalid range. Lower bound has to be lower or equal to upper bound.");
+		}
 
-			// The order has to be the same as the lcms2 ICC Intents.
-			static constinit const std::array cms_intent_items{
-				"Perceptual",
-				"Relative colorimetric",
-				"Saturation",
-				"Absolute colorimetric"
-			};
-			
-			ImGui::Combo("Rendering intent", &g_config.cms_intent.val, cms_intent_items.data(), cms_intent_items.size());
-			ImGui::Spacing();
-			ImGui::Checkbox("Enable black point compensation", &g_config.cms_bpc_use.val);
-			ImGui::Spacing();
-			
-			// LUT size
-			//
+		// Hold values.
+		// Can't use vector<const char*> directly, because const char* will be non owning.
+		std::vector<std::string> scale_profile_names;
+		for (const auto& scale_profile_name : g_config.scale_profiles)
+			scale_profile_names.push_back(std::to_string(scale_profile_name.range.lower) + ", " + std::to_string(scale_profile_name.range.upper));
 
-			static constinit const std::array cms_lut_size_items{
-				"33",
-				"49",
-				"65",
-			};
-			int cms_lut_size_items_index;
+		// Can't use std::string directly in ImGui.
+		std::vector<const char*> profile_items;
+		for (const auto& profile_item : scale_profile_names)
+			profile_items.push_back(profile_item.c_str());
 
-			switch (g_config.cms_lut_size.val) {
+
+		ImGui::Combo("##profile", &scale_profile_index, profile_items.data(), profile_items.size());
+		ImGui::SameLine();
+		if (ImGui::Button("Remove profile", button_size)) {
+			if (scale_profile_index > 0) { // Can't delete the default range!
+				g_config.scale_profiles.erase(g_config.scale_profiles.begin() + scale_profile_index);
+				--scale_profile_index;
+			}
+		}
+		auto& scale{ g_config.scale_profiles[scale_profile_index].config };
+		ImGui::Spacing();
+
+		//
+
+		ImGui::SeparatorText("Pre-scale blur (downscale only)");
+		ImGui::Checkbox("Enable pre-scale blur", &scale.blur_use.val);
+		dimm(!scale.blur_use.val);
+		ImGui::InputInt("Radius##blur", &scale.blur_radius.val, 0, 0);
+		ImGui::InputFloat("Sigma##blur", &scale.blur_sigma.val, 0.0f, 0.0f, "%.6f");
+		dimm();
+		ImGui::Spacing();
+		ImGui::SeparatorText("Sigmoidize (upscale only)");
+		ImGui::Checkbox("Enable sigmoidize", &scale.sigmoid_use.val);
+		dimm(!scale.sigmoid_use.val);
+		ImGui::InputFloat("Contrast", &scale.sigmoid_contrast.val, 0.0f, 0.0f, "%.6f");
+		ImGui::InputFloat("Midpoint", &scale.sigmoid_midpoint.val, 0.0f, 0.0f, "%.6f");
+		dimm();
+		ImGui::Spacing();
+		ImGui::SeparatorText("Filter");
+		ImGui::Checkbox("Use cylindrical filtering (Jinc based)", &scale.kernel_cylindrical_use.val);
+		ImGui::Combo("Kernel-function", &scale.kernel_index.val, kernel_function_names.data(), kernel_function_names.size());
+		bool has_fixed_radius{};
+		switch (scale.kernel_index.val) {
+			case WIV_KERNEL_FUNCTION_NEAREST:
+			case WIV_KERNEL_FUNCTION_LINEAR:
+			case WIV_KERNEL_FUNCTION_BICUBIC:
+			case WIV_KERNEL_FUNCTION_FSR:
+			case WIV_KERNEL_FUNCTION_BCSPLINE:
+				has_fixed_radius = true;
+		}
+		dimm(has_fixed_radius);
+		ImGui::InputFloat("Radius##kernel", &scale.kernel_radius.val, 0.0f, 0.0f, "%.6f");
+		ImGui::InputFloat("Blur", &scale.kernel_blur.val, 0.0f, 0.0f, "%.6f");
+		dimm();
+		bool hasno_parameter1{};
+		switch (scale.kernel_index.val) {
+			case WIV_KERNEL_FUNCTION_LANCZOS:
+			case WIV_KERNEL_FUNCTION_GINSENG:
+			case WIV_KERNEL_FUNCTION_HAMMING:
+			case WIV_KERNEL_FUNCTION_NEAREST:
+			case WIV_KERNEL_FUNCTION_LINEAR:
+				hasno_parameter1 = true;
+		}
+		dimm(hasno_parameter1);
+		ImGui::InputFloat("Parameter 1", &scale.kernel_parameter1.val, 0.0f, 0.0f, "%.6f");
+		dimm();
+		bool hasno_parameter2{};
+		switch (scale.kernel_index.val) {
+			case WIV_KERNEL_FUNCTION_LANCZOS:
+			case WIV_KERNEL_FUNCTION_GINSENG:
+			case WIV_KERNEL_FUNCTION_HAMMING:
+			case WIV_KERNEL_FUNCTION_POW_COSINE:
+			case WIV_KERNEL_FUNCTION_KAISER:
+			case WIV_KERNEL_FUNCTION_NEAREST:
+			case WIV_KERNEL_FUNCTION_LINEAR:
+			case WIV_KERNEL_FUNCTION_BICUBIC:
+				hasno_parameter2 = true;
+		}
+		dimm(hasno_parameter2);
+		ImGui::InputFloat("Parameter 2", &scale.kernel_parameter2.val, 0.0f, 0.0f, "%.6f");
+		dimm();
+		ImGui::InputFloat("Anti-ringing", &scale.kernel_antiringing.val, 0.0f, 0.0f, "%.6f");
+		ImGui::Spacing();
+		ImGui::SeparatorText("Post-scale unsharp mask");
+		ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use.val);
+		dimm(!scale.unsharp_use.val);
+		ImGui::InputInt("Radius##unsharp", &scale.unsharp_radius.val, 0, 0);
+		ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_sigma.val, 0.0f, 0.0f, "%.6f");
+		ImGui::InputFloat("Amount", &scale.unsharp_amount.val, 0.0f, 0.0f, "%.6f");
+		dimm();
+		ImGui::Spacing();
+	}
+	if (ImGui::CollapsingHeader("Color management")) {
+		ImGui::Spacing();
+		ImGui::Checkbox("Enable color management", &g_config.cms_use.val);
+		ImGui::Spacing();
+		dimm(!g_config.cms_use.val);
+
+		// The order has to be the same as in the enum WIV_CMS_PROFILE_DISPLAY_.
+		static constinit const std::array cms_display_profile_items{
+			"Auto",
+			"sRGB",
+			"AdobeRGB",
+			"Custom"
+		};
+
+		ImGui::Combo("Display profile", &g_config.cms_display_profile.val, cms_display_profile_items.data(), cms_display_profile_items.size());
+		char buffer[MAX_PATH];
+		std::strcpy(buffer, g_config.cms_display_profile_custom.val.string().c_str());
+		if (g_config.cms_use.val)
+			dimm(g_config.cms_display_profile.val != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
+		ImGui::InputText("##custom_path", buffer, MAX_PATH);
+		g_config.cms_display_profile_custom.val = buffer;
+		if (g_config.cms_use.val)
+			dimm();
+		ImGui::SameLine();
+		if (ImGui::Button("Custom...", button_size)) {
+			std::thread t(&User_interface::dialog_file_open, this, WIV_OPEN_ICC);
+			t.detach();
+		}
+		ImGui::Spacing();
+
+		// The order has to be the same as the lcms2 ICC Intents.
+		static constinit const std::array cms_intent_items{
+			"Perceptual",
+			"Relative colorimetric",
+			"Saturation",
+			"Absolute colorimetric"
+		};
+
+		ImGui::Combo("Rendering intent", &g_config.cms_intent.val, cms_intent_items.data(), cms_intent_items.size());
+		ImGui::Checkbox("Enable black point compensation", &g_config.cms_bpc_use.val);
+
+		// LUT size
+		static constinit const std::array cms_lut_size_items{
+			"33",
+			"49",
+			"65",
+		};
+		int cms_lut_size_items_index;
+		switch (g_config.cms_lut_size.val) {
 			case 33:
 				cms_lut_size_items_index = 0;
 				break;
@@ -646,9 +666,9 @@ void User_interface::window_settings()
 				break;
 			case 65:
 				cms_lut_size_items_index = 2;
-			}
-			ImGui::Combo("LUT size", &cms_lut_size_items_index, cms_lut_size_items.data(), cms_lut_size_items.size());
-			switch (cms_lut_size_items_index) {
+		}
+		ImGui::Combo("LUT size", &cms_lut_size_items_index, cms_lut_size_items.data(), cms_lut_size_items.size());
+		switch (cms_lut_size_items_index) {
 			case 0:
 				g_config.cms_lut_size.val = 33;
 				break;
@@ -657,74 +677,69 @@ void User_interface::window_settings()
 				break;
 			case 2:
 				g_config.cms_lut_size.val = 65;
-			}
-			ImGui::Spacing();
-
-			//
-
-			dimm();
-			ImGui::SeparatorText("Color tags");
-			ImGui::Checkbox("Linear tagged images default to ACEScg", &g_config.cms_default_to_aces.val);
-			ImGui::Spacing();
-			ImGui::Checkbox("Untagged images default to sRGB", &g_config.cms_default_to_srgb.val);
-			ImGui::Spacing();
 		}
-		if (ImGui::CollapsingHeader("Transparency")) {
-			ImGui::Spacing();
-			ImGui::InputFloat("Tile size", &g_config.alpha_tile_size.val, 0.0f, 0.0f, "%.6f");
-			ImGui::Spacing();
-			ImGui::ColorEdit3("First tile color", g_config.alpha_tile1_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
-			ImGui::ColorEdit3("Second tile color", g_config.alpha_tile2_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
-			ImGui::Spacing();
-		}
-		if (ImGui::CollapsingHeader("Overlay")) {
-			ImGui::Checkbox("Show overlay on start", &g_config.overlay_show.val);
-			ImGui::Spacing();
-			static constinit const std::array overlay_position_items{
-				"Top-left",
-				"Top-right",
-				"Bottom-left",
-				"Bottom-right"
-			};
-			ImGui::Combo("Overlay position", &g_config.overlay_position.val, overlay_position_items.data(), overlay_position_items.size());
-			ImGui::Spacing();
-			ImGui::TextUnformatted("Show:");
-			if (ImGui::Selectable("Image dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS))
-				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_IMAGE_DIMS;
-			if (ImGui::Selectable("Scale factor", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE))
-				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALE;
-			if (ImGui::Selectable("Scaled dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS))
-				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALED_DIMS;
-			if (ImGui::Selectable("Kernel function", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX))
-				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_INDEX;
-			if (ImGui::Selectable("Scale kernel size", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE))
-				g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_SIZE;
-			ImGui::Spacing();
-		}
-		if (ImGui::CollapsingHeader("Other")) {
-			ImGui::Spacing();
-
-			// The order has to be same as in WIV_PASS_FORMATS array.
-			static constinit const std::array internal_format_items{
-				"RGBA16F",
-				"RGBA32F"
-			};
-
-			ImGui::Combo("Internal format", &g_config.pass_format.val, internal_format_items.data(), internal_format_items.size());
-			ImGui::Spacing();
-			ImGui::Checkbox("Read only thumbnail in RAW images", &g_config.raw_thumb.val);
-			ImGui::Spacing();
-		}
-		ImGui::SeparatorText("Changes");
-		if (ImGui::Button("Revert changes", button_size)) {
-			scale_profile_index = 0;
-			g_config.read();
-		}
-		if (ImGui::Button("Write changes", button_size))
-			g_config.write();
+		
+		dimm();
 		ImGui::Spacing();
-		ImGui::End();
+		ImGui::SeparatorText("Color tags");
+		ImGui::Checkbox("Linear tagged images default to ACEScg", &g_config.cms_default_to_aces.val);
+		ImGui::Checkbox("Untagged images default to sRGB", &g_config.cms_default_to_srgb.val);
+		ImGui::Spacing();
 	}
+	if (ImGui::CollapsingHeader("Transparency")) {
+		ImGui::Spacing();
+		ImGui::InputFloat("Tile size", &g_config.alpha_tile_size.val, 0.0f, 0.0f, "%.6f");
+		ImGui::ColorEdit3("First tile color", g_config.alpha_tile1_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
+		ImGui::ColorEdit3("Second tile color", g_config.alpha_tile2_color.val.data(), ImGuiColorEditFlags_DisplayHSV);
+		ImGui::Spacing();
+	}
+	if (ImGui::CollapsingHeader("Overlay")) {
+		ImGui::Spacing();
+		ImGui::Checkbox("Show overlay on start", &g_config.overlay_show.val);
+		static constinit const std::array overlay_position_items{
+			"Top-left",
+			"Top-right",
+			"Bottom-left",
+			"Bottom-right"
+		};
+		ImGui::Combo("Overlay position", &g_config.overlay_position.val, overlay_position_items.data(), overlay_position_items.size());
+		ImGui::Spacing();
+		ImGui::TextUnformatted("Show:");
+		if (ImGui::Selectable("Image dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS))
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_IMAGE_DIMS;
+		if (ImGui::Selectable("Scale factor", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE))
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALE;
+		if (ImGui::Selectable("Scaled dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS))
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALED_DIMS;
+		if (ImGui::Selectable("Kernel function", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX))
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_INDEX;
+		if (ImGui::Selectable("Scale kernel size", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE))
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_SIZE;
+		ImGui::Spacing();
+	}
+	if (ImGui::CollapsingHeader("Other")) {
+		ImGui::Spacing();
+
+		// The order has to be same as in WIV_PASS_FORMATS array.
+		static constinit const std::array internal_format_items{
+			"RGBA16F",
+			"RGBA32F"
+		};
+
+		ImGui::Combo("Internal format", &g_config.pass_format.val, internal_format_items.data(), internal_format_items.size());
+		ImGui::Spacing();
+		ImGui::Checkbox("Read only thumbnails in RAW images", &g_config.raw_thumb.val);
+		ImGui::Spacing();
+	}
+	ImGui::SeparatorText("Changes");
+	if (ImGui::Button("Revert changes", button_size)) {
+		scale_profile_index = 0;
+		g_config.read();
+	}
+	if (ImGui::Button("Write changes", button_size))
+		g_config.write();
+	ImGui::Spacing();
+	ImGui::End();
 }
 
 void User_interface::window_about()

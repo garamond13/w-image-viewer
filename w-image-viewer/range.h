@@ -19,7 +19,7 @@ struct Right_open_range
 
 	constexpr bool is_overlapping(Right_open_range<T>& other) const noexcept
 	{
-		return lower < other.upper && upper > other.lower;
+		return (lower < other.upper && upper > other.lower) || (lower == other.lower);
 	}
 
 	T lower;
