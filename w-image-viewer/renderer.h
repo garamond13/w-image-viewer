@@ -33,9 +33,13 @@ public:
 	bool should_update;
 	User_interface ui;
 private:
+	void update_scale_and_dims_output() noexcept;
+	void update_scale_profile() noexcept;
+	float get_kernel_radius() const noexcept;
 	void init_cms_profile_display();
 	void create_cms_lut();
 	std::unique_ptr<uint16_t[]> cms_transform_lut();
+	void update_trc();
 	void pass_cms();
 	void pass_linearize(UINT width, UINT height);
 	void pass_delinearize(UINT width, UINT height);
@@ -51,10 +55,6 @@ private:
 	void update_constant_buffer(ID3D11Buffer* buffer, const void* data, size_t size) const noexcept;
 	void create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept;
 	void create_viewport(float width, float height, bool adjust = false) const noexcept;
-	void update_scale_and_dims_output() noexcept;
-	void update_scale_profile() noexcept;
-	float get_kernel_radius() const noexcept;
-	void update_trc();
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_image;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_pass;
 	Image& image{ ui.file_manager.image };

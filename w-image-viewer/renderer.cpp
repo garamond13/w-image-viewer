@@ -28,7 +28,7 @@ union Cb_types
 };
 
 // Use for constant buffer data.
-struct alignas(16) Cb4
+struct Cb4
 {
 	Cb_types x;
 	Cb_types y;
@@ -54,7 +54,7 @@ void Renderer::create()
 	create_rtv_back_buffer();
 	create_samplers();
 	create_vertex_shader();
-	if(g_config.cms_use.val)
+	if (g_config.cms_use.val)
 		init_cms_profile_display();
 	ui.create(device.Get(), device_context.Get(), &should_update);
 }
@@ -86,13 +86,13 @@ void Renderer::update()
 					pass_desigmoidize();
 				if (p_scale_profile->unsharp_use.val) {
 					if (!linearize) {
-						pass_linearize(dims_output.width, dims_output.height);
+						pass_linearize(dims_output.get_width<UINT>(), dims_output.get_height<UINT>());
 						linearize = true;
 					}
 					pass_unsharp();
 				}
 				if (linearize)
-					pass_delinearize(dims_output.width, dims_output.height);
+					pass_delinearize(dims_output.get_width<UINT>(), dims_output.get_height<UINT>());
 			}
 		}
 		pass_last();
@@ -104,6 +104,8 @@ void Renderer::update()
 		ui.is_zooming = false;
 		ui.is_rotating = false;
 	}
+
+	// Always update ui.
 	ui.update();
 }
 
@@ -184,6 +186,119 @@ void Renderer::fullscreen_hide_cursor() const
 		while (ShowCursor(FALSE) >= 0);
 }
 
+void Renderer::update_scale_and_dims_output() noexcept
+{
+	auto image_w{ image.get_width<float>() };
+	auto image_h{ image.get_height<float>() };
+
+	// Check is the rotation angele divisible by 180, if it is we dont need to swap width and height.
+	if (is_not_zero(frac(ui.image_rotation / 180.0f)))
+		std::swap(image_w, image_h);
+
+	float auto_zoom;
+	if (ui.image_no_scale)
+		auto_zoom = 0.0f;
+
+	// Fit inside the window.
+	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image_w, image_h))
+		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.height, image_h));
+	else
+		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.width, image_w));
+
+	scale = std::pow(2.0f, auto_zoom + ui.image_zoom);
+
+	// Limit scale so we don't exceed min or max texture dims, or stretch image.
+	const auto scaled_w{ image_w * scale };
+	const auto scaled_h{ image_h * scale };
+	if (scaled_w > MAX_TEX_UV<float> || scaled_h > MAX_TEX_UV<float>)
+		scale = std::min(MAX_TEX_UV<float> / image_w, MAX_TEX_UV<float> / image_h);
+	else if (scaled_w < 1.0f || scaled_h < 1.0f)
+		scale = std::max(1.0f / image_w, 1.0f / image_h);
+
+	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
+	dims_output.height = static_cast<int>(std::ceil(image_h * scale));
+
+	// Info.
+	g_info.scale = scale;
+	g_info.scaled_width = dims_output.width;
+	g_info.scaled_height = dims_output.height;
+}
+
+void Renderer::update_scale_profile() noexcept
+{
+	for (const auto& profile : g_config.scale_profiles) {
+		if (profile.range.is_inrange(scale)) {
+			p_scale_profile = &profile.config;
+			goto info;
+		}
+	}
+
+	// Else use default profile.
+	p_scale_profile = &g_config.scale_profiles[0].config;
+
+	// Info.
+info:
+	g_info.kernel_index = p_scale_profile->kernel_index.val;
+	if (p_scale_profile->kernel_cylindrical_use.val) {
+		const auto a{ static_cast<int>(std::ceil(get_kernel_radius() / std::min(scale, 1.0f))) };
+		g_info.kernel_size = a * a;
+	}
+	else
+		g_info.kernel_size = static_cast<int>(std::ceil(get_kernel_radius() / std::min(scale, 1.0f))) * 2;
+
+}
+
+float Renderer::get_kernel_radius() const noexcept
+{
+	switch (p_scale_profile->kernel_index.val) {
+	case WIV_KERNEL_FUNCTION_NEAREST:
+		return 1.0f;
+	case WIV_KERNEL_FUNCTION_LINEAR:
+		if (p_scale_profile->kernel_cylindrical_use.val)
+			return std::numbers::sqrt2_v<float>;
+		return 1.0f;
+	case WIV_KERNEL_FUNCTION_BICUBIC:
+	case WIV_KERNEL_FUNCTION_FSR:
+	case WIV_KERNEL_FUNCTION_BCSPLINE:
+		return 2.0f;
+	default:
+		return p_scale_profile->kernel_radius.val;
+	}
+}
+
+void Renderer::update_trc()
+{
+	// If use of CMS is enabled get TRC from the display profile, so after we do color managment.
+	if (g_config.cms_use.val) {
+		if ((g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_AUTO || g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_CUSTOM) && cms_profile_display) {
+			auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1)) };
+			if (gamma < 0.0f) // On Error.
+				trc = { WIV_CMS_TRC_NONE, 0.0f };
+			else
+				trc = { WIV_CMS_TRC_GAMMA, gamma };
+		}
+		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_ADOBE)
+			trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
+		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_SRGB)
+			trc = { WIV_CMS_TRC_SRGB, 0.0f /* will be ignored */ };
+	}
+
+	// Else get TRC from the image embended profile.
+	else if (image.embended_profile) {
+		auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(image.embended_profile.get(), 0.1)) };
+		if (gamma < 0.0f) // On Error.
+			trc = { WIV_CMS_TRC_NONE, 0.0f };
+		else
+			trc = { WIV_CMS_TRC_GAMMA, gamma };
+	}
+	else if (image.tagged_color_space == WIV_COLOR_SPACE_ADOBE)
+		trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
+	else if (image.tagged_color_space == WIV_COLOR_SPACE_SRGB || g_config.cms_default_to_srgb.val)
+		trc = { WIV_CMS_TRC_SRGB, 1.0f /* will be ignored */ };
+	else
+		trc = { WIV_CMS_TRC_NONE, 0.0f };
+}
+
 void Renderer::init_cms_profile_display()
 {
 	switch (g_config.cms_display_profile.val) {
@@ -214,7 +329,7 @@ void Renderer::init_cms_profile_display()
 
 void Renderer::create_cms_lut()
 {
-	auto lut{ cms_transform_lut() };
+	const auto lut{ cms_transform_lut() };
 	if (!lut) {
 		is_cms_valid = false;
 		return;
@@ -246,63 +361,45 @@ void Renderer::create_cms_lut()
 
 std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 {
-	// Create the transform.
-	cmsUInt32Number flags{ cmsFLAGS_NOCACHE | cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE };
-	if (g_config.cms_bpc_use.val)
-		flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
-	cmsHTRANSFORM htransform{};
-	if (image.embended_profile)
-		htransform = cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
-	else {
-		cmsHPROFILE hprofile{};
-		switch (image.get_tagged_color_space()) {
-			case WIV_COLOR_SPACE_SRGB:
-				hprofile = cmsCreate_sRGBProfile();
-				break;
-			case WIV_COLOR_SPACE_ADOBE:
-				hprofile = cms_create_profile_adobe_rgb();
-				break;
-			case WIV_COLOR_SPACE_ACES:
-				hprofile = cms_create_profile_aces_cg();
-				break;
-			case WIV_COLOR_SPACE_LINEAR_SRGB:
-				hprofile = cms_create_profile_linear_srgb();
-				break;
-		}
-		if (hprofile) {
-			htransform = cmsCreateTransform(hprofile, TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
-			cmsCloseProfile(hprofile);
-		}
-	}
-
-	// Transform a LUT.
 	std::unique_ptr<uint16_t[]> lut;
-	if (htransform) {
-		const auto cms_lut_size3{ g_config.cms_lut_size.val * g_config.cms_lut_size.val * g_config.cms_lut_size.val };
-		lut = std::make_unique_for_overwrite<uint16_t[]>(cms_lut_size3 * 4);
-		const void* wiv_cms_lut{};
+	if (image.embended_profile) {
 		
-		// Get the correct LUT.
-		switch (g_config.cms_lut_size.val) {
-			case 33:
-				wiv_cms_lut = WIV_CMS_LUT_33.data();
-				break;
-			case 49:
-				wiv_cms_lut = WIV_CMS_LUT_49.data();
-				break;
-			case 65:
-				wiv_cms_lut = WIV_CMS_LUT_65.data();
+		// Set flags.
+		cmsUInt32Number flags{ cmsFLAGS_NOCACHE | cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE };
+		if (g_config.cms_bpc_use.val)
+			flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
+		
+		cmsHTRANSFORM htransform{ cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags) };
+		
+		// At this point we dont need the profile anymore, so close it.
+		image.embended_profile.reset();
+
+		if (htransform) {
+			lut = std::make_unique_for_overwrite<uint16_t[]>(g_config.cms_lut_size.val * g_config.cms_lut_size.val * g_config.cms_lut_size.val * 4);
+
+			// Get the correct LUT.
+			const void* wiv_cms_lut{};
+			switch (g_config.cms_lut_size.val) {
+				case 33:
+					wiv_cms_lut = WIV_CMS_LUT_33.data();
+					break;
+				case 49:
+					wiv_cms_lut = WIV_CMS_LUT_49.data();
+					break;
+				case 65:
+					wiv_cms_lut = WIV_CMS_LUT_65.data();
+			}
+
+			cmsDoTransform(htransform, wiv_cms_lut, lut.get(), g_config.cms_lut_size.val * g_config.cms_lut_size.val * g_config.cms_lut_size.val);
+			cmsDeleteTransform(htransform);
 		}
-		
-		cmsDoTransform(htransform, wiv_cms_lut, lut.get(), cms_lut_size3);
-		cmsDeleteTransform(htransform);
 	}
 	return lut;
 }
 
 void Renderer::pass_cms()
 {
-	alignas(16) const std::array data{
+	const alignas(16) std::array data{
 		Cb4{
 			.x{ .f{ static_cast<float>(g_config.cms_lut_size.val) }},
 		}
@@ -316,17 +413,17 @@ void Renderer::pass_cms()
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_linearize(UINT width, UINT height)
 {
 	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
-	alignas(16) const std::array data{
+	const alignas(16) std::array data{
 		Cb4{
 			.x{ .i{ trc.id }},
-			.y{ .f{ trc.val }} // Gamma, only relevant if gamma correction is used.
+			.y{ .f{ trc.val }} // Only relevant if gamma correction is used.
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -338,17 +435,17 @@ void Renderer::pass_linearize(UINT width, UINT height)
 	draw_pass(width, height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_delinearize(UINT width, UINT height)
 {
 	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
-	alignas(16) const std::array data{
+	const alignas(16) std::array data{
 		Cb4{
 			.x{ .i{ trc.id }},
-			.y{ .f{ 1.0f / trc.val }} // 1.0 / gamma, only relevant if gamma correction is used.
+			.y{ .f{ 1.0f / trc.val }} // Only relevant if gamma correction is used.
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -360,7 +457,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 	draw_pass(width, height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_sigmoidize()
@@ -369,7 +466,7 @@ void Renderer::pass_sigmoidize()
 	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
 
-	alignas(16) const std::array data{
+	const alignas(16) std::array data{
 		Cb4{
 			.x{ .f{ p_scale_profile->sigmoid_contrast.val }},
 			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }}
@@ -384,7 +481,7 @@ void Renderer::pass_sigmoidize()
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_desigmoidize()
@@ -393,7 +490,7 @@ void Renderer::pass_desigmoidize()
 	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
 
-	alignas(16) const std::array data{
+	const alignas(16) std::array data{
 		Cb4{
 			.x{ .f{ p_scale_profile->sigmoid_contrast.val }},
 			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }}
@@ -408,12 +505,12 @@ void Renderer::pass_desigmoidize()
 	draw_pass(dims_output.width, dims_output.height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_blur()
 {
-	alignas(16) std::array cb0_data{
+	alignas(16) std::array data{
 		Cb4{
 			.x{ .f{ static_cast<float>(p_scale_profile->blur_radius.val) }},
 			.y{ .f{ p_scale_profile->blur_sigma.val }},
@@ -427,35 +524,35 @@ void Renderer::pass_blur()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
+	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
 
 	// Pass y axis.
-	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 
 	// Pass x axis.
-	cb0_data[1].x.f = 1.0f; // x axis.
-	cb0_data[1].y.f = 0.0f; // y axis.
-	cb0_data[1].z.f = 1.0f / image.get_width<float>();
-	cb0_data[1].w.f = 0.0f;
-	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+	data[1].x.f = 1.0f; // x axis.
+	data[1].y.f = 0.0f; // y axis.
+	data[1].z.f = 1.0f / image.get_width<float>();
+	data[1].w.f = 0.0f;
+	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_unsharp()
 {
-	alignas(16) std::array cb0_data{
+	alignas(16) std::array data{
 		Cb4{
 			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius.val) }},
 			.y{ .f{ p_scale_profile->unsharp_sigma.val }},
@@ -469,38 +566,38 @@ void Renderer::pass_unsharp()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
+	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_original = srv_pass;
 
 	// Pass y axis.
-	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 
 	// Pass x axis.
-	cb0_data[1].x.f = 1.0f; // x axis.
-	cb0_data[1].y.f = 0.0f; // y axis.
-	cb0_data[1].z.f = 1.0f / dims_output.get_width<float>();
-	cb0_data[1].w.f = 0.0f;
-	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+	data[1].x.f = 1.0f; // x axis.
+	data[1].y.f = 0.0f; // y axis.
+	data[1].z.f = 1.0f / dims_output.get_width<float>();
+	data[1].w.f = 0.0f;
+	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	const std::array srvs{ srv_pass.Get(), srv_original.Get() };
 	device_context->PSSetShaderResources(0, 2, srvs.data());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_orthogonal_resample()
 {
-	alignas(16) std::array cb0_data{
+	alignas(16) std::array data{
 		Cb4{
 			.x{ .i{ p_scale_profile->kernel_index.val }},
 			.y{ .f{ get_kernel_radius() }},
@@ -510,7 +607,7 @@ void Renderer::pass_orthogonal_resample()
 		Cb4{
 			.x{ .f{ p_scale_profile->kernel_parameter2.val }},
 			.y{ .f{ p_scale_profile->kernel_antiringing.val }},
-			.z{ .f{ scale < 1.0f ? scale : 1.0f }}
+			.z{ .f{ std::min(scale, 1.0f) }}
 		},
 		Cb4{
 			.x{ .f{ image.get_width<float>() }},
@@ -520,33 +617,33 @@ void Renderer::pass_orthogonal_resample()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
+	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
 	create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
 
 	// Pass y axis.
-	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(image.get_width<UINT>(), dims_output.height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 
 	// Pass x axis.
-	cb0_data[2].z.f = 1.0f; // x axis.
-	cb0_data[2].w.f = 0.0f; // y axis.
-	update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+	data[2].z.f = 1.0f; // x axis.
+	data[2].w.f = 0.0f; // y axis.
+	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_cylindrical_resample()
 {
-	alignas(16) const std::array data{
+	const alignas(16) std::array data{
 		Cb4{
 			.x{ .i{ p_scale_profile->kernel_index.val }},
 			.y{ .f{ get_kernel_radius() }},
@@ -560,7 +657,7 @@ void Renderer::pass_cylindrical_resample()
 			.w{ .f{ image.get_height<float>() }}
 		},
 		Cb4{
-			.x{ .f{ scale < 1.0f ? scale : 1.0f }}
+			.x{ .f{ std::min(scale, 1.0f) }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -572,14 +669,14 @@ void Renderer::pass_cylindrical_resample()
 	draw_pass(dims_output.width, dims_output.height);
 	
 	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &(ID3D11RenderTargetView* const&)0, nullptr);
+	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
 void Renderer::pass_last()
 {
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	if (image.has_alpha()) {
-		alignas(16) const std::array cb0_data{
+		const alignas(16) std::array data{
 			Cb4{
 				.x{ .f{ dims_output.get_width<float>() / g_config.alpha_tile_size.val }},
 				.y{ .f{ dims_output.get_height<float>() / g_config.alpha_tile_size.val }},
@@ -596,18 +693,18 @@ void Renderer::pass_last()
 				.z{ .f{ g_config.alpha_tile2_color.val[2] }}
 			}
 		};
-		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
-		update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
+		update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 		create_pixel_shader(PS_SAMPLE_ALPHA, sizeof(PS_SAMPLE_ALPHA));
 	}
 	else {
-		alignas(16) const std::array cb0_data{
+		const alignas(16) std::array data{
 			Cb4{
 				.x{ .f{ ui.image_rotation }}
 			}
 		};
-		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(cb0_data));
-		update_constant_buffer(cb0.Get(), cb0_data.data(), sizeof(cb0_data));
+		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
+		update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 		create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
 	}
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
@@ -635,13 +732,12 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
 	wiv_assert(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.ReleaseAndGetAddressOf()), == S_OK);
 
-	// Draw
+	// Draw to the render target view.
 	device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
 	static constinit const std::array clear_color{ 0.0f, 0.0f, 0.0f, 1.0f };
 	device_context->ClearRenderTargetView(rtv.Get(), clear_color.data());
 	device_context->Draw(3, 0);
 
-	// Create shader resource view.
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
 }
 
@@ -686,108 +782,4 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 	}
 	
 	device_context->RSSetViewports(1, &viewport);
-}
-
-void Renderer::update_scale_and_dims_output() noexcept
-{
-	auto image_w{ image.get_width<float>() };
-	auto image_h{ image.get_height<float>() };
-
-	// Check is the rotation angele divisible by 180, if it is we dont need to swap width and height.
-	if (is_not_zero(frac(ui.image_rotation / 180.0f)))
-		std::swap(image_w, image_h);
-
-	float auto_zoom;
-	if (ui.image_no_scale)
-		auto_zoom = 0.0f;
-
-	// Fit inside the window.
-	else if (get_ratio<double>(dims_swap_chain.width, dims_swap_chain.height) > get_ratio<double>(image_w, image_h))
-		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.height, image_h));
-	else
-		auto_zoom = std::log2(get_ratio<float>(dims_swap_chain.width, image_w));
-
-	scale = std::pow(2.0f, auto_zoom + ui.image_zoom);
-	
-	// Limit scale so we don't exceed min or max texture dims, or stretch image.
-	const auto ws{ image_w * scale };
-	const auto hs{ image_h * scale };
-	if (ws > MAX_TEX_UV<float> || hs > MAX_TEX_UV<float>)
-		scale = std::min(MAX_TEX_UV<float> / image_w, MAX_TEX_UV<float> / image_h);
-	else if (ws < 1.0f || hs < 1.0f)
-		scale = std::max(1.0f / image_w, 1.0f / image_h);
-	
-	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
-	dims_output.height = static_cast<int>(std::ceil(image_h * scale));
-
-	// Info.
-	g_info.scale = scale;
-	g_info.scaled_width = dims_output.width;
-	g_info.scaled_height = dims_output.height;
-}
-
-void Renderer::update_scale_profile() noexcept
-{
-	for (const auto& profile : g_config.scale_profiles) {
-		if (profile.range.is_inrange(scale)) {
-			p_scale_profile = &profile.config;
-			goto info;
-		}
-	}
-
-	// Else use default profile.
-	p_scale_profile = &g_config.scale_profiles[0].config;
-
-	// Info.
-	info:
-	g_info.kernel_index = p_scale_profile->kernel_index.val;
-	if (p_scale_profile->kernel_cylindrical_use.val) {
-		const auto a{ static_cast<int>(std::ceil(get_kernel_radius() / scale)) };
-		g_info.kernel_size = a * a;
-	}
-	else
-		g_info.kernel_size = static_cast<int>(std::ceil(get_kernel_radius() / scale)) * 2;
-	
-}
-
-float Renderer::get_kernel_radius() const noexcept
-{
-	switch (p_scale_profile->kernel_index.val) {
-		case WIV_KERNEL_FUNCTION_NEAREST:
-			return 1.0f;
-		case WIV_KERNEL_FUNCTION_LINEAR:
-			if (p_scale_profile->kernel_cylindrical_use.val)
-				return std::numbers::sqrt2_v<float>;
-			return 1.0f;
-		case WIV_KERNEL_FUNCTION_BICUBIC:
-		case WIV_KERNEL_FUNCTION_FSR:
-		case WIV_KERNEL_FUNCTION_BCSPLINE:
-			return 2.0f;
-		default:
-			return p_scale_profile->kernel_radius.val;
-	}
-}
-
-void Renderer::update_trc()
-{
-	if (g_config.cms_use.val) {
-		if ((g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_AUTO || g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_CUSTOM) && cms_profile_display) {
-			auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1)) };
-			trc = { WIV_CMS_TRC_GAMMA, gamma < 0.0f ? 1.0f : gamma };
-		}
-		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_ADOBE)
-			trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
-		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_SRGB)
-			trc = { WIV_CMS_TRC_SRGB, 0.0f /* will be ignored */ };
-	}
-	else if (image.embended_profile) {
-		auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(image.embended_profile.get(), 0.1)) };
-		trc = { WIV_CMS_TRC_GAMMA, gamma < 0.0f ? 1.0f : gamma };
-	}
-	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_ADOBE)
-		trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
-	else if (image.get_tagged_color_space() == WIV_COLOR_SPACE_SRGB || g_config.cms_default_to_srgb.val)
-		trc = { WIV_CMS_TRC_SRGB, 1.0f /* will be ignored */ };
-	else
-		trc = { WIV_CMS_TRC_NONE, 0.0f };
 }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "image.h"
 #include "global.h"
+#include "icc.h"
 
 // Get image data, apropriate DXGI format and System-memory pitch for creation of d3d texture.
 void Image::get_data_for_d3d(std::unique_ptr<uint8_t[]>& data, DXGI_FORMAT& format, UINT& sys_mem_pitch)
@@ -31,40 +32,6 @@ void Image::get_data_for_d3d(std::unique_ptr<uint8_t[]>& data, DXGI_FORMAT& form
 bool Image::has_alpha() const noexcept
 {
 	return image_input->spec().alpha_channel != -1;
-}
-
-int Image::get_tagged_color_space()
-{
-	// OIIO should manage memory pointed by tag.
-	const char* tag;
-	
-	const auto atribute_type{ image_input->spec().getattributetype("oiio:ColorSpace") };
-	if (image_input->spec().getattribute("oiio:ColorSpace", atribute_type, &tag)) {
-
-		// Note that std::strstr(const char* str, const char* strSearch)
-		// returns a pointer to the first occurrence of strSearch in str, or nullptr if strSearch doesn't appear in str.
-
-		if (std::strstr(tag, "sRGB"))
-			return WIV_COLOR_SPACE_SRGB;
-		if (std::strstr(tag, "AdobeRGB"))
-			return WIV_COLOR_SPACE_ADOBE;
-
-		// Checking for upper case "Linear" and lower case "linear". This should cover all cases.
-		if (std::strstr(tag, "inear") /* Not typo. */ ) {
-			if (g_config.cms_default_to_aces.val)
-				return WIV_COLOR_SPACE_ACES;
-			else
-				return WIV_COLOR_SPACE_LINEAR_SRGB;
-		}
-
-		if (std::strstr(tag, "ACEScg"))
-			return WIV_COLOR_SPACE_ACES;
-		if (std::strstr(tag, "lin_srgb"))
-			return WIV_COLOR_SPACE_LINEAR_SRGB;
-	}
-	if (g_config.cms_default_to_srgb.val)
-		return WIV_COLOR_SPACE_SRGB;
-	return WIV_COLOR_SPACE_NONE;
 }
 
 bool Image::set_image_input(std::wstring_view path)
@@ -114,5 +81,50 @@ cmsHPROFILE Image::get_embended_profile()
 	const auto attribute_type{ image_input->spec().getattributetype("ICCProfile") };
 	if (image_input->spec().getattribute("ICCProfile", attribute_type, buffer.get()))
 		return cmsOpenProfileFromMem(buffer.get(), size);
+	tagged_color_space = get_tagged_color_space();
+	switch (tagged_color_space) {
+	case WIV_COLOR_SPACE_SRGB:
+		return cmsCreate_sRGBProfile();
+	case WIV_COLOR_SPACE_ADOBE:
+		return cms_create_profile_adobe_rgb();
+	case WIV_COLOR_SPACE_ACES:
+		return cms_create_profile_aces_cg();
+	case WIV_COLOR_SPACE_LINEAR_SRGB:
+		return cms_create_profile_linear_srgb();
+	}
 	return nullptr;
+}
+
+int Image::get_tagged_color_space()
+{
+	// OIIO should manage memory pointed by tag.
+	const char* tag;
+
+	const auto atribute_type{ image_input->spec().getattributetype("oiio:ColorSpace") };
+	if (image_input->spec().getattribute("oiio:ColorSpace", atribute_type, &tag)) {
+
+		// Note that std::strstr(const char* str, const char* strSearch)
+		// returns a pointer to the first occurrence of strSearch in str, or nullptr if strSearch doesn't appear in str.
+
+		if (std::strstr(tag, "sRGB"))
+			return WIV_COLOR_SPACE_SRGB;
+		if (std::strstr(tag, "AdobeRGB"))
+			return WIV_COLOR_SPACE_ADOBE;
+
+		// Checking for upper case "Linear" and lower case "linear". This should cover all cases.
+		if (std::strstr(tag, "inear") /* Not typo. */) {
+			if (g_config.cms_default_to_aces.val)
+				return WIV_COLOR_SPACE_ACES;
+			else
+				return WIV_COLOR_SPACE_LINEAR_SRGB;
+		}
+
+		if (std::strstr(tag, "ACEScg"))
+			return WIV_COLOR_SPACE_ACES;
+		if (std::strstr(tag, "lin_srgb"))
+			return WIV_COLOR_SPACE_LINEAR_SRGB;
+	}
+	if (g_config.cms_default_to_srgb.val)
+		return WIV_COLOR_SPACE_SRGB;
+	return WIV_COLOR_SPACE_NONE;
 }

@@ -16,7 +16,6 @@ class Image
 public:
 	void get_data_for_d3d(std::unique_ptr<uint8_t[]>& data, DXGI_FORMAT& format, UINT& sys_mem_pitch);
 	bool has_alpha() const noexcept;
-	int get_tagged_color_space();
 	bool set_image_input(std::wstring_view path);
 	bool close() noexcept;
 	
@@ -34,8 +33,10 @@ public:
 
 	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
 	int orientation;
+	int tagged_color_space;
 private:
 	cmsHPROFILE get_embended_profile();
+	int get_tagged_color_space();
 
 	template<typename T>
 	std::unique_ptr<uint8_t[]> read_image()
