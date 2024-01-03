@@ -248,24 +248,6 @@ info:
 
 }
 
-float Renderer::get_kernel_radius() const noexcept
-{
-	switch (p_scale_profile->kernel_index.val) {
-	case WIV_KERNEL_FUNCTION_NEAREST:
-		return 1.0f;
-	case WIV_KERNEL_FUNCTION_LINEAR:
-		if (p_scale_profile->kernel_cylindrical_use.val)
-			return std::numbers::sqrt2_v<float>;
-		return 1.0f;
-	case WIV_KERNEL_FUNCTION_BICUBIC:
-	case WIV_KERNEL_FUNCTION_FSR:
-	case WIV_KERNEL_FUNCTION_BCSPLINE:
-		return 2.0f;
-	default:
-		return p_scale_profile->kernel_radius.val;
-	}
-}
-
 void Renderer::update_trc()
 {
 	// If use of CMS is enabled get TRC from the display profile, so after we do color managment.
@@ -782,4 +764,22 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
 	}
 	
 	device_context->RSSetViewports(1, &viewport);
+}
+
+float Renderer::get_kernel_radius() const noexcept
+{
+	switch (p_scale_profile->kernel_index.val) {
+	case WIV_KERNEL_FUNCTION_NEAREST:
+		return 1.0f;
+	case WIV_KERNEL_FUNCTION_LINEAR:
+		if (p_scale_profile->kernel_cylindrical_use.val)
+			return std::numbers::sqrt2_v<float>;
+		return 1.0f;
+	case WIV_KERNEL_FUNCTION_BICUBIC:
+	case WIV_KERNEL_FUNCTION_FSR:
+	case WIV_KERNEL_FUNCTION_BCSPLINE:
+		return 2.0f;
+	default:
+		return p_scale_profile->kernel_radius.val;
+	}
 }
