@@ -168,6 +168,7 @@
     <ClInclude Include="renderer_base.h" />
     <ClInclude Include="supported_extensions.h" />
     <ClInclude Include="message.h" />
+    <ClInclude Include="trc.h" />
     <ClInclude Include="wiv_imconfig.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="renderer.h" />

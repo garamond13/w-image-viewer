@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "trc.h"
 
 enum WIV_COLOR_SPACE_
 {
@@ -33,10 +34,9 @@ public:
 
 	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
 	int orientation;
-	int tagged_color_space;
+	Tone_response_curve trc;
 private:
-	cmsHPROFILE get_embended_profile();
-	int get_tagged_color_space();
+	void get_embended_profile();
 
 	template<typename T>
 	std::unique_ptr<uint8_t[]> read_image()

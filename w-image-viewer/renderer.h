@@ -5,6 +5,7 @@
 #include "user_interface.h"
 #include "dims.h"
 #include "renderer_base.h"
+#include "trc.h"
 
 enum WIV_CMS_PROFILE_DISPLAY_
 {
@@ -12,12 +13,6 @@ enum WIV_CMS_PROFILE_DISPLAY_
 	WIV_CMS_PROFILE_DISPLAY_SRGB,
 	WIV_CMS_PROFILE_DISPLAY_ADOBE,
 	WIV_CMS_PROFILE_DISPLAY_CUSTOM
-};
-
-struct Tone_response_curve
-{
-	int id; // WIV_CMS_TRC_
-	float val;
 };
 
 class Renderer : Renderer_base

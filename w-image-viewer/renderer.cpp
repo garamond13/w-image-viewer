@@ -262,23 +262,10 @@ void Renderer::update_trc()
 		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_ADOBE)
 			trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
 		else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_SRGB)
-			trc = { WIV_CMS_TRC_SRGB, 0.0f /* will be ignored */ };
+			trc = { WIV_CMS_TRC_SRGB, 0.0f };
 	}
-
-	// Else get TRC from the image embended profile.
-	else if (image.embended_profile) {
-		auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(image.embended_profile.get(), 0.1)) };
-		if (gamma < 0.0f) // On Error.
-			trc = { WIV_CMS_TRC_NONE, 0.0f };
-		else
-			trc = { WIV_CMS_TRC_GAMMA, gamma };
-	}
-	else if (image.tagged_color_space == WIV_COLOR_SPACE_ADOBE)
-		trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
-	else if (image.tagged_color_space == WIV_COLOR_SPACE_SRGB || g_config.cms_default_to_srgb.val)
-		trc = { WIV_CMS_TRC_SRGB, 1.0f /* will be ignored */ };
-	else
-		trc = { WIV_CMS_TRC_NONE, 0.0f };
+	else // Get TRC from the image embended profile.
+		trc = image.trc;
 }
 
 void Renderer::init_cms_profile_display()
@@ -400,7 +387,7 @@ void Renderer::pass_cms()
 
 void Renderer::pass_linearize(UINT width, UINT height)
 {
-	if (trc.id == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR)
 		return;
 	const alignas(16) std::array data{
 		Cb4{
@@ -422,7 +409,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 
 void Renderer::pass_delinearize(UINT width, UINT height)
 {
-	if (trc.id == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR)
 		return;
 	const alignas(16) std::array data{
 		Cb4{
