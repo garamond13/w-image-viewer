@@ -15,7 +15,7 @@ cbuffer cb0 : register(b0)
 }
 
 // Based on https://github.com/ImageMagick/ImageMagick/blob/main/MagickCore/enhance.c
-#define desigmoidize(rgba) (1.0 / (1.0 + exp(c * (m - (rgba)))) - 1.0 / (1.0 + exp(c * m))) / ( 1.0 / (1.0 + exp(c * (m - 1.0))) - 1.0 / (1.0 + exp(c * m)))
+#define desigmoidize(rgb) (1.0 / (1.0 + exp(c * (m - (rgb)))) - 1.0 / (1.0 + exp(c * m))) / ( 1.0 / (1.0 + exp(c * (m - 1.0))) - 1.0 / (1.0 + exp(c * m)))
 
 float4 main(Vs_out vs_out) : SV_Target
 {

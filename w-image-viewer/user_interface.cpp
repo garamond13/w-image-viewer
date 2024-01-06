@@ -555,7 +555,9 @@ void User_interface::window_settings()
 		ImGui::Checkbox("Enable sigmoidize", &scale.sigmoid_use.val);
 		dimm(!scale.sigmoid_use.val);
 		ImGui::InputFloat("Contrast", &scale.sigmoid_contrast.val, 0.0f, 0.0f, "%.6f");
+		scale.sigmoid_contrast.val = std::max(scale.sigmoid_contrast.val, 1e-6f);
 		ImGui::InputFloat("Midpoint", &scale.sigmoid_midpoint.val, 0.0f, 0.0f, "%.6f");
+		scale.sigmoid_midpoint.val = std::clamp(scale.sigmoid_midpoint.val, 0.0f, 1.0f);
 		dimm();
 		ImGui::Spacing();
 		ImGui::SeparatorText("Filter");
