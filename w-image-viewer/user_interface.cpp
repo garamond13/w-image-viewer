@@ -612,6 +612,7 @@ void User_interface::window_settings()
 		ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_sigma.val, 0.0f, 0.0f, "%.6f");
 		scale.unsharp_sigma.val = std::max(scale.unsharp_sigma.val, 1e-6f);
 		ImGui::InputFloat("Amount", &scale.unsharp_amount.val, 0.0f, 0.0f, "%.6f");
+		scale.unsharp_amount.val = std::max(scale.unsharp_amount.val, 1e-6f);
 		dimm();
 		ImGui::Spacing();
 	}

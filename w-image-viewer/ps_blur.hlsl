@@ -39,7 +39,7 @@ float4 main(Vs_out vs_out) : SV_Target
     
     // Unsharp mask.
     // Note that unsharp mask expects x axis to be processed last!
-    if (is_not_zero(amount) && is_equal(axis.x, 1.0)) {
+    if (amount > 0.0 && is_equal(axis.x, 1.0)) {
         const float4 original = tex_original.SampleLevel(smp, vs_out.texcoord, 0.0);
         return original + (original - csum / wsum) * amount;
     }

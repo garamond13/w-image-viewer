@@ -483,7 +483,7 @@ void Renderer::pass_blur()
 		Cb4{
 			.x{ .f{ static_cast<float>(p_scale_profile->blur_radius.val) }},
 			.y{ .f{ p_scale_profile->blur_sigma.val }},
-			.z{ .f{ 0.0f }} // Unsharp amount, has to be 0.0f!
+			.z{ .f{ -1.0f }} // Unsharp amount, has to be <= 0!
 		},
 		Cb4{
 			.x{ .f{ 0.0f }}, // x axis.
@@ -525,7 +525,7 @@ void Renderer::pass_unsharp()
 		Cb4{
 			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius.val) }},
 			.y{ .f{ p_scale_profile->unsharp_sigma.val }},
-			.z{ .f{ p_scale_profile->unsharp_amount.val }}
+			.z{ .f{ p_scale_profile->unsharp_amount.val }} // Has to be > 0!
 		},
 		Cb4{
 			.x{ .f{ 0.0f }}, // x axis.
