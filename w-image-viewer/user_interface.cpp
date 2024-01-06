@@ -546,7 +546,9 @@ void User_interface::window_settings()
 		ImGui::Checkbox("Enable pre-scale blur", &scale.blur_use.val);
 		dimm(!scale.blur_use.val);
 		ImGui::InputInt("Radius##blur", &scale.blur_radius.val, 0, 0);
+		scale.blur_radius.val = std::max(scale.blur_radius.val, 1);
 		ImGui::InputFloat("Sigma##blur", &scale.blur_sigma.val, 0.0f, 0.0f, "%.6f");
+		scale.blur_sigma.val = std::max(scale.blur_sigma.val, 1e-6f);
 		dimm();
 		ImGui::Spacing();
 		ImGui::SeparatorText("Sigmoidize (upscale only)");
@@ -606,7 +608,9 @@ void User_interface::window_settings()
 		ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use.val);
 		dimm(!scale.unsharp_use.val);
 		ImGui::InputInt("Radius##unsharp", &scale.unsharp_radius.val, 0, 0);
+		scale.unsharp_radius.val = std::max(scale.unsharp_radius.val, 1);
 		ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_sigma.val, 0.0f, 0.0f, "%.6f");
+		scale.unsharp_sigma.val = std::max(scale.unsharp_sigma.val, 1e-6f);
 		ImGui::InputFloat("Amount", &scale.unsharp_amount.val, 0.0f, 0.0f, "%.6f");
 		dimm();
 		ImGui::Spacing();
