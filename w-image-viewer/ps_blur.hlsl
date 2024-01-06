@@ -1,7 +1,6 @@
 // Used for both Gaussian blur and unsharp mask (separated).
 
 #include "vs_out.hlsli"
-#include "helpers.hlsli"
 
 Texture2D tex : register(t0);
 Texture2D tex_original : register(t1);
@@ -38,8 +37,8 @@ float4 main(Vs_out vs_out) : SV_Target
     }
     
     // Unsharp mask.
-    // Note that unsharp mask expects x axis to be processed last!
-    if (amount > 0.0 && is_equal(axis.x, 1.0)) {
+    // Last pass!
+    if (amount > 0.0) {
         const float4 original = tex_original.SampleLevel(smp, vs_out.texcoord, 0.0);
         return original + (original - csum / wsum) * amount;
     }

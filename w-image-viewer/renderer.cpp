@@ -525,7 +525,7 @@ void Renderer::pass_unsharp()
 		Cb4{
 			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius.val) }},
 			.y{ .f{ p_scale_profile->unsharp_sigma.val }},
-			.z{ .f{ p_scale_profile->unsharp_amount.val }} // Has to be > 0!
+			.z{ .f{ -1.0f }} // Unsharp amount, has to be <= 0 for the 1st pass!
 		},
 		Cb4{
 			.x{ .f{ 0.0f }}, // x axis.
@@ -550,6 +550,7 @@ void Renderer::pass_unsharp()
 	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 
 	// Pass x axis.
+	data[0].z.f = p_scale_profile->unsharp_amount.val; // Should be > 0.
 	data[1].x.f = 1.0f; // x axis.
 	data[1].y.f = 0.0f; // y axis.
 	data[1].z.f = 1.0f / dims_output.get_width<float>();
