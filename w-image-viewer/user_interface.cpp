@@ -600,6 +600,7 @@ void User_interface::window_settings()
 		ImGui::InputFloat("Parameter 2", &scale.kernel_parameter2.val, 0.0f, 0.0f, "%.6f");
 		dimm();
 		ImGui::InputFloat("Anti-ringing", &scale.kernel_antiringing.val, 0.0f, 0.0f, "%.6f");
+		scale.kernel_antiringing.val = std::clamp(scale.kernel_antiringing.val, 0.0f, 1.0f);
 		ImGui::Spacing();
 		ImGui::SeparatorText("Post-scale unsharp mask");
 		ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use.val);
