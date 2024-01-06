@@ -24,43 +24,44 @@
 You can access the settings window by right clicking anywhere inside the application window to open the context menu, then chose `Settings...`.
 
 - Currently inactive options will be dimmed out.
-- You can save settings to config file by clicking `Write changes` at bottom of the settings window under `Changes` subsection. Config file `config.txt` should be automatically created in the same directory W Image Viewer .exe file is.
+- You can save settings to config file by clicking `Write changes` button under `Changes` subsection. Config file `config.txt` should be automatically created in the same directory W Image Viewer .exe file is.
+- You can revert to last written changes by clicking on `Revert changes` button under `Changes` subsection.
 - Some changes will be applied only after application restart.
 
-### Genearl
+### Window
 
-`Default window dimensions:`  
-Window client area width and height in pixels.
+`Default dimensions:`  
+Default window client area width and height in pixels. Click on `Use current dimensions` button to use current window client area dimensions.
 
-`Use current dimensions`  
-Set current window dimensions as the default window dimensions. 
+`Minimum dimensions:`  
+Minimum window client area width and height in pixels. Click on `Use current dimensions` button to use current window client area dimensions.
 
-`Enable window auto dimensions`  
+`Keep aspect ratio when sizing`  
+Keep current client area aspect ratio when sizing window.
+
+`Enable auto dimensions`  
 Window dimensions will be set to the opened image dimensions. If the image dimensions are larger than the screen resolution, window dimensions will be set to 90% of the screen resolution while maintaining the same aspect ratio as the opened image.
 
+`Center on auto dimensions`  
+If `Enable auto dimensions` is enabled it will also ceter window on screen.
 
-`Window name`  
+`Title`  
 `Default name` sets the window name (title) to W Image Viewer, `Filename` sets window name to filename - W Image Viewer, and `Full filename` sets window name to file-path - W Image Viewer.
-
-`Internal format`  
-Sets the internal texture format. There shouldn't be a significant difference in visual quality between two options. `RGBA16F` may be significantly faster.
 
 `Background color`  
 Color of the background when no image is opened or when the opened image is not covering entire client area of the window.
-
-`Read only thumbnail in RAW image`  
-Reading thumbnail should be significantly faster than processing RAW image itself. Option if enabled reads only thumbnail if it exists, if doesn't or if the option is disabled RAW image will be processed.
 
 ### Scale
 
 `Profiles:`  
 - The left input field is for the lower bound of the scale factor range, and right input field is for the upper bound of the scale factor range. The range is right-open "[a, b)". After that you can click on `Add profile` to add it to the list of profiles, or `Edit profile` to edit currently selected profile (you can't edit the default profile `0.000000, 0.000000`).
 - You can't have any overlapping profiles.
-- Note that scale factor of 1.0 means no scaling, lower than 1.0 means downscaling and larger then 1.0 means upscaling. If current scaling factor is not covered by any profile the default profile `0.000000, 0.000000` will be applied.
+- Scale factor of 1.0 means no scaling, lower than 1.0 means downscaling and larger then 1.0 means upscaling. If current scaling factor is not covered by any profile the default profile `0.000000, 0.000000` will be applied.
 - To remove a profile, select profile and click `Remove profile`. `0.000000, 0.000000` is the default profile, you can't remove it.
 - Changes you make in `Scale section` will be applied to the currently selected profile.
 
 #### Pre-scale blur (downscale only)
+
 Uses separated (2 pass) Gaussian blur.
 
 `Enable pre-scale blur`  
@@ -73,6 +74,7 @@ Blur kernel radius. The size of the kernel will be 2 * radius. Note that radius 
 Blur spread, larger values increase the contribution of neighboring pixels.
 
 #### Sigmoidize (upscale only)
+
 Applies sigmoidal contrast curve. It can significantly improve upscaling results. Requires linearization.
 
 `Enable sigmoidize`  
@@ -157,7 +159,7 @@ Note that different function will be used if `Use cylindrical filtering (Jinc ba
 Kernel function.  
 Note that different function will be used if `Use cylindrical filtering (Jinc based)` is checked.
 
-`Bicubic`
+`Bicubic`  
 Kernel function.  
 `Parameter 1` = a.
 
@@ -194,6 +196,7 @@ Some kernel functions take extra parameters, they are set here.
 Sets antiringing strenght.
 
 #### Post-scale unsharp mask
+
 Separated unsharp mask (2 pass). It uses Gaussian blur to achieve sharpening.
 
 `Enable post-scale unsharp mask`  
@@ -226,7 +229,7 @@ Which rendering intent to use.
 Enable or disable black point compensation.
 
 `LUT size`  
-What lut size will be used to apply color transfomations.
+What lut size will be used to apply color transfomations. Note that all LUTs are 3D (so actual size is LUT_SIZE^3) and are used in tetrahedral interpolation.
 
 #### Color tags
 
@@ -256,4 +259,12 @@ If enabled overlay will shown from application start, otherwise it will be hidde
 Overlay's postion inside the application window.
 
 `Show:`  
-Select what do you want to be shown by overlay.
+Select what do you want to be shown in the overlay.
+
+### Other
+
+`Internal format`  
+Sets the internal texture format. There shouldn't be a significant difference in visual quality between two options. `RGBA16F` may be significantly faster.
+
+`Read only thumbnail in RAW image`  
+Reading thumbnail should be significantly faster than processing RAW image itself. Option if enabled reads only thumbnail if it exists, if doesn't or if the option is disabled RAW image will be processed.
