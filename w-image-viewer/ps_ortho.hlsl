@@ -92,16 +92,16 @@ float4 main(Vs_out vs_out) : SV_Target
     //
     
     // Get required radius.
-    const float r = ceil(radius / scale);
+    const int bound = ceil(radius / scale);
     
-    [loop] for (float i = 1.0 - r; i <= r; ++i) {
-        color = tex.SampleLevel(smp, base + pt * i, 0.0);
-        weight = get_weight(abs((i - fcoord) * scale));
+    for (int i = 1 - bound; i <= bound; ++i) {
+        color = tex.SampleLevel(smp, base + pt * float(i), 0.0);
+        weight = get_weight(abs((float(i) - fcoord) * scale));
         csum += color * weight;
         wsum += weight;
         
         // Antiringing.
-        if (use_ar && i >= 0.0 && i <= 1.0) {
+        if (use_ar && i >= 0 && i <= 1) {
             lo = min(lo, color);
             hi = max(hi, color);
         }

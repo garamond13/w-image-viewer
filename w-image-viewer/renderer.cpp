@@ -481,7 +481,7 @@ void Renderer::pass_blur()
 {
 	alignas(16) std::array data{
 		Cb4{
-			.x{ .f{ static_cast<float>(p_scale_profile->blur_radius.val) }},
+			.x{ .i{ p_scale_profile->blur_radius.val }},
 			.y{ .f{ p_scale_profile->blur_sigma.val }},
 			.z{ .f{ -1.0f }} // Unsharp amount, has to be <= 0!
 		},
@@ -523,7 +523,7 @@ void Renderer::pass_unsharp()
 {
 	alignas(16) std::array data{
 		Cb4{
-			.x{ .f{ static_cast<float>(p_scale_profile->unsharp_radius.val) }},
+			.x{ .i{ p_scale_profile->unsharp_radius.val }},
 			.y{ .f{ p_scale_profile->unsharp_sigma.val }},
 			.z{ .f{ -1.0f }} // Unsharp amount, has to be <= 0 for the 1st pass!
 		},

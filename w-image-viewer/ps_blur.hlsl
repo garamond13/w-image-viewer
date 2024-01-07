@@ -8,7 +8,7 @@ SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-    float radius; // x
+    int radius; // x
     float sigma; // y
     
     // Only used by unsharp mask.
@@ -30,9 +30,9 @@ float4 main(Vs_out vs_out) : SV_Target
     float weight;
     float4 csum = tex.SampleLevel(smp, vs_out.texcoord, 0.0); // Weighted color sum.
     float wsum = 1.0; // Weight sum.
-    [loop] for (float i = 1.0; i <= radius; ++i) {
+    for (int i = 1; i <= radius; ++i) {
         weight = get_weight(i);
-        csum += (tex.SampleLevel(smp, vs_out.texcoord + pt * -i, 0.0) + tex.SampleLevel(smp, vs_out.texcoord + pt * i, 0.0)) * weight;
+        csum += (tex.SampleLevel(smp, vs_out.texcoord + pt * float(-i), 0.0) + tex.SampleLevel(smp, vs_out.texcoord + pt * float(i), 0.0)) * weight;
         wsum += 2.0 * weight;
     }
     
