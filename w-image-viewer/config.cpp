@@ -262,5 +262,5 @@ std::filesystem::path Config::get_path()
 {
 	wchar_t path[MAX_PATH];
 	GetModuleFileNameW(nullptr, path, MAX_PATH);
-	return std::filesystem::path(path).parent_path() / L"config.txt";
+	return std::filesystem::path(path).parent_path() / L"config";
 }
