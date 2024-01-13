@@ -524,10 +524,8 @@ void Renderer::pass_unsharp()
 			.z{ .f{ -1.0f }} // Unsharp amount, has to be <= 0 for the 1st pass!
 		},
 		Cb4{
-			.x{ .f{ 0.0f }}, // x axis.
-			.y{ .f{ 1.0f }}, // y axis.
-			.z{ .f{ 0.0f }},
-			.w{ .f{ 1.0f / dims_output.get_height<float>() }}
+			.x{ .f{ 0.0f }},
+			.y{ .f{ 1.0f / dims_output.get_height<float>() }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -547,10 +545,8 @@ void Renderer::pass_unsharp()
 
 	// Pass x axis.
 	data[0].z.f = p_scale_profile->unsharp_amount.val; // Should be > 0.
-	data[1].x.f = 1.0f; // x axis.
-	data[1].y.f = 0.0f; // y axis.
-	data[1].z.f = 1.0f / dims_output.get_width<float>();
-	data[1].w.f = 0.0f;
+	data[1].x.f = 1.0f / dims_output.get_width<float>();
+	data[1].y.f = 0.0f;
 	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	const std::array srvs{ srv_pass.Get(), srv_original.Get() };
 	device_context->PSSetShaderResources(0, 2, srvs.data());
