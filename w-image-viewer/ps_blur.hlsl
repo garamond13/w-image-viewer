@@ -14,11 +14,8 @@ cbuffer cb0 : register(b0)
     // Only used by unsharp mask.
     float amount; // z
     
-    // x or y axis, (1, 0) or (0, 1).
-    float2 axis; // xx yy
-    
     // Texel size, (1 / width, 0) or (0, 1 / height).
-    float2 pt; // zz ww
+    float2 pt; // xx yy
 };
 
 // Normalized version is divided by sqrt(2 * pi * sigma * sigma).

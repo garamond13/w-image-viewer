@@ -486,10 +486,8 @@ void Renderer::pass_blur()
 			.z{ .f{ -1.0f }} // Unsharp amount, has to be <= 0!
 		},
 		Cb4{
-			.x{ .f{ 0.0f }}, // x axis.
-			.y{ .f{ 1.0f }}, // y axis.
-			.z{ .f{ 0.0f }},
-			.w{ .f{ 1.0f / image.get_height<float>() }}
+			.x{ .f{ 0.0f }},
+			.y{ .f{ 1.0f / image.get_height<float>() }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -506,10 +504,8 @@ void Renderer::pass_blur()
 	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 
 	// Pass x axis.
-	data[1].x.f = 1.0f; // x axis.
-	data[1].y.f = 0.0f; // y axis.
-	data[1].z.f = 1.0f / image.get_width<float>();
-	data[1].w.f = 0.0f;
+	data[1].x.f = 1.0f / image.get_width<float>();
+	data[1].y.f = 0.0f;
 	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
