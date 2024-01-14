@@ -53,7 +53,7 @@ public:
 	
 	Config_pair<bool, "wnd_autwh"> window_autowh;
 	Config_pair<bool, "wnd_autwhc"> window_autowh_center;
-	Config_pair<int, "wnd_name"> window_name;
+	Config_pair<int, "wnd_name"> window_name{ 1 };
 	Config_pair<std::array<float, 4>, "clr_c"> clear_color{ 0.5f, 0.5f, 0.5f, 1.0f };
 	Config_pair<float, "a_tsz"> alpha_tile_size{ 8.0 };
 	Config_pair<std::array<float, 3>, "a_t1c"> alpha_tile1_color{ 1.0f, 1.0f, 1.0f };
