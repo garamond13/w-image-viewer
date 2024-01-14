@@ -12,10 +12,18 @@ cbuffer cb0 : register(b0)
     
     // Midpoint.
     float m; // y
+    
+    float offset; // z
+    float scale; // w
 }
 
 // Based on https://github.com/ImageMagick/ImageMagick/blob/main/MagickCore/enhance.c
-#define desigmoidize(rgb) (1.0 / (1.0 + exp(c * (m - (rgb)))) - 1.0 / (1.0 + exp(c * m))) / ( 1.0 / (1.0 + exp(c * (m - 1.0))) - 1.0 / (1.0 + exp(c * m)))
+//desigmoidize(x) = 1 / (1 + exp(c * (m - x))) - 1 / (1 + exp(c * m))) / (1 / (1 + exp(c * (m - 1))) - 1 / (1 + exp(c * m))
+
+// offset = 1 / (1 + exp(c * m))
+// scale = 1 / (1 + exp(c * (m - 1))) - offset
+
+#define desigmoidize(rgb) ((1.0 / (1.0 + exp(c * (m - (rgb)))) - offset) / scale)
 
 float4 main(Vs_out vs_out) : SV_Target
 {

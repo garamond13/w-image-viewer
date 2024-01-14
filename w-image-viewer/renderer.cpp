@@ -429,16 +429,25 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
 }
 
+void Renderer::sigmoidize_calc_params() noexcept
+{
+	sigmoidize_offset = 1.0f / (1.0f + exp(p_scale_profile->sigmoid_contrast.val * p_scale_profile->sigmoid_midpoint.val));
+	sigmoidize_scale = 1.0f / (1.0f + exp(p_scale_profile->sigmoid_contrast.val * (p_scale_profile->sigmoid_midpoint.val - 1.0f))) - sigmoidize_offset;
+}
+
 void Renderer::pass_sigmoidize()
 {
 	// Sigmoidize expects linear light input.
 	if (trc.id == WIV_CMS_TRC_NONE)
 		return;
 
+	sigmoidize_calc_params();
 	const alignas(16) std::array data{
 		Cb4{
 			.x{ .f{ p_scale_profile->sigmoid_contrast.val }},
-			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }}
+			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }},
+			.z{ .f{ sigmoidize_offset }},
+			.w{ .f{ sigmoidize_scale }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -462,7 +471,9 @@ void Renderer::pass_desigmoidize()
 	const alignas(16) std::array data{
 		Cb4{
 			.x{ .f{ p_scale_profile->sigmoid_contrast.val }},
-			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }}
+			.y{ .f{ p_scale_profile->sigmoid_midpoint.val }},
+			.z{ .f{ sigmoidize_offset }},
+			.w{ .f{ sigmoidize_scale }}
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;

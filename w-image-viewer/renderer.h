@@ -37,6 +37,7 @@ private:
 	void pass_cms();
 	void pass_linearize(UINT width, UINT height);
 	void pass_delinearize(UINT width, UINT height);
+	void sigmoidize_calc_params() noexcept;
 	void pass_sigmoidize();
 	void pass_desigmoidize();
 	void pass_blur();
@@ -59,4 +60,6 @@ private:
 	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> cms_profile_display{ nullptr, cmsCloseProfile };
 	Tone_response_curve trc;
 	bool is_cms_valid;
+	float sigmoidize_offset;
+	float sigmoidize_scale;
 };
