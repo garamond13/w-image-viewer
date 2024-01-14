@@ -559,23 +559,34 @@ void Renderer::pass_unsharp()
 
 void Renderer::pass_orthogonal_resample()
 {
+	const float clamped_scale{ std::min(scale, 1.0f) };
+	const float kernel_radius{ get_kernel_radius() };
 	alignas(16) std::array data{
 		Cb4{
 			.x{ .i{ p_scale_profile->kernel_index.val }},
-			.y{ .f{ get_kernel_radius() }},
+			.y{ .f{ kernel_radius }},
 			.z{ .f{ p_scale_profile->kernel_blur.val }},
 			.w{ .f{ p_scale_profile->kernel_parameter1.val }}
 		},
 		Cb4{
 			.x{ .f{ p_scale_profile->kernel_parameter2.val }},
 			.y{ .f{ p_scale_profile->kernel_antiringing.val }},
-			.z{ .f{ std::min(scale, 1.0f) }}
+			.z{ .f{ clamped_scale }},
+			.w{ .f{ std::ceil(kernel_radius / clamped_scale) }}
 		},
 		Cb4{
 			.x{ .f{ image.get_width<float>() }},
 			.y{ .f{ image.get_height<float>() }},
 			.z{ .f{ 0.0f }},
 			.w{ .f{ 1.0f }}
+		},
+		Cb4{
+			.x{ .f{ 0.0f }},
+			.y{ .f{ 1.0f / image.get_height<float>() }},
+
+			// Antiringing shouldnt be used when downsampling!
+			.z{ .i{ p_scale_profile->kernel_antiringing.val > 0.0f && clamped_scale == 1.0f }}
+
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -594,6 +605,8 @@ void Renderer::pass_orthogonal_resample()
 	// Pass x axis.
 	data[2].z.f = 1.0f; // x axis.
 	data[2].w.f = 0.0f; // y axis.
+	data[3].x.f = 1.0f / image.get_width<float>();
+	data[3].y.f = 0.0f;
 	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -605,10 +618,12 @@ void Renderer::pass_orthogonal_resample()
 
 void Renderer::pass_cylindrical_resample()
 {
+	const float clamped_scale{ std::min(scale, 1.0f) };
+	const float kernel_radius{ get_kernel_radius() };
 	const alignas(16) std::array data{
 		Cb4{
 			.x{ .i{ p_scale_profile->kernel_index.val }},
-			.y{ .f{ get_kernel_radius() }},
+			.y{ .f{ kernel_radius }},
 			.z{ .f{ p_scale_profile->kernel_blur.val }},
 			.w{ .f{ p_scale_profile->kernel_parameter1.val }}
 		},
@@ -619,7 +634,16 @@ void Renderer::pass_cylindrical_resample()
 			.w{ .f{ image.get_height<float>() }}
 		},
 		Cb4{
-			.x{ .f{ std::min(scale, 1.0f) }}
+			.x{ .f{ clamped_scale }},
+			.y{ .f{ std::ceil(kernel_radius / clamped_scale) }},
+			.z{ .f{ 1.0f / image.get_width<float>() }},
+			.w{ .f{ 1.0f / image.get_height<float>() }},
+		},
+		Cb4{
+
+			// Antiringing shouldnt be used when downsampling!
+			.x{ .i{ p_scale_profile->kernel_antiringing.val > 0.0f && clamped_scale == 1.0f }}
+
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;

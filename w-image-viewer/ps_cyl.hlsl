@@ -22,8 +22,16 @@ cbuffer cb0 : register(b0)
     // Antiringing strenght.
     float ar; // yy
     
-    float2 dims; // zz, ww
+    float2 dims; // zz ww
     float scale; // xxx
+    
+    // Kernel bounds.
+    float bound; // yyy
+    
+    // Texel size.
+    float2 pt; // zzz www
+    
+    bool use_ar; // xxxx
 }
 
 // Expects abs(x).
@@ -70,7 +78,6 @@ float get_weight(float x)
 float4 main(Vs_out vs_out) : SV_TARGET
 {
     const float2 fcoord = frac(vs_out.texcoord * dims - 0.5);
-    const float2 pt = 1.0 / dims; // Texel size.
     const float2 base = vs_out.texcoord - fcoord * pt;
     float4 color;
     float4 csum = 0.0; // Weighted color sum.
@@ -78,18 +85,8 @@ float4 main(Vs_out vs_out) : SV_TARGET
     float wsum = 0.0; // Weight sum.
 
     // Antiringing.
-    //
-    
     float4 lo = 1e9;
     float4 hi = -1e9;
-    
-    // Antiringing shouldnt be used when downsampling!
-    const bool use_ar = ar > 0.0 && is_equal(scale, 1.0);
-    
-    //
-
-    // Get required radius.
-    const float bound = ceil(radius / scale);
     
     for (float j = 1.0 - bound; j <= bound; ++j) {
         for (float i = 1.0 - bound; i <= bound; ++i) {

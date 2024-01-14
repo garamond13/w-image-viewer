@@ -2,7 +2,6 @@
 
 #include "vs_out.hlsli"
 #include "kernel_functions.hlsli"
-#include "helpers.hlsli"
 #include "shader_config.h"
 
 Texture2D tex : register(t0);
@@ -22,10 +21,19 @@ cbuffer cb0 : register(b0)
     float ar; // yy
     
     float scale; // zz
+    
+    // Kernel bounds.
+    float bound; // ww
+    
     float2 dims; // xxx yyy
     
     // x or y axis, (1, 0) or (0, 1).
     float2 axis; // zzz www
+    
+    // Texel size.
+    float2 pt; // xxxx yyyy
+    
+    bool use_ar; // zzzz
 }
 
 // Expects abs(x).
@@ -73,7 +81,6 @@ float get_weight(float x)
 float4 main(Vs_out vs_out) : SV_Target
 {   
     const float fcoord = dot(frac(vs_out.texcoord * dims - 0.5), axis);
-    const float2 pt = 1.0 / dims * axis; // Texel size.
     const float2 base = vs_out.texcoord - fcoord * pt;
     float4 color;
     float4 csum = 0.0; // Weighted color sum.
@@ -81,18 +88,8 @@ float4 main(Vs_out vs_out) : SV_Target
     float wsum = 0.0; // Weight sum.
      
     // Antiringing.
-    //
-    
     float4 lo = 1e9;
     float4 hi = -1e9;
-    
-    // Antiringing shouldnt be used when downsampling!
-    const bool use_ar = ar > 0.0 && is_equal(scale, 1.0);
-    
-    //
-    
-    // Get required radius.
-    const float bound = ceil(radius / scale);
     
     for (float i = 1.0 - bound; i <= bound; ++i) {
         color = tex.SampleLevel(smp, base + pt * i, 0.0);
@@ -105,6 +102,7 @@ float4 main(Vs_out vs_out) : SV_Target
             lo = min(lo, color);
             hi = max(hi, color);
         }
+        
     }
     csum /= wsum;
     
