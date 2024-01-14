@@ -7,13 +7,12 @@ SamplerState smp : register(s1);
 cbuffer cb0 : register(b0)
 {
     float theta; // x
+    bool rotate; // y
 }
 
 float4 main(Vs_out vs_out) : SV_Target
 {
-    // Check is theta divisible by 360, if it is we dont need to rotate texcoord.
-    if (is_not_zero(frac(theta / 360.0)))
+    if (rotate)
         rotate_texcoord(vs_out.texcoord, theta);
-        
     return tex.SampleLevel(smp, vs_out.texcoord, 0.0);
 }

@@ -677,7 +677,11 @@ void Renderer::pass_last()
 			Cb4{
 				.x{ .f{ dims_output.get_width<float>() / g_config.alpha_tile_size.val }},
 				.y{ .f{ dims_output.get_height<float>() / g_config.alpha_tile_size.val }},
-				.z{ .f{ ui.image_rotation }}
+				.z{ .f{ ui.image_rotation }},
+
+				// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
+				.w{ .i{ is_not_zero(frac(ui.image_rotation / 360.0f)) }}
+
 			},
 			Cb4{
 				.x{ .f{ g_config.alpha_tile1_color.val[0] }},
@@ -697,7 +701,11 @@ void Renderer::pass_last()
 	else {
 		const alignas(16) std::array data{
 			Cb4{
-				.x{ .f{ ui.image_rotation }}
+				.x{ .f{ ui.image_rotation }},
+
+				// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
+				.y{ .i{ is_not_zero(frac(ui.image_rotation / 360.0f)) }}
+
 			}
 		};
 		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
