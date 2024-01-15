@@ -374,8 +374,7 @@ void Renderer::pass_cms()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_CMS, sizeof(PS_CMS));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
@@ -396,8 +395,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_LINEARIZE, sizeof(PS_LINEARIZE));
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
@@ -418,8 +416,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_DELINEARIZE, sizeof(PS_DELINEARIZE));
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
@@ -449,8 +446,7 @@ void Renderer::pass_sigmoidize()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_SIGMOIDIZE, sizeof(PS_SIGMOIDIZE));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
@@ -475,8 +471,7 @@ void Renderer::pass_desigmoidize()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_DESIGMOIDIZE, sizeof(PS_DESIGMOIDIZE));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -500,11 +495,10 @@ void Renderer::pass_blur()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
 
 	// Pass y axis.
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
@@ -538,13 +532,12 @@ void Renderer::pass_unsharp()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_original = srv_pass;
 
 	// Pass y axis.
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
@@ -599,11 +592,10 @@ void Renderer::pass_orthogonal_resample()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
 
 	// Pass y axis.
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(image.get_width<UINT>(), dims_output.height);
@@ -656,8 +648,7 @@ void Renderer::pass_cylindrical_resample()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_CYL, sizeof(PS_CYL));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -692,8 +683,7 @@ void Renderer::pass_last()
 				.z{ .f{ g_config.alpha_tile2_color.val[2] }}
 			}
 		};
-		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-		update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+		create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 		create_pixel_shader(PS_SAMPLE_ALPHA, sizeof(PS_SAMPLE_ALPHA));
 	}
 	else {
@@ -706,8 +696,7 @@ void Renderer::pass_last()
 
 			}
 		};
-		create_constant_buffer(cb0.ReleaseAndGetAddressOf(), sizeof(data));
-		update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+		create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
 		create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
 	}
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
@@ -744,7 +733,7 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
 }
 
-void Renderer::create_constant_buffer(ID3D11Buffer** buffer, UINT byte_width) const noexcept
+void Renderer::create_constant_buffer(UINT byte_width, const void* data, ID3D11Buffer** buffer) const noexcept
 {
 	const D3D11_BUFFER_DESC buffer_desc{
 		.ByteWidth{ byte_width },
@@ -752,7 +741,10 @@ void Renderer::create_constant_buffer(ID3D11Buffer** buffer, UINT byte_width) co
 		.BindFlags{ D3D11_BIND_CONSTANT_BUFFER },
 		.CPUAccessFlags{ D3D11_CPU_ACCESS_WRITE },
 	};
-	wiv_assert(device->CreateBuffer(&buffer_desc, 0, buffer), == S_OK);
+	const D3D11_SUBRESOURCE_DATA subresource_data{
+		.pSysMem{ data }
+	};
+	wiv_assert(device->CreateBuffer(&buffer_desc, &subresource_data, buffer), == S_OK);
 	device_context->PSSetConstantBuffers(0, 1, buffer);
 }
 

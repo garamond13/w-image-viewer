@@ -45,7 +45,7 @@ private:
 	void pass_cylindrical_resample();
 	void pass_last();
 	void draw_pass(UINT width, UINT height) noexcept;
-	void create_constant_buffer(ID3D11Buffer** buffer, UINT byte_width) const noexcept;
+	void create_constant_buffer(UINT byte_width, const void* data, ID3D11Buffer** buffer) const noexcept;
 	void update_constant_buffer(ID3D11Buffer* buffer, const void* data, size_t size) const noexcept;
 	void create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept;
 	void create_viewport(float width, float height, bool adjust = false) const noexcept;
