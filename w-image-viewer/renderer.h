@@ -37,7 +37,6 @@ private:
 	void pass_cms();
 	void pass_linearize(UINT width, UINT height);
 	void pass_delinearize(UINT width, UINT height);
-	void sigmoidize_calc_params() noexcept;
 	void pass_sigmoidize();
 	void pass_desigmoidize();
 	void pass_blur();
