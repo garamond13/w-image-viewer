@@ -4,6 +4,11 @@
 #include "icc.h"
 #include "shader_config.h"
 
+bool Image::isnnul() const noexcept
+{
+	return image_input.get();
+}
+
 // Get image data, apropriate DXGI format and System-memory pitch for creation of d3d texture.
 void Image::get_data_for_d3d(std::unique_ptr<uint8_t[]>& data, DXGI_FORMAT& format, UINT& sys_mem_pitch)
 {

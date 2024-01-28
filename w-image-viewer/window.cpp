@@ -72,8 +72,6 @@ int Window::message_loop()
     // Get "this" pointer that we passed to CreateWindowExW().
     auto* window{ reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA)) };
 
-    static double client_aspect_ratio;
-
     switch (message) {
 
         // WM_NCCREATE is not guarantied to be the first message.
@@ -117,16 +115,8 @@ int Window::message_loop()
             window->set_window_name();
             window->renderer.should_update = true;
             return 0;
-        case WM_ENTERSIZEMOVE:
-            if (g_config.window_keep_aspect.val) {
-                RECT rect;
-                wiv_assert(GetClientRect(hwnd, &rect), != 0);
-                client_aspect_ratio = get_ratio<double>(rect.right, rect.bottom);
-                return 0;
-            }
-            break;
         case WM_SIZING:
-            if (g_config.window_keep_aspect.val) {
+            if (g_config.window_keep_aspect.val && window->renderer.ui.file_manager.image.isnnul()) {
                 auto rect{ reinterpret_cast<RECT*>(lparam) };
 
                 // Get client area.
@@ -135,8 +125,9 @@ int Window::message_loop()
                 const auto client_width{ rc_w<double>(unadjusted_rect) };
                 const auto client_height{ rc_h<double>(unadjusted_rect) };
 
-                const auto new_client_width{ std::lround(client_height * client_aspect_ratio - client_width) };
-                const auto new_client_height{ std::lround(client_width / client_aspect_ratio - client_height) };
+                const auto image_aspect{ window->renderer.ui.file_manager.image.get_aspect<double>() };
+                const auto new_client_width{ std::lround(client_height * image_aspect - client_width)};
+                const auto new_client_height{ std::lround(client_width / image_aspect - client_height) };
                 switch (wparam) {
                     case WMSZ_LEFT:
                     case WMSZ_RIGHT:

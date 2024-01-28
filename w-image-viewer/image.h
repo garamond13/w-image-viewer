@@ -15,6 +15,7 @@ enum WIV_COLOR_SPACE_
 class Image
 {
 public:
+	bool isnnul() const noexcept;
 	void get_data_for_d3d(std::unique_ptr<uint8_t[]>& data, DXGI_FORMAT& format, UINT& sys_mem_pitch);
 	bool has_alpha() const noexcept;
 	bool set_image_input(std::wstring_view path);
@@ -30,6 +31,12 @@ public:
 	T get_height() const noexcept
 	{
 		return static_cast<T>(image_input->spec().height);
+	}
+
+	template<std::floating_point T>
+	T get_aspect() const noexcept
+	{
+		return get_width<T>() / get_height<T>();
 	}
 
 	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
