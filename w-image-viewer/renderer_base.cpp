@@ -66,6 +66,8 @@ void Renderer_base::create_swapchain()
 	dims_swap_chain.width = swap_chain_desc1.Width;
 	dims_swap_chain.height = swap_chain_desc1.Height;
 
+	wiv_assert(dxgi_device2->SetMaximumFrameLatency(2), == S_OK);
+
 	// Disable exclusive fullscreen.
 	wiv_assert(dxgi_factory2->MakeWindowAssociation(g_hwnd, DXGI_MWA_NO_ALT_ENTER), == S_OK);
 }
