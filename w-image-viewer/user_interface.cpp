@@ -321,6 +321,8 @@ void User_interface::overlay() const
 
 	ImGui::SetNextWindowBgAlpha(0.35f);
 	if (ImGui::Begin("##overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize)) {
+		if (!g_config.overlay_config.val)
+			ImGui::TextUnformatted("Overlay is not configured.");
 		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS) {
 			ImGui::Text("Image W: %i", g_info.image_width);
 			ImGui::Text("Image H: %i", g_info.image_height);
