@@ -16,10 +16,15 @@ class Image
 {
 public:
 	bool isn_null() const noexcept;
-	void get_data_for_d3d(std::unique_ptr<uint8_t[]>& data, DXGI_FORMAT& format, UINT& sys_mem_pitch);
 	bool has_alpha() const noexcept;
 	bool set_image_input(std::wstring_view path);
 	bool close() noexcept;
+	
+	// OIIO::TypeDesc::BASETYPE
+	auto get_base_type() const noexcept
+	{
+		return image_input->spec().format.basetype;
+	}
 	
 	template<typename T>
 	T get_width() const noexcept
@@ -38,12 +43,6 @@ public:
 	{
 		return get_width<T>() / get_height<T>();
 	}
-
-	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
-	int orientation;
-	Tone_response_curve trc;
-private:
-	void get_embended_profile();
 
 	template<typename T>
 	std::unique_ptr<uint8_t[]> read_image()
@@ -71,7 +70,12 @@ private:
 		
 		return data;
 	}
-	
+
+	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
+	int orientation;
+	Tone_response_curve trc;
+private:
+	void get_embended_profile();
 	std::unique_ptr<OIIO::ImageInput> image_input;
 	LibRaw raw_input;
 	OIIO::Filesystem::IOMemReader thumb{ nullptr, 0 };

@@ -21,6 +21,7 @@ public:
 	void create();
 	void update();
 	void draw() const;
+	std::unique_ptr<uint8_t[]> get_image_data(DXGI_FORMAT& format, UINT& sys_mem_pitch);
 	void create_image();
 	void on_window_resize() noexcept;
 	void reset_resources() noexcept;
