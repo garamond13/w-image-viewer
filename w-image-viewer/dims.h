@@ -1,20 +1,19 @@
 #pragma once
 
-template<typename T>
 struct Dims
 {
-	template<typename U>
-	constexpr U get_width() const noexcept
+	template<typename T>
+	constexpr T get_width() const noexcept
 	{
-		return static_cast<U>(width);
+		return static_cast<T>(width);
 	}
 
-	template<typename U>
-	constexpr U get_height() const noexcept
+	template<typename T>
+	constexpr T get_height() const noexcept
 	{
-		return static_cast<U>(height);
+		return static_cast<T>(height);
 	}
 
-	T width;
-	T height;
+	int width;
+	int height;
 };

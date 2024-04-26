@@ -15,5 +15,5 @@ protected:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> device_context;
 	Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv_back_buffer;
-	Dims<int> dims_swap_chain;
+	Dims dims_swap_chain;
 };

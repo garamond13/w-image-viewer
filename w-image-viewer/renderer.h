@@ -53,7 +53,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_image;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_pass;
 	Image& image{ ui.file_manager.image };
-	Dims<int> dims_output;
+	Dims dims_output;
 	float scale;
 	const Config_scale* p_scale_profile;
 	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> cms_profile_display{ nullptr, cmsCloseProfile };
