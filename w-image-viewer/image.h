@@ -15,7 +15,7 @@ enum WIV_COLOR_SPACE_
 class Image
 {
 public:
-	bool isnnul() const noexcept;
+	bool isn_null() const noexcept;
 	void get_data_for_d3d(std::unique_ptr<uint8_t[]>& data, DXGI_FORMAT& format, UINT& sys_mem_pitch);
 	bool has_alpha() const noexcept;
 	bool set_image_input(std::wstring_view path);
