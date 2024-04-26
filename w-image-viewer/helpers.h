@@ -123,8 +123,8 @@ constexpr T rc_h(const RECT& rect) noexcept
 	return static_cast<T>(rect.bottom - rect.top);
 }
 
-// Reverse AdjustWindowRectEx().
-inline BOOL un_AdjustWindowRectEx(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
+// Reverse of AdjustWindowRectEx().
+inline BOOL UnAdjustWindowRectEx(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
 {
 	RECT rect{};
 	BOOL result{ AdjustWindowRectEx(&rect, dwStyle, bMenu, dwExStyle) };

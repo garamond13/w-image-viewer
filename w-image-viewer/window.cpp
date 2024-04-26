@@ -121,7 +121,7 @@ int Window::message_loop()
 
                 // Get client area.
                 RECT unadjusted_rect{ *rect };
-                wiv_assert(un_AdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+                wiv_assert(UnAdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
                 const auto client_width{ rc_w<double>(unadjusted_rect) };
                 const auto client_height{ rc_h<double>(unadjusted_rect) };
 
