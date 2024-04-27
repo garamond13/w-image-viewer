@@ -36,7 +36,8 @@ struct Cb4
 	Cb_types w;
 };
 
-namespace {
+namespace
+{
 	constexpr std::array WIV_PASS_FORMATS{
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		DXGI_FORMAT_R32G32B32A32_FLOAT
@@ -118,33 +119,6 @@ void Renderer::draw() const
 	wiv_assert(swap_chain->Present(1, 0), == S_OK);
 }
 
-std::unique_ptr<uint8_t[]> Renderer::get_image_data(DXGI_FORMAT& format, UINT& sys_mem_pitch)
-{
-	std::unique_ptr<uint8_t[]> data;
-	switch (image.get_base_type()) {
-		case OIIO::TypeDesc::UINT8:
-			data = image.read_image<uint8_t>();
-			format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			sys_mem_pitch = image.get_width<int>() * 4;
-			break;
-		case OIIO::TypeDesc::UINT16:
-			data = image.read_image<uint16_t>();
-			format = DXGI_FORMAT_R16G16B16A16_UNORM;
-			sys_mem_pitch = image.get_width<int>() * 4 * 2;
-			break;
-		case OIIO::TypeDesc::HALF:
-			data = image.read_image<uint16_t>();
-			format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			sys_mem_pitch = image.get_width<int>() * 4 * 2;
-			break;
-		case OIIO::TypeDesc::FLOAT:
-			data = image.read_image<uint32_t>();
-			format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			sys_mem_pitch = image.get_width<int>() * 4 * 4;
-	}
-	return data;
-}
-
 // Creates the first texture from the loaded image.
 void Renderer::create_image()
 {
@@ -153,36 +127,33 @@ void Renderer::create_image()
 	UINT sys_mem_pitch;
 	std::unique_ptr<uint8_t[]> data{ get_image_data(format, sys_mem_pitch) };
 	
-	if (data) {
-		
-		// Info.
-		g_info.image_width = image.get_width<int>();
-		g_info.image_height = image.get_height<int>();
+	// Info.
+	g_info.image_width = image.get_width<int>();
+	g_info.image_height = image.get_height<int>();
 
-		// Create texture.
-		const D3D11_TEXTURE2D_DESC texture2d_desc{
-			.Width{ image.get_width<UINT>() },
-			.Height{ image.get_height<UINT>() },
-			.MipLevels{ 1 },
-			.ArraySize{ 1 },
-			.Format{ format },
-			.SampleDesc{
-				.Count{ 1 },
-			},
-			.Usage{ D3D11_USAGE_IMMUTABLE },
-			.BindFlags{ D3D11_BIND_SHADER_RESOURCE }
-		};
-		const D3D11_SUBRESOURCE_DATA subresource_data{
-			.pSysMem{ data.get() },
-			.SysMemPitch{ sys_mem_pitch }
-		};
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-		wiv_assert(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.ReleaseAndGetAddressOf()), == S_OK);
-		wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
+	// Create texture.
+	const D3D11_TEXTURE2D_DESC texture2d_desc{
+		.Width{ image.get_width<UINT>() },
+		.Height{ image.get_height<UINT>() },
+		.MipLevels{ 1 },
+		.ArraySize{ 1 },
+		.Format{ format },
+		.SampleDesc{
+			.Count{ 1 },
+		},
+		.Usage{ D3D11_USAGE_IMMUTABLE },
+		.BindFlags{ D3D11_BIND_SHADER_RESOURCE }
+	};
+	const D3D11_SUBRESOURCE_DATA subresource_data{
+		.pSysMem{ data.get() },
+		.SysMemPitch{ sys_mem_pitch }
+	};
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
+	wiv_assert(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.ReleaseAndGetAddressOf()), == S_OK);
+	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
 
-		if (cms_profile_display)
-			create_cms_lut();
-	}
+	if (cms_profile_display)
+		create_cms_lut();
 }
 
 void Renderer::on_window_resize() noexcept
@@ -213,6 +184,33 @@ void Renderer::fullscreen_hide_cursor() const
 {
 	if (ui.is_fullscreen && !ImGui::GetIO().WantCaptureMouse && !ui.is_dialog_file_open)
 		while (ShowCursor(FALSE) >= 0);
+}
+
+std::unique_ptr<uint8_t[]> Renderer::get_image_data(DXGI_FORMAT& format, UINT& sys_mem_pitch)
+{
+	std::unique_ptr<uint8_t[]> data;
+	switch (image.get_base_type()) {
+		case OIIO::TypeDesc::UINT8:
+			data = image.read_image<uint8_t>();
+			format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			sys_mem_pitch = image.get_width<int>() * 4;
+			break;
+		case OIIO::TypeDesc::UINT16:
+			data = image.read_image<uint16_t>();
+			format = DXGI_FORMAT_R16G16B16A16_UNORM;
+			sys_mem_pitch = image.get_width<int>() * 4 * 2;
+			break;
+		case OIIO::TypeDesc::HALF:
+			data = image.read_image<uint16_t>();
+			format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			sys_mem_pitch = image.get_width<int>() * 4 * 2;
+			break;
+		case OIIO::TypeDesc::FLOAT:
+			data = image.read_image<uint32_t>();
+			format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			sys_mem_pitch = image.get_width<int>() * 4 * 4;
+	}
+	return data;
 }
 
 void Renderer::update_scale_and_dims_output() noexcept

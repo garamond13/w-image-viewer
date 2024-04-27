@@ -21,7 +21,6 @@ public:
 	void create();
 	void update();
 	void draw() const;
-	std::unique_ptr<uint8_t[]> get_image_data(DXGI_FORMAT& format, UINT& sys_mem_pitch);
 	void create_image();
 	void on_window_resize() noexcept;
 	void reset_resources() noexcept;
@@ -29,6 +28,7 @@ public:
 	bool should_update;
 	User_interface ui;
 private:
+	std::unique_ptr<uint8_t[]> get_image_data(DXGI_FORMAT& format, UINT& sys_mem_pitch);
 	void update_scale_and_dims_output() noexcept;
 	void update_scale_profile() noexcept;
 	void init_cms_profile_display();
