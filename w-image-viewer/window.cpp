@@ -116,7 +116,7 @@ int Window::message_loop()
             window->renderer.should_update = true;
             return 0;
         case WM_SIZING:
-            if (g_config.window_keep_aspect.val && window->renderer.ui.file_manager.image.isn_null()) {
+            if (g_config.window_keep_aspect.val && window->renderer.ui.file_manager.image.is_valid()) {
                 auto rect{ reinterpret_cast<RECT*>(lparam) };
 
                 // Get client area.

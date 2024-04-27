@@ -15,7 +15,7 @@ enum WIV_COLOR_SPACE_
 class Image
 {
 public:
-	bool isn_null() const noexcept;
+	bool is_valid() const noexcept;
 	bool has_alpha() const noexcept;
 	bool set_image_input(std::wstring_view path);
 	bool close() noexcept;

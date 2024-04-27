@@ -4,7 +4,7 @@
 #include "icc.h"
 #include "shader_config.h"
 
-bool Image::isn_null() const noexcept
+bool Image::is_valid() const noexcept
 {
 	return image_input.get();
 }
