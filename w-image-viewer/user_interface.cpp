@@ -444,10 +444,8 @@ void User_interface::window_settings()
 		}
 		ImGui::InputInt("Width##min", &g_config.window_min_width.val, 0, 0);
 		ImGui::InputInt("Height##min", &g_config.window_min_height.val, 0, 0);
-		ImGui::Spacing;
-		ImGui::SeparatorText("");
+		ImGui::Spacing();
 		ImGui::Checkbox("Keep aspect ratio when sizing", &g_config.window_keep_aspect.val);
-		ImGui::Spacing;
 		ImGui::Checkbox("Enable auto dimensions", &g_config.window_autowh.val);
 		dimm(!g_config.window_autowh.val);
 		ImGui::Checkbox("Center on auto dimensions", &g_config.window_autowh_center.val);
