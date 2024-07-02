@@ -59,12 +59,12 @@ void Image::get_embended_profile()
 	//
 	
 	// Source https://www.color.org/technotes/ICC-Technote-ProfileEmbedding.pdf
-	constexpr auto size{ 16'707'345 };
+	constexpr auto size = 16'707'345;
 
-	auto buffer{ std::make_unique_for_overwrite<uint8_t[]>(size) };
+	auto buffer = std::make_unique_for_overwrite<uint8_t[]>(size);
 	if (image_input->spec().getattribute("ICCProfile", image_input->spec().getattributetype("ICCProfile"), buffer.get())) {
 		embended_profile.reset(cmsOpenProfileFromMem(buffer.get(), size));
-		auto gamma{ static_cast<float>(cmsDetectRGBProfileGamma(embended_profile.get(), 0.1))};
+		auto gamma = static_cast<float>(cmsDetectRGBProfileGamma(embended_profile.get(), 0.1));
 		if (gamma < 0.0f) // On Error.
 			trc = { WIV_CMS_TRC_NONE, 0.0f };
 		else

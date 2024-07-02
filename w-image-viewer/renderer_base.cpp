@@ -9,12 +9,12 @@
 void Renderer_base::create_device() noexcept
 {
 #ifdef NDEBUG
-	constexpr UINT flags{};
+	constexpr UINT flags = 0;
 #else
-	constexpr UINT flags{ D3D11_CREATE_DEVICE_DEBUG };
+	constexpr UINT flags = D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	static constinit const std::array feature_levels{
+	static constinit const std::array feature_levels = {
 		D3D_FEATURE_LEVEL_12_1,
 		D3D_FEATURE_LEVEL_12_0,
 		D3D_FEATURE_LEVEL_11_1,
@@ -36,14 +36,12 @@ void Renderer_base::create_swapchain()
 	// Create swap chain.
 	//
 
-	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1{
-		.SampleDesc{
-			.Count{ 1 },
-		},
-		.BufferUsage{ DXGI_USAGE_RENDER_TARGET_OUTPUT },
-		.BufferCount{ 2 },
-		.Scaling{ DXGI_SCALING_NONE },
-		.SwapEffect{ DXGI_SWAP_EFFECT_FLIP_DISCARD }
+	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1 = {
+		.SampleDesc = { .Count = 1 },
+		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+		.BufferCount = 2,
+		.Scaling = DXGI_SCALING_NONE,
+		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD
 	};
 
 	// Get primary output.
@@ -82,13 +80,12 @@ void Renderer_base::create_rtv_back_buffer() noexcept
 void Renderer_base::create_samplers() const
 {
 	// Create point sampler.
-	D3D11_SAMPLER_DESC sampler_desc{
-		.AddressU{ D3D11_TEXTURE_ADDRESS_CLAMP },
-		.AddressV{ D3D11_TEXTURE_ADDRESS_CLAMP },
-		.AddressW{ D3D11_TEXTURE_ADDRESS_CLAMP },
-		.MaxAnisotropy{ 1 },
-		.ComparisonFunc{ D3D11_COMPARISON_NEVER },
-		.MaxLOD{ D3D11_FLOAT32_MAX }
+	D3D11_SAMPLER_DESC sampler_desc = {
+		.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP,
+		.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP,
+		.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP,
+		.MaxAnisotropy = 1,
+		.ComparisonFunc = D3D11_COMPARISON_NEVER,
 	};
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_point;
 	wiv_assert(device->CreateSamplerState(&sampler_desc, sampler_state_point.ReleaseAndGetAddressOf()), == S_OK);
@@ -98,7 +95,7 @@ void Renderer_base::create_samplers() const
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_linear;
 	wiv_assert(device->CreateSamplerState(&sampler_desc, sampler_state_linear.ReleaseAndGetAddressOf()), == S_OK);
 
-	std::array sampler_states{ sampler_state_point.Get(), sampler_state_linear.Get() };
+	std::array sampler_states = { sampler_state_point.Get(), sampler_state_linear.Get() };
 	device_context->PSSetSamplers(0, sampler_states.size(), sampler_states.data());
 }
 

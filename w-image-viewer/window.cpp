@@ -11,8 +11,9 @@ enum WIV_WINDOW_NAME_
     WIV_WINDOW_NAME_FILE_NAME_FULL
 };
 
-namespace {
-    constexpr auto WIV_WINDOW_NAME{ L"W Image Viewer" };
+namespace
+{
+    constexpr auto WIV_WINDOW_NAME = L"W Image Viewer";
 }
 
 // Forward declare message handler from imgui_impl_win32.cpp.
@@ -21,20 +22,20 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 Window::Window(HINSTANCE hinstance, int ncmdshow)
 {
     // Register window class.
-    const WNDCLASSEXW wndclassexw{
-        .cbSize{ sizeof(WNDCLASSEXW) },
-        .style{ CS_HREDRAW | CS_VREDRAW },
-        .lpfnWndProc{ wndproc },
-        .hInstance{ hinstance },
-        .hIcon{ LoadIconW(hinstance, MAKEINTRESOURCEW(IDI_WIMAGEVIEWER)) },
-        .lpszClassName{ L"WIV" }
+    const WNDCLASSEXW wndclassexw = {
+        .cbSize = sizeof(WNDCLASSEXW),
+        .style = CS_HREDRAW | CS_VREDRAW,
+        .lpfnWndProc = wndproc,
+        .hInstance = hinstance,
+        .hIcon = LoadIconW(hinstance, MAKEINTRESOURCEW(IDI_WIMAGEVIEWER)),
+        .lpszClassName = L"WIV"
     };
     wiv_assert(RegisterClassExW(&wndclassexw), != 0);
 
     // Create window.
-    RECT rect{
-        .right{ g_config.window_width.val },
-        .bottom{ g_config.window_height.val }
+    RECT rect = {
+        .right = g_config.window_width.val,
+        .bottom = g_config.window_height.val
     };
     wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
     g_hwnd = CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rc_w<int>(rect), rc_h<int>(rect), nullptr, nullptr, hinstance, this);
@@ -45,7 +46,7 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
 
 int Window::message_loop()
 {
-    MSG msg{};
+    MSG msg = {};
     while (msg.message != WM_QUIT) {
         if (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -70,7 +71,7 @@ int Window::message_loop()
         return 1;
 
     // Get "this" pointer that we passed to CreateWindowExW().
-    auto* window{ reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA)) };
+    auto* window = reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
 
     switch (message) {
 
@@ -86,12 +87,12 @@ int Window::message_loop()
 
         // Set minimum window size.
         case WM_GETMINMAXINFO: {
-            RECT rect{
-                .right{ g_config.window_min_width.val },
-                .bottom{ g_config.window_min_height.val }
+            RECT rect = {
+                .right = g_config.window_min_width.val,
+                .bottom = g_config.window_min_height.val
             };
             wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
-            auto minmaxinfo{ reinterpret_cast<MINMAXINFO*>(lparam) };
+            auto minmaxinfo = reinterpret_cast<MINMAXINFO*>(lparam);
             minmaxinfo->ptMinTrackSize.x = std::max(static_cast<LONG>(GetSystemMetrics(SM_CXMIN)), rc_w<LONG>(rect));
             minmaxinfo->ptMinTrackSize.y = std::max(static_cast<LONG>(GetSystemMetrics(SM_CYMIN) + 1), rc_h<LONG>(rect));
             return 0;
@@ -117,17 +118,17 @@ int Window::message_loop()
             return 0;
         case WM_SIZING:
             if (g_config.window_keep_aspect.val && window->renderer.ui.file_manager.image.is_valid()) {
-                auto rect{ reinterpret_cast<RECT*>(lparam) };
+                auto rect = reinterpret_cast<RECT*>(lparam);
 
                 // Get client area.
-                RECT unadjusted_rect{ *rect };
+                RECT unadjusted_rect = *rect;
                 wiv_assert(UnAdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
-                const auto client_width{ rc_w<double>(unadjusted_rect) };
-                const auto client_height{ rc_h<double>(unadjusted_rect) };
+                const auto client_width = rc_w<double>(unadjusted_rect);
+                const auto client_height = rc_h<double>(unadjusted_rect);
 
-                const auto image_aspect{ window->renderer.ui.file_manager.image.get_aspect<double>() };
-                const auto new_client_width{ std::lround(client_height * image_aspect - client_width)};
-                const auto new_client_height{ std::lround(client_width / image_aspect - client_height) };
+                const auto image_aspect = window->renderer.ui.file_manager.image.get_aspect<double>();
+                const auto new_client_width = std::lround(client_height * image_aspect - client_width);
+                const auto new_client_height = std::lround(client_width / image_aspect - client_height);
                 switch (wparam) {
                     case WMSZ_LEFT:
                     case WMSZ_RIGHT:

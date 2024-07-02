@@ -53,11 +53,11 @@ private:
 	float get_kernel_radius() const noexcept;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_image;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_pass;
-	Image& image{ ui.file_manager.image };
+	Image& image = ui.file_manager.image;
 	Dims dims_output;
 	float scale;
 	const Config_scale* p_scale_profile;
-	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> cms_profile_display{ nullptr, cmsCloseProfile };
+	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> cms_profile_display = { nullptr, cmsCloseProfile };
 	Tone_response_curve trc;
 	bool is_cms_valid;
 	float sigmoidize_offset;

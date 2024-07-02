@@ -4,7 +4,7 @@
 
 // Source https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
 template<std::floating_point T>
-inline constexpr T ADOBE_RGB_GAMMA{ 2.19921875 };
+inline constexpr T ADOBE_RGB_GAMMA = 2.19921875;
 
 // AdobeRGB1998
 // Needs to be freed with cmsCloseProfile().

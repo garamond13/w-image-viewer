@@ -11,8 +11,8 @@
 // Safe floating point comparations.
 //
 
-inline constexpr double WIV_DBL_EPS{ 1e-15 };
-inline constexpr float WIV_FLT_EPS{ 1e-6f };
+inline constexpr double WIV_DBL_EPS = 1e-15;
+inline constexpr float WIV_FLT_EPS = 1e-6f;
 
 inline bool is_equal(double a, double b) noexcept
 {
@@ -61,7 +61,7 @@ inline auto frac(T f) noexcept
 
 // Needed in c++20.
 template<typename>
-inline constexpr bool always_false_v{ false };
+inline constexpr bool always_false_v = false;
 
 // Convert string to value.
 inline void strtoval(const std::string& str, auto& val, size_t* idx = nullptr, [[maybe_unused]] int base = 10)
@@ -103,7 +103,7 @@ template <size_t n>
 struct Char_array
 {
 	constexpr Char_array(const char(&str)[n]) :
-		val{ std::to_array(str) }
+		val(std::to_array(str))
 	{}
 
 	const std::array<char, n> val;
@@ -126,8 +126,8 @@ constexpr T rc_h(const RECT& rect) noexcept
 // Reverse of AdjustWindowRectEx().
 inline BOOL UnAdjustWindowRectEx(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
 {
-	RECT rect{};
-	BOOL result{ AdjustWindowRectEx(&rect, dwStyle, bMenu, dwExStyle) };
+	RECT rect = {};
+	BOOL result = AdjustWindowRectEx(&rect, dwStyle, bMenu, dwExStyle);
 	if (result) {
 		lpRect->left -= rect.left;
 		lpRect->top -= rect.top;

@@ -44,5 +44,5 @@ private:
 	bool is_overlay_open = g_config.overlay_show.val;
 	bool is_window_settings_open;
 	bool is_window_about_open;
-	bool* p_renderer_should_update;
+	bool* prenderer_should_update;
 };

@@ -2,8 +2,8 @@
 
 // File: 'Roboto-Medium.ttf' (129768 bytes).
 // Exported using imgui binary_to_compressed_c.cpp.
-inline constexpr unsigned int ROBOTO_MEDIUM_COMPRESSED_SIZE{ 91892 };
-inline constexpr unsigned int ROBOTO_MEDIUM_COMPRESSED_DATA[91892 / 4]{
+inline constexpr unsigned int ROBOTO_MEDIUM_COMPRESSED_SIZE = 91892;
+inline constexpr unsigned int ROBOTO_MEDIUM_COMPRESSED_DATA[91892 / 4] = {
     0x0000bc57, 0x00000000, 0xe8fa0100, 0x00000400, 0x00010025, 0x82120000, 0x045e0804, 0x44472000, 0xb4704645, 0x0100d86d, 0x0000c497, 0x5047ea01,
     0xd577534f, 0x01006e7c, 0x0000b099, 0x53474c56, 0xe9914255, 0x0100c467, 0x0000fcef, 0x534fea0a, 0xe697322f, 0x0100bab1, 0x0000d087, 0x6d636000,
     0xc7767061, 0x010015f8, 0x0000288c, 0x76638206, 0x1c312074, 0x01004b06, 0x1f82bc95, 0x70665c2c, 0xfc876d67, 0x0100ab24, 0x5f82ac92, 0x6167bc28,

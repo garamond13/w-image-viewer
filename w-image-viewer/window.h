@@ -5,12 +5,12 @@
 #include "file_manager.h"
 
 // Window styles.
-inline constexpr auto WIV_WINDOW_STYLE{ WS_OVERLAPPEDWINDOW };
-inline constexpr auto WIV_WINDOW_EX_STYLE{ WS_EX_ACCEPTFILES };
+inline constexpr auto WIV_WINDOW_STYLE = WS_OVERLAPPEDWINDOW;
+inline constexpr auto WIV_WINDOW_EX_STYLE = WS_EX_ACCEPTFILES;
 
 // Window messages.
-inline constexpr auto WIV_WM_OPEN_FILE{ WM_USER + 0 };
-inline constexpr auto WIV_WM_RESET_RESOURCES{ WM_USER + 1 };
+inline constexpr auto WIV_WM_OPEN_FILE = WM_USER + 0;
+inline constexpr auto WIV_WM_RESET_RESOURCES = WM_USER + 1;
 
 class Window
 {

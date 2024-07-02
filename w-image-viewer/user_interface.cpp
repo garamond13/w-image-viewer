@@ -21,7 +21,7 @@ enum WIV_OVERLAY_SHOW_ : uint64_t
 namespace
 {
 	// The order has to be same as in the enum WIV_KERNEL_FUNCTION_. 
-	constexpr std::array kernel_function_names{
+	constexpr std::array kernel_function_names = {
 		"Lanczos",
 		"Ginseng",
 		"Hamming",
@@ -41,7 +41,7 @@ namespace
 
 void User_interface::create(ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
 {
-	p_renderer_should_update = should_update;
+	prenderer_should_update = should_update;
 
 #ifndef NDEBUG
 	IMGUI_CHECKVERSION();
@@ -109,11 +109,11 @@ void User_interface::auto_window_size() const
 		return;
 
 	// Get the screen width and height.
-	const auto cx_screen{ static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)) }; // Width.
-	const auto cy_screen{ static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)) }; // Height.
+	const auto cx_screen = static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)); // Width.
+	const auto cy_screen = static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)); // Height.
 
-	const auto image_width{ file_manager.image.get_width<double>() };
-	const auto image_height{ file_manager.image.get_height<double>() };
+	const auto image_width = file_manager.image.get_width<double>();
+	const auto image_height = file_manager.image.get_height<double>();
 	RECT rect;
 	
 	// At this point we only care about RECT::top.
@@ -123,7 +123,7 @@ void User_interface::auto_window_size() const
 		rect.top = 0;
 
 	// If the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image.
-	const auto factor{ std::min({ cx_screen * 0.9 / image_width, (cy_screen - rect.top) * 0.9 / image_height, 1.0 }) };
+	const auto factor = std::min({ cx_screen * 0.9 / image_width, (cy_screen - rect.top) * 0.9 / image_height, 1.0 });
 	rect.right = std::lround(image_width * factor);
 	rect.bottom = std::lround(image_height * factor);
 	rect.left = 0;
@@ -132,7 +132,7 @@ void User_interface::auto_window_size() const
 	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
 
 	// Optionaly center the window and apply new dimensions.
-	const UINT flags{ static_cast<UINT>(g_config.window_autowh_center.val ? SWP_NOZORDER : SWP_NOZORDER | SWP_NOMOVE) };
+	const UINT flags = static_cast<UINT>(g_config.window_autowh_center.val ? SWP_NOZORDER : SWP_NOZORDER | SWP_NOMOVE);
 	SetWindowPos(g_hwnd, nullptr, static_cast<int>((cx_screen - rc_w<double>(rect)) / 2.0), static_cast<int>((cy_screen - rc_h<double>(rect)) / 2.0), rc_w<int>(rect), rc_h<int>(rect), flags);
 }
 
@@ -172,7 +172,7 @@ void User_interface::input()
 			image_pan += ImGui::GetMouseDragDelta();
 			ImGui::ResetMouseDragDelta();
 			is_panning = true;
-			*p_renderer_should_update = true;
+			*prenderer_should_update = true;
 			return;
 		}
 
@@ -180,13 +180,13 @@ void User_interface::input()
 		if (ImGui::GetIO().MouseWheel > 0.0f) {
 			image_zoom += 0.1f;
 			is_zooming = true;
-			*p_renderer_should_update = true;
+			*prenderer_should_update = true;
 			return;
 		}
 		if (ImGui::GetIO().MouseWheel < 0.0f) {
 			image_zoom -= 0.1f;
 			is_zooming = true;
-			*p_renderer_should_update = true;
+			*prenderer_should_update = true;
 			return;
 		}
 	}
@@ -212,36 +212,36 @@ void User_interface::input()
 			if (ImGui::IsKeyPressed(ImGuiKey_1, false)) {
 				reset_image_panzoom();
 				image_no_scale = true;
-				*p_renderer_should_update = true;
+				*prenderer_should_update = true;
 				return;
 			}
 			if (ImGui::IsKeyPressed(ImGuiKey_0, false)) {
 				reset_image_panzoom();
-				*p_renderer_should_update = true;
+				*prenderer_should_update = true;
 				return;
 			}
 			if (ImGui::IsKeyPressed(ImGuiKey_KeypadAdd)) {
 				image_zoom += 0.1f;
 				is_zooming = true;
-				*p_renderer_should_update = true;
+				*prenderer_should_update = true;
 				return;
 			}
 			if (ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract)) {
 				image_zoom -= 0.1f;
 				is_zooming = true;
-				*p_renderer_should_update = true;
+				*prenderer_should_update = true;
 				return;
 			}
 			if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
 				image_rotation -= 90.0f;
 				is_rotating = true;
-				*p_renderer_should_update = true;
+				*prenderer_should_update = true;
 				return;
 			}
 			if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
 				image_rotation += 90.0f;
 				is_rotating = true;
-				*p_renderer_should_update = true;
+				*prenderer_should_update = true;
 				return;
 			}
 		}
@@ -309,8 +309,8 @@ void User_interface::overlay() const
 		return;
 
 	// Set overlay position.
-	const auto viewport{ ImGui::GetMainViewport() };
-	constexpr float pad{ 6.0f };
+	const auto viewport = ImGui::GetMainViewport();
+	constexpr float pad = 6.0f;
 	ImVec2 window_pos;
 	window_pos.x = g_config.overlay_position.val & 1 ? viewport->WorkPos.x + viewport->WorkSize.x - pad : viewport->WorkPos.x + pad;
 	window_pos.y = g_config.overlay_position.val & 2 ? viewport->WorkPos.y + viewport->WorkSize.y - pad : viewport->WorkPos.y + pad;
@@ -374,13 +374,13 @@ void User_interface::context_menu()
 		if (ImGui::Selectable("Rotate CW")) {
 			image_rotation += 90.0f;
 			is_rotating = true;
-			*p_renderer_should_update = true;
+			*prenderer_should_update = true;
 			goto end;
 		}
 		if (ImGui::Selectable("Rotate CCW")) {
 			image_rotation -= 90.0f;
 			is_rotating = true;
-			*p_renderer_should_update = true;
+			*prenderer_should_update = true;
 			goto end;
 		}
 		ImGui::Separator();
@@ -418,8 +418,8 @@ void User_interface::window_settings()
 	if (!is_window_settings_open)
 		return;
 
-	static constinit const ImVec2 window_size{ 430.0f, 696.0f };
-	static constinit const ImVec2 button_size{ -1.0f, 0.0f };
+	static constinit const ImVec2 window_size = { 430.0f, 696.0f };
+	static constinit const ImVec2 button_size = { -1.0f, 0.0f };
 	static int scale_profile_index; // The default profile should always be at index 0!
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
@@ -453,7 +453,7 @@ void User_interface::window_settings()
 		ImGui::Spacing();
 
 		// The order has to be same as in the enum WIV_WINDOW_NAME_.
-		static constinit const std::array window_name_items{
+		static constinit const std::array window_name_items = {
 			"Defualt name",
 			"Filename",
 			"Full filename"
@@ -473,14 +473,14 @@ void User_interface::window_settings()
 
 		ImGui::SeparatorText("Profiles");
 		static Right_open_range<float> range;
-		std::array range_array{ &range.lower, &range.upper };
+		std::array range_array = { &range.lower, &range.upper };
 		ImGui::InputFloat2("##range", *range_array.data(), "%.6f");
 		ImGui::SameLine();
 		if (ImGui::Button("Add profile", button_size)) {
 			if (range.is_valid()) {
 
 				// Check first does profile already exists (overlaps with any other profile).
-				bool exists{};
+				bool exists = false;
 				for (const auto& profile : g_config.scale_profiles) {
 					if (profile.range.is_overlapping(range)) {
 						exists = true;
@@ -502,7 +502,7 @@ void User_interface::window_settings()
 			if (range.is_valid()) {
 
 				// Check first is profile overlapping with any other profile.
-				bool overlaps{};
+				bool overlaps = false;
 				for (int i{}; i < g_config.scale_profiles.size(); ++i)
 					if (i != scale_profile_index && g_config.scale_profiles[i].range.is_overlapping(range)) {
 						overlaps = true;
@@ -537,7 +537,7 @@ void User_interface::window_settings()
 				--scale_profile_index;
 			}
 		}
-		auto& scale{ g_config.scale_profiles[scale_profile_index].config };
+		auto& scale = g_config.scale_profiles[scale_profile_index].config;
 		ImGui::Spacing();
 
 		//
@@ -563,7 +563,7 @@ void User_interface::window_settings()
 		ImGui::SeparatorText("Filter");
 		ImGui::Checkbox("Use cylindrical filtering (Jinc based)", &scale.kernel_cylindrical_use.val);
 		ImGui::Combo("Kernel-function", &scale.kernel_index.val, kernel_function_names.data(), kernel_function_names.size());
-		bool has_fixed_radius{};
+		bool has_fixed_radius = false;
 		switch (scale.kernel_index.val) {
 			case WIV_KERNEL_FUNCTION_NEAREST:
 			case WIV_KERNEL_FUNCTION_LINEAR:
@@ -576,7 +576,7 @@ void User_interface::window_settings()
 		ImGui::InputFloat("Radius##kernel", &scale.kernel_radius.val, 0.0f, 0.0f, "%.6f");
 		ImGui::InputFloat("Blur", &scale.kernel_blur.val, 0.0f, 0.0f, "%.6f");
 		dimm();
-		bool hasno_parameter1{};
+		bool hasno_parameter1 = false;
 		switch (scale.kernel_index.val) {
 			case WIV_KERNEL_FUNCTION_LANCZOS:
 			case WIV_KERNEL_FUNCTION_GINSENG:
@@ -588,7 +588,7 @@ void User_interface::window_settings()
 		dimm(hasno_parameter1);
 		ImGui::InputFloat("Parameter 1", &scale.kernel_parameter1.val, 0.0f, 0.0f, "%.6f");
 		dimm();
-		bool hasno_parameter2{};
+		bool hasno_parameter2 = false;
 		switch (scale.kernel_index.val) {
 			case WIV_KERNEL_FUNCTION_LANCZOS:
 			case WIV_KERNEL_FUNCTION_GINSENG:
@@ -625,7 +625,7 @@ void User_interface::window_settings()
 		dimm(!g_config.cms_use.val);
 
 		// The order has to be the same as in the enum WIV_CMS_PROFILE_DISPLAY_.
-		static constinit const std::array cms_display_profile_items{
+		static constinit const std::array cms_display_profile_items = {
 			"Auto",
 			"sRGB",
 			"AdobeRGB",
@@ -649,7 +649,7 @@ void User_interface::window_settings()
 		ImGui::Spacing();
 
 		// The order has to be the same as the lcms2 ICC Intents.
-		static constinit const std::array cms_intent_items{
+		static constinit const std::array cms_intent_items = {
 			"Perceptual",
 			"Relative colorimetric",
 			"Saturation",
@@ -660,7 +660,7 @@ void User_interface::window_settings()
 		ImGui::Checkbox("Enable black point compensation", &g_config.cms_bpc_use.val);
 
 		// LUT size
-		static constinit const std::array cms_lut_size_items{
+		static constinit const std::array cms_lut_size_items = {
 			"33",
 			"49",
 			"65",
@@ -705,7 +705,7 @@ void User_interface::window_settings()
 	if (ImGui::CollapsingHeader("Overlay")) {
 		ImGui::Spacing();
 		ImGui::Checkbox("Show overlay on start", &g_config.overlay_show.val);
-		static constinit const std::array overlay_position_items{
+		static constinit const std::array overlay_position_items = {
 			"Top-left",
 			"Top-right",
 			"Bottom-left",
@@ -730,7 +730,7 @@ void User_interface::window_settings()
 		ImGui::Spacing();
 
 		// The order has to be same as in WIV_PASS_FORMATS array.
-		static constinit const std::array internal_format_items{
+		static constinit const std::array internal_format_items = {
 			"RGBA16F",
 			"RGBA32F"
 		};
@@ -757,7 +757,7 @@ void User_interface::window_about()
 	if (!is_window_about_open)
 		return;
 
-	static constinit const ImVec2 size{ 288, 178.0f };
+	static constinit const ImVec2 size = { 288, 178.0f };
 	ImGui::SetNextWindowSize(size);
 	ImGui::Begin("About", &is_window_about_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 	ImGui::Text("W Image Viewer %d.%d.%d", WIV_VERSION_NUMBER_MAJOR, WIV_VERSION_NUMBER_MINOR, WIV_VERSION_NUMBER_PATCH);
@@ -780,9 +780,9 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 	if (SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) {
 		Microsoft::WRL::ComPtr<IFileOpenDialog> file_open_dialog;
 		if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(file_open_dialog.ReleaseAndGetAddressOf())))) {
-			COMDLG_FILTERSPEC filterspec{
-				.pszName{ L"All supported" },
-				.pszSpec{ file_type == WIV_OPEN_IMAGE ? WIV_SUPPORTED_EXTENSIONS : L"*.icc" /* WIV_OPEN_ICC */}
+			COMDLG_FILTERSPEC filterspec = {
+				.pszName = L"All supported",
+				.pszSpec = file_type == WIV_OPEN_IMAGE ? WIV_SUPPORTED_EXTENSIONS : L"*.icc" /* WIV_OPEN_ICC */
 			};
 			wiv_assert(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
 			if (SUCCEEDED(file_open_dialog->Show(g_hwnd))) {
@@ -827,7 +827,7 @@ void User_interface::toggle_fullscreen()
 // Imgui dimming helper.
 void User_interface::dimm(bool condition) const
 {
-	static bool is_pushed;
+	static bool is_pushed = false;
 	if (condition) {
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.45f);
 		is_pushed = true;

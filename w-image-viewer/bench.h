@@ -17,8 +17,8 @@ inline void bench_start() noexcept
 // The result will be in milliseconds (double).
 inline void bench_end() noexcept
 {
-	const auto bench_end_time{ std::chrono::high_resolution_clock::now() };
-	std::thread t([=]() noexcept { MessageBoxW(nullptr, std::to_wstring(std::chrono::duration<double, std::chrono::milliseconds::period>(bench_end_time - bench_start_time).count()).c_str(), L"Bench result", 0); });
+	const auto bench_end_time = std::chrono::high_resolution_clock::now();
+	auto t = std::thread([=]() noexcept { MessageBoxW(nullptr, std::to_wstring(std::chrono::duration<double, std::chrono::milliseconds::period>(bench_end_time - bench_start_time).count()).c_str(), L"Bench result", 0); });
 	t.detach();
 }
 
@@ -26,21 +26,21 @@ inline void bench_end() noexcept
 // The result will be in milliseconds (double).
 inline void bench_end(const std::wstring what) noexcept
 {
-	const auto bench_end_time{ std::chrono::high_resolution_clock::now() };
-	std::thread t([=]() noexcept { MessageBoxW(nullptr, std::to_wstring(std::chrono::duration<double, std::chrono::milliseconds::period>(bench_end_time - bench_start_time).count()).c_str(), what.c_str(), 0); });
+	const auto bench_end_time = std::chrono::high_resolution_clock::now();
+	auto t = std::thread([=]() noexcept { MessageBoxW(nullptr, std::to_wstring(std::chrono::duration<double, std::chrono::milliseconds::period>(bench_end_time - bench_start_time).count()).c_str(), what.c_str(), 0); });
 	t.detach();
 }
 
 // The result will be in milliseconds (double).
 inline void bench_end_blocking() noexcept
 {
-	const auto bench_end_time{ std::chrono::high_resolution_clock::now() };
+	const auto bench_end_time = std::chrono::high_resolution_clock::now();
 	MessageBoxW(nullptr, std::to_wstring(std::chrono::duration<double, std::chrono::milliseconds::period>(bench_end_time - bench_start_time).count()).c_str(), L"Bench result", 0);
 }
 
 // The result will be in milliseconds (double).
 inline void bench_end_blocking(const std::wstring what) noexcept
 {
-	const auto bench_end_time{ std::chrono::high_resolution_clock::now() };
+	const auto bench_end_time = std::chrono::high_resolution_clock::now();
 	MessageBoxW(nullptr, std::to_wstring(std::chrono::duration<double, std::chrono::milliseconds::period>(bench_end_time - bench_start_time).count()).c_str(), what.c_str(), 0);
 }

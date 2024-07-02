@@ -48,18 +48,18 @@ public:
 	std::unique_ptr<uint8_t[]> read_image()
 	{
 		// size = width * height * nchannels * bytedepth
-		auto data{ std::make_unique_for_overwrite<uint8_t[]>(image_input->spec().width * image_input->spec().height * 4 * sizeof(T)) };
+		auto data = std::make_unique_for_overwrite<uint8_t[]>(image_input->spec().width * image_input->spec().height * 4 * sizeof(T));
 
 		image_input->read_image(0, 0, 0, -1, image_input->spec().format, data.get(), 4 * sizeof(T));
 
 		// Convert a single channel greyscale image into multy channel greyscale image.
 		switch (image_input->spec().nchannels) {
 			case 1: // (grey null null null) into (grey grey grey null).
-				for (int i{}; i < image_input->spec().width * image_input->spec().height; ++i)
+				for (int i = 0; i < image_input->spec().width * image_input->spec().height; ++i)
 					reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
 				break;
 			case 2: // (grey alpha null null) into (grey grey grey alpha)
-				for (int i{}; i < image_input->spec().width * image_input->spec().height; ++i) {
+				for (int i = 0; i < image_input->spec().width * image_input->spec().height; ++i) {
 					reinterpret_cast<T*>(data.get())[4 * i + 3] = reinterpret_cast<T*>(data.get())[4 * i + 1];
 					reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
 				}
@@ -71,12 +71,12 @@ public:
 		return data;
 	}
 
-	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile{ nullptr, cmsCloseProfile };
+	std::unique_ptr<std::remove_pointer_t<cmsHPROFILE>, decltype(&cmsCloseProfile)> embended_profile = { nullptr, cmsCloseProfile };
 	int orientation;
 	Tone_response_curve trc;
 private:
 	void get_embended_profile();
 	std::unique_ptr<OIIO::ImageInput> image_input;
 	LibRaw raw_input;
-	OIIO::Filesystem::IOMemReader thumb{ nullptr, 0 };
+	OIIO::Filesystem::IOMemReader thumb = { nullptr, 0 };
 };

@@ -28,10 +28,10 @@ section_key=value
 
 void Config::read()
 {
-	bool is_section_scale{};
+	bool is_section_scale = false;
 	Right_open_range<float> range;
 	Config_scale scale;
-	std::ifstream file(get_path());
+	auto file = std::ifstream(get_path());
 	scale_profiles.clear();
 	if (file.is_open()) {
 		std::string line;
@@ -46,7 +46,7 @@ void Config::read()
 			
 			// Top level
 			if (!is_section_scale) {
-				auto pos{ line.find('=') };
+				auto pos = line.find('=');
 				if (pos != std::string::npos) {
 					read_top_level(line.substr(0, pos), line.substr(pos + 1));
 				}
@@ -60,14 +60,14 @@ void Config::read()
 					if (line.substr(2) == "end")
 						scale_profiles.push_back({range, scale});
 					else {
-						auto pos{ line.find(',') };
+						auto pos = line.find(',');
 						strtoval(line.substr(2, pos), range.lower);
 						strtoval(line.substr(pos + 1), range.upper);
 					}
 					continue;
 				}
 
-				auto pos{ line.find('=') };
+				auto pos = line.find('=');
 				if (pos != std::string::npos)
 					read_scale(line.substr(0, pos), line.substr(pos + 1), scale);
 			}
@@ -81,7 +81,7 @@ void Config::read()
 void Config::write()
 {
 	// Top level
-	std::ofstream file(get_path());
+	auto file = std::ofstream(get_path());
 	write_top_level(file);
 	
 	// Scale
@@ -113,8 +113,8 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 #define read_array(name)\
 	if (key == name ## .key) {\
 		std::string sub_val;\
-		std::stringstream ss{ val };\
-		int i{};\
+		auto ss = std::stringstream(val);\
+		int i = 0;\
 		while (std::getline(ss, sub_val, ',')) {\
 			strtoval(sub_val, name ## .val[i]);\
 			++i;\
@@ -196,7 +196,7 @@ void Config::write_top_level(std::ofstream& file)
 #undef write_array
 #define write_array(name)\
 	file << name ## .key << '=';\
-	for (int i{}; i < name ## .val.size(); ++i) {\
+	for (int i = 0; i < name ## .val.size(); ++i) {\
 		file << name ## .val[i];\
 		if (i != name ## .val.size() - 1)\
 			file << ',';\
