@@ -34,30 +34,15 @@ void Renderer_base::create_swapchain()
 	wiv_assert(dxgi_adapter->GetParent(IID_PPV_ARGS(dxgi_factory2.ReleaseAndGetAddressOf())), == S_OK);
 
 	// Create swap chain.
-	//
-
 	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1 = {
+		.Format = DXGI_FORMAT_R10G10B10A2_UNORM,
 		.SampleDesc = { .Count = 1 },
 		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 		.BufferCount = 2,
 		.Scaling = DXGI_SCALING_NONE,
 		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD
 	};
-
-	// Get primary output.
-	Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-	wiv_assert(dxgi_adapter->EnumOutputs(0, dxgi_output.ReleaseAndGetAddressOf()), == S_OK);
-
-	// Get display color bit depth.
-	Microsoft::WRL::ComPtr<IDXGIOutput6> dxgi_output6;
-	wiv_assert(dxgi_output->QueryInterface(IID_PPV_ARGS(dxgi_output6.ReleaseAndGetAddressOf())), == S_OK);
-	DXGI_OUTPUT_DESC1 output_desc1;
-	wiv_assert(dxgi_output6->GetDesc1(&output_desc1), == S_OK);
-
-	swap_chain_desc1.Format = output_desc1.BitsPerColor == 10 ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM;
 	wiv_assert(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device2.Get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swap_chain.ReleaseAndGetAddressOf()), == S_OK);
-
-	//
 
 	// Set member swapchain dims.
 	wiv_assert(swap_chain->GetDesc1(&swap_chain_desc1), == S_OK);
