@@ -763,7 +763,7 @@ void User_interface::window_about()
 	ImGui::Text("W Image Viewer %d.%d.%d", WIV_VERSION_NUMBER_MAJOR, WIV_VERSION_NUMBER_MINOR, WIV_VERSION_NUMBER_PATCH);
 	ImGui::Separator();
 	ImGui::Spacing();
-	ImGui::TextUnformatted(reinterpret_cast<const char*>(u8"Created by Ivan Bjeli�."));
+	ImGui::TextUnformatted(reinterpret_cast<const char*>(u8"Created by Ivan Bjeliš."));
 	ImGui::Spacing();
 	ImGui::Spacing();
 	if (ImGui::Button("Web page...")) {
