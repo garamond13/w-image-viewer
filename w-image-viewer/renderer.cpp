@@ -342,7 +342,7 @@ void Renderer::create_cms_lut()
 	const D3D11_SUBRESOURCE_DATA subresource_data = {
 		.pSysMem = lut.get(),
 		.SysMemPitch = g_config.cms_lut_size.val * 4 * 2, // width * nchannals * byte_depth
-		.SysMemSlicePitch = g_config.cms_lut_size.val * g_config.cms_lut_size.val * 4 * 2 // width * height * nchannals * byte_depth
+		.SysMemSlicePitch = sqr(g_config.cms_lut_size.val) * 4 * 2 // width * height * nchannals * byte_depth
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
 	wiv_assert(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.ReleaseAndGetAddressOf()), == S_OK);
@@ -369,7 +369,7 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 		image.embended_profile.reset();
 
 		if (htransform) {
-			lut = std::make_unique_for_overwrite<uint16_t[]>(g_config.cms_lut_size.val * g_config.cms_lut_size.val * g_config.cms_lut_size.val * 4);
+			lut = std::make_unique_for_overwrite<uint16_t[]>(cube(g_config.cms_lut_size.val) * 4);
 
 			// Get the correct LUT.
 			const void* wiv_cms_lut = nullptr;
@@ -384,7 +384,7 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 					wiv_cms_lut = WIV_CMS_LUT_65.data();
 			}
 
-			cmsDoTransform(htransform, wiv_cms_lut, lut.get(), g_config.cms_lut_size.val * g_config.cms_lut_size.val * g_config.cms_lut_size.val);
+			cmsDoTransform(htransform, wiv_cms_lut, lut.get(), cube(g_config.cms_lut_size.val));
 			cmsDeleteTransform(htransform);
 		}
 	}

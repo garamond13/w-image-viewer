@@ -59,6 +59,16 @@ inline auto frac(T f) noexcept
 	return f - std::floor(f);
 }
 
+inline constexpr auto sqr(auto a) noexcept
+{
+	return a * a;
+}
+
+inline constexpr auto cube(auto a) noexcept
+{
+	return a * a * a;
+}
+
 // Needed in c++20.
 template<typename>
 inline constexpr bool always_false_v = false;

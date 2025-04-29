@@ -33,8 +33,8 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 	float3 s = 0.0;
 	float3 vert2 = 0.0;
 	float3 vert3 = 1.0;
-			
-#define order(x,y,z) \
+
+	#define order(x,y,z) \
 	cond = c_ ## x ## y && c_ ## y ## z; \
 	s = cond ? r.x ## y ## z : s; \
 	vert2.x = cond ? 1.0 : vert2.x; \
