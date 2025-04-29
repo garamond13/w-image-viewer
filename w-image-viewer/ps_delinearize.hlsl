@@ -16,14 +16,9 @@ float3 linear_to_gamma(float3 rgb)
 	return pow(rgb, rcp_gamma);
 }
 
-float linear_to_srgb(float x)
+float3 linear_to_srgb(float3 x)
 {
 	return x < 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1.0 / 2.4) - 0.055;
-}
-
-float3 linear_to_srgb(float3 rgb)
-{
-	return float3(linear_to_srgb(rgb.r), linear_to_srgb(rgb.g), linear_to_srgb(rgb.b));
 }
 
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
