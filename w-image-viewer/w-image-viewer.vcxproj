@@ -324,7 +324,6 @@
     <None Include="corecrt_math_defines.hlsli" />
     <None Include="helpers.hlsli" />
     <None Include="kernel_functions.hlsli" />
-    <None Include="vs_out.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

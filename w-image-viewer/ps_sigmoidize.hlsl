@@ -1,20 +1,18 @@
 // Expects linearized input.
 
-#include "vs_out.hlsli"
-
 Texture2D tex : register(t0);
 SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-    // Contrast.
-    float c; // x 
-    
-    // Midpoint.
-    float m; // y
-    
-    float offset;
-    float scale;
+	// Contrast.
+	float c; // x
+	
+	// Midpoint.
+	float m; // y
+	
+	float offset;
+	float scale;
 }
 
 // Based on https://github.com/ImageMagick/ImageMagick/blob/main/MagickCore/enhance.c
@@ -25,8 +23,8 @@ cbuffer cb0 : register(b0)
 
 #define sigmoidize(rgb) (m - log(1.0 / (scale * (rgb) + offset) - 1.0) / c)
 
-float4 main(Vs_out vs_out) : SV_Target
+float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
-    const float4 color = saturate(tex.SampleLevel(smp, vs_out.texcoord, 0.0));
-    return float4(sigmoidize(color.rgb), color.a);
+	const float4 color = saturate(tex.SampleLevel(smp, texcoord, 0.0));
+	return float4(sigmoidize(color.rgb), color.a);
 }

@@ -172,9 +172,6 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vs_out.hlsli">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
     <None Include="kernel_functions.hlsli">
       <Filter>Resource Files\shaders</Filter>
     </None>
