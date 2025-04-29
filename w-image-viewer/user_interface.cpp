@@ -52,7 +52,7 @@ void User_interface::create(ID3D11Device* device, ID3D11DeviceContext* device_co
 	// Font.
 	ImFontGlyphRangesBuilder builder;
 	builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
-	builder.AddChar(0x0161); // š
+	builder.AddChar(0x0161); // ï¿½
 	ImVector<ImWchar> ranges;
 	builder.BuildRanges(&ranges);
 	ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(ROBOTO_MEDIUM_COMPRESSED_DATA, ROBOTO_MEDIUM_COMPRESSED_SIZE, 16, nullptr, ranges.Data);
@@ -731,7 +731,7 @@ void User_interface::window_settings()
 
 		// The order has to be same as in WIV_PASS_FORMATS array.
 		static constinit const std::array internal_format_items = {
-			"RGBA16F",
+			"RGBA16",
 			"RGBA32F"
 		};
 
@@ -763,7 +763,7 @@ void User_interface::window_about()
 	ImGui::Text("W Image Viewer %d.%d.%d", WIV_VERSION_NUMBER_MAJOR, WIV_VERSION_NUMBER_MINOR, WIV_VERSION_NUMBER_PATCH);
 	ImGui::Separator();
 	ImGui::Spacing();
-	ImGui::TextUnformatted(reinterpret_cast<const char*>(u8"Created by Ivan Bjeliš."));
+	ImGui::TextUnformatted(reinterpret_cast<const char*>(u8"Created by Ivan Bjeliï¿½."));
 	ImGui::Spacing();
 	ImGui::Spacing();
 	if (ImGui::Button("Web page...")) {
