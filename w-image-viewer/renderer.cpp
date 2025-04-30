@@ -404,9 +404,7 @@ void Renderer::pass_cms()
 	create_pixel_shader(PS_CMS, sizeof(PS_CMS));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_linearize(UINT width, UINT height)
@@ -425,9 +423,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 	create_pixel_shader(PS_LINEARIZE, sizeof(PS_LINEARIZE));
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
 	draw_pass(width, height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_delinearize(UINT width, UINT height)
@@ -446,9 +442,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 	create_pixel_shader(PS_DELINEARIZE, sizeof(PS_DELINEARIZE));
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
 	draw_pass(width, height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_sigmoidize()
@@ -476,9 +470,7 @@ void Renderer::pass_sigmoidize()
 	create_pixel_shader(PS_SIGMOIDIZE, sizeof(PS_SIGMOIDIZE));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_desigmoidize()
@@ -501,9 +493,7 @@ void Renderer::pass_desigmoidize()
 	create_pixel_shader(PS_DESIGMOIDIZE, sizeof(PS_DESIGMOIDIZE));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_blur()
@@ -527,9 +517,7 @@ void Renderer::pass_blur()
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 
 	// Pass x axis.
 	data[1].x.f = 1.0f / image.get_width<float>();
@@ -538,9 +526,7 @@ void Renderer::pass_blur()
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_unsharp()
@@ -566,9 +552,7 @@ void Renderer::pass_unsharp()
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 
 	// Pass x axis.
 	data[0].z.f = p_scale_profile->unsharp_amount.val; // Should be > 0.
@@ -579,9 +563,7 @@ void Renderer::pass_unsharp()
 	device_context->PSSetShaderResources(0, 2, srvs.data());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_orthogonal_resample()
@@ -624,9 +606,7 @@ void Renderer::pass_orthogonal_resample()
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(image.get_width<UINT>(), dims_output.height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 
 	// Pass x axis.
 	data[2].z.f = 1.0f; // x axis.
@@ -637,9 +617,7 @@ void Renderer::pass_orthogonal_resample()
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_cylindrical_resample()
@@ -678,9 +656,7 @@ void Renderer::pass_cylindrical_resample()
 	create_pixel_shader(PS_CYL, sizeof(PS_CYL));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	
-	// Unbind render target.
-	device_context->OMSetRenderTargets(1, &static_cast<ID3D11RenderTargetView* const&>(0), nullptr);
+	unbind_render_targets();
 }
 
 void Renderer::pass_last()
@@ -818,4 +794,10 @@ float Renderer::get_kernel_radius() const noexcept
 	default:
 		return p_scale_profile->kernel_radius.val;
 	}
+}
+
+void Renderer::unbind_render_targets() const
+{
+	static constinit ID3D11RenderTargetView* rtvs[] = { nullptr };
+	device_context->OMSetRenderTargets(1, rtvs, nullptr);
 }
