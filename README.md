@@ -4,8 +4,6 @@
 
 **W Image Viewer** is a simple yet powerful image viewer.
 
-W in the name stands for Windows.
-
 ## Key features
 
 - Extensive image format support (including RAW images).
@@ -15,6 +13,10 @@ W in the name stands for Windows.
 - Simple to use.
 - Fast and lite.
 - Portable.
+
+## Requirements to run
+
+Microsoft Visual C++ 2022 Redistributable x64
 
 ## 
 
