@@ -17,26 +17,36 @@ cbuffer cb0 : register(b0)
 };
 
 // Normalized version is divided by sqrt(2 * pi * sigma * sigma).
-#define get_weight(x) (exp(-(x) * (x) / (2.0 * sigma * sigma)))
+float get_weight(float x)
+{
+	return exp(-x * x / (2.0 * sigma * sigma));
+}
+
+float4 unsharp_mask(float4 rgba, float2 texcoord)
+{
+	const float4 original = tex_original.SampleLevel(smp, texcoord, 0.0);
+	return original + (original - rgba) * amount;
+}
 
 // Samples one axis (x or y) at a time.
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	float weight;
-	float4 csum = tex.SampleLevel(smp, texcoord, 0.0); // Weighted color sum.
+	float4 csum = tex.SampleLevel(smp, texcoord, 0.0);
 	float wsum = 1.0; // Weight sum.
 	for (int i = 1; i <= radius; ++i) {
 		weight = get_weight(float(i));
 		csum += (tex.SampleLevel(smp, texcoord + pt * float(-i), 0.0) + tex.SampleLevel(smp, texcoord + pt * float(i), 0.0)) * weight;
 		wsum += 2.0 * weight;
 	}
-	
-	// Unsharp mask.
-	// Last pass!
+
+	// Normalize weighted color sum.
+	csum /= wsum;
+
+	// Should only called in the last pass of unsharp mask pass!
 	if (amount > 0.0) {
-		const float4 original = tex_original.SampleLevel(smp, texcoord, 0.0);
-		return original + (original - csum / wsum) * amount;
+		return unsharp_mask(csum, texcoord);
 	}
 	
-	return csum / wsum;
+	return csum;
 }

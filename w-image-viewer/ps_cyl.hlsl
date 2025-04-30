@@ -37,7 +37,7 @@ cbuffer cb0 : register(b0)
 float get_weight(float x)
 {
 	if (x < radius) {
-		[forcecase] switch (index) {
+		switch (index) {
 			case WIV_KERNEL_FUNCTION_LANCZOS:
 				return base(x, blur) * jinc(x, radius); // EWA Lanczos.
 			case WIV_KERNEL_FUNCTION_GINSENG:
@@ -70,17 +70,18 @@ float get_weight(float x)
 				return 0.0;
 		}
 	}
-	else // x >= radius
+
+	// x >= radius
+	else {
 		return 0.0;
+	}
 }
 
-float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_TARGET
+float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	const float2 fcoord = frac(texcoord * dims - 0.5);
 	const float2 base = texcoord - fcoord * pt;
-	float4 color;
-	float4 csum = 0.0; // Weighted color sum.
-	float weight;
+	float4 csum = 0.0;
 	float wsum = 0.0; // Weight sum.
 
 	// Antiringing.
@@ -89,8 +90,8 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_TARGET
 	
 	for (float j = 1.0 - bound; j <= bound; ++j) {
 		for (float i = 1.0 - bound; i <= bound; ++i) {
-			color = tex.SampleLevel(smp, base + pt * float2(i, j), 0.0);
-			weight = get_weight(length(float2(i, j) - fcoord) * scale);
+			float4 color = tex.SampleLevel(smp, base + pt * float2(i, j), 0.0);
+			float weight = get_weight(length(float2(i, j) - fcoord) * scale);
 			csum += color * weight;
 			wsum += weight;
 
@@ -101,11 +102,14 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_TARGET
 			}
 		}
 	}
+
+	// Normalize weighted color sum.
 	csum /= wsum;
 
 	// Antiringing.
-	if (use_ar)
+	if (use_ar) {
 		return lerp(csum, clamp(csum, lo, hi), ar);
+	}
 
 	return csum;
 }

@@ -25,7 +25,7 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	const float4 color = saturate(tex.SampleLevel(smp, texcoord, 0.0));
 	
-	[forcecase] switch (index) {
+	switch (index) {
 		case WIV_CMS_TRC_GAMMA:
 			return float4(linear_to_gamma(color.rgb), color.a);
 		case WIV_CMS_TRC_SRGB:

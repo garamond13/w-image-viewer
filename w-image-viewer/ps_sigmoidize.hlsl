@@ -21,7 +21,10 @@ cbuffer cb0 : register(b0)
 // offset = 1 / (1 + exp(c * m))
 // scale = 1 / (1 + exp(c * (m - 1))) - offset
 
-#define sigmoidize(rgb) (m - log(1.0 / (scale * (rgb) + offset) - 1.0) / c)
+float3 sigmoidize(float3 rgb)
+{
+	return m - log(1.0 / (scale * rgb + offset) - 1.0) / c;
+}
 
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {

@@ -11,7 +11,8 @@ cbuffer cb0 : register(b0)
 
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
-	if (rotate)
+	if (rotate) {
 		rotate_texcoord(texcoord, theta);
+	}
 	return tex.SampleLevel(smp, texcoord, 0.0);
 }
