@@ -1,8 +1,6 @@
 // Color managment system (CMS).
 // Tetrahedral interpolation.
 
-#include "shader_config.h"
-
 Texture2D tex : register(t0);
 Texture3D lut : register(t2);
 SamplerState smp : register(s0);
@@ -12,16 +10,11 @@ cbuffer cb0 : register(b0)
 	float lut_size; // x
 }
 
-float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
+// See https://doi.org/10.2312/egp.20211031
+void get_barycentric_weights(float3 r, out float4 bary, out float3 vert2, out float3 vert3)
 {
-	const float4 color = tex.SampleLevel(smp, texcoord, 0.0); 
-	const float3 index = saturate(color.rgb) * (lut_size - 1.0);
-	
-	// Get barycentric weights.
-	// See https://doi.org/10.2312/egp.20211031
-	//
-	
-	const float3 r = frac(index);
+	vert2 = 0.0;
+	vert3 = 1.0;
 	const bool3 c = r.xyz >= r.yzx;
 	const bool c_xy = c.x;
 	const bool c_yz = c.y;
@@ -31,9 +24,7 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 	const bool c_xz =!c.z;
 	bool cond;
 	float3 s = 0.0;
-	float3 vert2 = 0.0;
-	float3 vert3 = 1.0;
-
+	
 	#define order(x,y,z) \
 	cond = c_ ## x ## y && c_ ## y ## z; \
 	s = cond ? r.x ## y ## z : s; \
@@ -46,9 +37,18 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 	order(z, y, x)
 	order(y, z, x)
 	order(y, x, z)
-	
-	//
-	
+
+	bary = float4(1.0 - s.x, s.z, s.x - s.y, s.y - s.z);
+}
+
+float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
+{
+	const float4 color = tex.SampleLevel(smp, texcoord, 0.0); 
+	const float3 index = saturate(color.rgb) * (lut_size - 1.0);
+	float4 bary;
+	float3 vert2;
+	float3 vert3;
+	get_barycentric_weights(frac(index), bary, vert2, vert3);
 	const float3 base = floor(index) + 0.5;
-	return float4(lut.SampleLevel(smp, base / lut_size, 0.0).rgb * (1.0 - s.x) + lut.SampleLevel(smp, (base + 1.0) / lut_size, 0.0).rgb * s.z + lut.SampleLevel(smp, (base + vert2) / lut_size, 0.0).rgb * (s.x - s.y) + lut.SampleLevel(smp, (base + vert3) / lut_size, 0.0).rgb * (s.y - s.z), color.a);
+	return float4(lut.SampleLevel(smp, base / lut_size, 0.0).rgb * bary.x + lut.SampleLevel(smp, (base + 1.0) / lut_size, 0.0).rgb * bary.y + lut.SampleLevel(smp, (base + vert2) / lut_size, 0.0).rgb * bary.z + lut.SampleLevel(smp, (base + vert3) / lut_size, 0.0).rgb * bary.w, color.a);
 }
