@@ -66,6 +66,7 @@ public:
 	Config_pair<int, "cms_prof"> cms_display_profile;
 	Config_pair<std::filesystem::path, "cms_prof_cus"> cms_display_profile_custom;
 	Config_pair<unsigned int, "cms_lutsz"> cms_lut_size = { 33 };
+	Config_pair<bool, "cms_dither"> cms_dither;
 	Config_pair<int, "pass_fmt"> pass_format;
 	Config_pair<bool, "raw_tmb"> raw_thumb = { true };
 	std::vector<Scale_profile> scale_profiles;

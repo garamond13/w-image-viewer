@@ -688,6 +688,7 @@ void User_interface::window_settings()
 				g_config.cms_lut_size.val = 65;
 		}
 		
+		ImGui::Checkbox("Dither 8 bit images", &g_config.cms_dither.val);
 		dimm();
 		ImGui::Spacing();
 		ImGui::SeparatorText("Color tags");

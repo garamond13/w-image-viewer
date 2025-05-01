@@ -393,9 +393,15 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 
 void Renderer::pass_cms()
 {
+    // Generate a random float between 0.0 and 1.0. For dithering.
+	std::srand(std::time(nullptr));
+    const float random_number = static_cast<float>(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX));
+
 	const alignas(16) std::array data = {
 		Cb4{
 			.x = { .f = static_cast<float>(g_config.cms_lut_size.val) },
+			.y = { .i = g_config.cms_dither.val && image.get_base_type() == OIIO::TypeDesc::UINT8 },
+			.z = { .f = random_number }
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;

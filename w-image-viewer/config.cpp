@@ -147,6 +147,7 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 		return;
 	}
 	read(cms_lut_size)
+	read(cms_dither)
 	read(pass_format)
 	read(raw_thumb)
 	read(overlay_show)
@@ -225,6 +226,7 @@ void Config::write_top_level(std::ofstream& file)
 	write(cms_display_profile)
 	file << cms_display_profile_custom.key << '=' << cms_display_profile_custom.val.string() << '\n';
 	write(cms_lut_size)
+	write(cms_dither)
 	write(pass_format)
 	write(raw_thumb)
 	write(overlay_show)
