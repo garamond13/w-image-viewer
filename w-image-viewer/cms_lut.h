@@ -6,7 +6,7 @@
 template <int lut_size>
 consteval auto wiv_fill_lut()
 {
-	std::array<uint16_t, lut_size * lut_size * lut_size * 4> lut = {};
+	std::array<uint16_t, lut_size * lut_size * lut_size * 3> lut = {};
 	int i = 0;
 	for (int b = 0; b < lut_size; ++b)
 		for (int g = 0; g < lut_size; ++g)
@@ -14,7 +14,6 @@ consteval auto wiv_fill_lut()
 				lut[i++] = r * 65535 / (lut_size - 1);
 				lut[i++] = g * 65535 / (lut_size - 1);
 				lut[i++] = b * 65535 / (lut_size - 1);
-				i++; // Iterate over alpha.
 			}
 	return lut;
 }

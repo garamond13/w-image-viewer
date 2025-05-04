@@ -363,7 +363,7 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 		if (g_config.cms_bpc_use.val)
 			flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
 		
-		auto htransform = cmsCreateTransform(image.embended_profile.get(), TYPE_RGBA_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
+		auto htransform = cmsCreateTransform(image.embended_profile.get(), TYPE_RGB_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
 		
 		// At this point we dont need the profile anymore, so close it.
 		image.embended_profile.reset();
