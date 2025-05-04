@@ -60,7 +60,7 @@ public:
 	Config_pair<std::array<float, 3>, "a_t2c"> alpha_tile2_color = { 0.8f, 0.8f, 0.8f };
 	Config_pair<bool, "cms"> cms_use;
 	Config_pair<int, "cms_intent"> cms_intent;
-	Config_pair<bool, "cms_bpc"> cms_bpc_use = { true };
+	Config_pair<bool, "cms_bpc"> cms_bpc_use;
 	Config_pair<bool, "cms_deftosrgb"> cms_default_to_srgb;
 	Config_pair<bool, "cms_deftoaces"> cms_default_to_aces;
 	Config_pair<int, "cms_prof"> cms_display_profile;
