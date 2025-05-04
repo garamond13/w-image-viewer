@@ -74,8 +74,9 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 {
     // Get "this" pointer.
     auto* this_ptr = reinterpret_cast<Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
-    if (!this_ptr)
+    [[unlikely]] if (!this_ptr) {
         return DefWindowProcW(hwnd, message, wparam, lparam);
+    }
 
     if (ImGui_ImplWin32_WndProcHandler(hwnd, message, wparam, lparam))
         return 1;
