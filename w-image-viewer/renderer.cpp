@@ -270,7 +270,6 @@ info:
 	}
 	else
 		g_info.kernel_size = static_cast<int>(std::ceil(get_kernel_radius() / std::min(scale, 1.0f))) * 2;
-
 }
 
 void Renderer::update_trc()
@@ -738,36 +737,6 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
 }
 
-void Renderer::create_constant_buffer(UINT byte_width, const void* data, ID3D11Buffer** buffer) const noexcept
-{
-	const D3D11_BUFFER_DESC buffer_desc = {
-		.ByteWidth = byte_width,
-		.Usage = D3D11_USAGE_DYNAMIC,
-		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-		.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-	};
-	const D3D11_SUBRESOURCE_DATA subresource_data = {
-		.pSysMem = data
-	};
-	wiv_assert(device->CreateBuffer(&buffer_desc, &subresource_data, buffer), == S_OK);
-	device_context->PSSetConstantBuffers(0, 1, buffer);
-}
-
-void Renderer::update_constant_buffer(ID3D11Buffer* buffer, const void* data, size_t size) const noexcept
-{
-	D3D11_MAPPED_SUBRESOURCE mapped_subresource;
-	wiv_assert(device_context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_subresource), == S_OK);
-	std::memcpy(mapped_subresource.pData, data, size);
-	device_context->Unmap(buffer, 0);
-}
-
-void Renderer::create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept
-{
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixel_shader;
-	wiv_assert(device->CreatePixelShader(shader, shader_size, nullptr, pixel_shader.ReleaseAndGetAddressOf()), == S_OK);
-	device_context->PSSetShader(pixel_shader.Get(), nullptr, 0);
-}
-
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept
 {
 	D3D11_VIEWPORT viewport = {
@@ -800,10 +769,4 @@ float Renderer::get_kernel_radius() const noexcept
 	default:
 		return p_scale_profile->kernel_radius.val;
 	}
-}
-
-void Renderer::unbind_render_targets() const
-{
-	static constinit ID3D11RenderTargetView* rtvs[] = { nullptr };
-	device_context->OMSetRenderTargets(1, rtvs, nullptr);
 }

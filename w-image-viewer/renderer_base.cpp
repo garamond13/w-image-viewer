@@ -91,3 +91,39 @@ void Renderer_base::create_vertex_shader() const noexcept
 	wiv_assert(device->CreateVertexShader(VS_QUAD, sizeof(VS_QUAD), nullptr, vertex_shader.ReleaseAndGetAddressOf()), == S_OK);
 	device_context->VSSetShader(vertex_shader.Get(), nullptr, 0);
 }
+
+void Renderer_base::create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept
+{
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixel_shader;
+	wiv_assert(device->CreatePixelShader(shader, shader_size, nullptr, pixel_shader.ReleaseAndGetAddressOf()), == S_OK);
+	device_context->PSSetShader(pixel_shader.Get(), nullptr, 0);
+}
+
+void Renderer_base::create_constant_buffer(UINT byte_width, const void* data, ID3D11Buffer** buffer) const noexcept
+{
+	const D3D11_BUFFER_DESC buffer_desc = {
+		.ByteWidth = byte_width,
+		.Usage = D3D11_USAGE_DYNAMIC,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+	};
+	const D3D11_SUBRESOURCE_DATA subresource_data = {
+		.pSysMem = data
+	};
+	wiv_assert(device->CreateBuffer(&buffer_desc, &subresource_data, buffer), == S_OK);
+	device_context->PSSetConstantBuffers(0, 1, buffer);
+}
+
+void Renderer_base::update_constant_buffer(ID3D11Buffer* buffer, const void* data, size_t size) const noexcept
+{
+	D3D11_MAPPED_SUBRESOURCE mapped_subresource;
+	wiv_assert(device_context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_subresource), == S_OK);
+	std::memcpy(mapped_subresource.pData, data, size);
+	device_context->Unmap(buffer, 0);
+}
+
+void Renderer_base::unbind_render_targets() const
+{
+	static constinit ID3D11RenderTargetView* rtvs[] = { nullptr };
+	device_context->OMSetRenderTargets(1, rtvs, nullptr);
+}
