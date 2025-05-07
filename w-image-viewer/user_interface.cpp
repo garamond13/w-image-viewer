@@ -815,12 +815,14 @@ void User_interface::toggle_fullscreen()
 	if (is_fullscreen) {
 		SetWindowLongPtrW(g_hwnd, GWL_STYLE, WIV_WINDOW_STYLE);
 		wiv_assert(SetWindowPlacement(g_hwnd, &windowplacment), != 0);
-		wiv_assert(SetWindowPos(g_hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_SHOWWINDOW), != 0);
+		wiv_assert(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOCOPYBITS), != 0);
 	}
 	else {
 		wiv_assert(GetWindowPlacement(g_hwnd, &windowplacment), != 0);
 		SetWindowLongPtrW(g_hwnd, GWL_STYLE, WS_POPUP);
-		wiv_assert(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXVIRTUALSCREEN), GetSystemMetrics(SM_CYVIRTUALSCREEN), SWP_FRAMECHANGED | SWP_NOOWNERZORDER | SWP_SHOWWINDOW), != 0);
+		const int cx = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		const int cy = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		wiv_assert(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, cx, cy, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOCOPYBITS), != 0);
 	}
 	is_fullscreen = !is_fullscreen;
 }
