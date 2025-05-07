@@ -39,6 +39,13 @@ namespace
 	};
 }
 
+User_interface::~User_interface()
+{
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+}
+
 void User_interface::create(ID3D11Device* device, ID3D11DeviceContext* device_context, bool* should_update)
 {
 	prenderer_should_update = should_update;
@@ -81,6 +88,7 @@ void User_interface::update()
 	context_menu();
 	window_settings();
 	window_about();
+	window_slideshow();
 
 	// DEBUG ONLY!
 	//
@@ -144,11 +152,32 @@ void User_interface::reset_image_panzoom() noexcept
 	image_no_scale = false;
 }
 
-User_interface::~User_interface()
+void User_interface::slideshow()
 {
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+	if (!is_slideshow_playing || file_manager.file_current.empty()) {
+		
+		// We need to reset these in case slide show gets started while we dont have a file.
+		is_slideshow_playing = false;
+		is_slideshow_start = false;
+
+		return;
+	}
+	static std::chrono::high_resolution_clock::time_point start;
+	
+	// Upon slideshow start we need to set once duration for the first image (currently renderered image).
+	if (is_slideshow_start) {
+		start = std::chrono::high_resolution_clock::now();
+		is_slideshow_start = false;
+	}
+
+	if (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start).count() < slideshow_interval) {
+		return;
+	}
+	file_manager.file_next();
+	PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0);
+
+	// This doesen't account for image load times.
+	start = std::chrono::high_resolution_clock::now();
 }
 
 void User_interface::input()
@@ -395,6 +424,10 @@ void User_interface::context_menu()
 			goto end;
 		}
 		ImGui::Separator();
+		if (ImGui::Selectable("Slideshow...")) {
+			is_window_slideshow_open = true;
+			goto end;
+		}
 		if (ImGui::Selectable("Settings...")) {
 			is_window_settings_open = true;
 			goto end;
@@ -750,6 +783,30 @@ void User_interface::window_settings()
 	if (ImGui::Button("Write changes", button_size))
 		g_config.write();
 	ImGui::Spacing();
+	ImGui::End();
+}
+
+void User_interface::window_slideshow()
+{
+	if (!is_window_slideshow_open)
+		return;
+	static constinit const ImVec2 size = { 288.0f, 0.0f };
+	ImGui::SetNextWindowSize(size);
+	ImGui::Begin("Slideshow", &is_window_slideshow_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+	static bool auto_close;
+	ImGui::Checkbox("Auto close this window on start", &auto_close);
+	ImGui::InputFloat("Interval", &slideshow_interval, 0.0f, 0.0f, "%.3f");
+	if (ImGui::Button("Start")) {
+		if (auto_close) {
+			is_window_slideshow_open = false;
+		}
+		is_slideshow_start = true;
+		is_slideshow_playing = true;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Stop")) {
+		is_slideshow_playing = false;
+	}
 	ImGui::End();
 }
 
