@@ -446,7 +446,7 @@ void User_interface::window_settings()
 		ImGui::InputInt("Height##min", &g_config.window_min_height.val, 0, 0);
 		ImGui::Spacing();
 		ImGui::Checkbox("Keep aspect ratio when sizing", &g_config.window_keep_aspect.val);
-		ImGui::Checkbox("Enable auto dimensions", &g_config.window_autowh.val);
+		ImGui::Checkbox("Auto dimensions", &g_config.window_autowh.val);
 		dimm(!g_config.window_autowh.val);
 		ImGui::Checkbox("Center on auto dimensions", &g_config.window_autowh_center.val);
 		dimm();
@@ -657,7 +657,7 @@ void User_interface::window_settings()
 		};
 
 		ImGui::Combo("Rendering intent", &g_config.cms_intent.val, cms_intent_items.data(), cms_intent_items.size());
-		ImGui::Checkbox("Enable black point compensation", &g_config.cms_bpc_use.val);
+		ImGui::Checkbox("Black Point Compensation", &g_config.cms_bpc_use.val);
 
 		// LUT size
 		static constinit const std::array cms_lut_size_items = {
