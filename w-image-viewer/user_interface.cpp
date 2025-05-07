@@ -105,35 +105,36 @@ void User_interface::draw() const
 
 void User_interface::auto_window_size() const
 {
-	if (is_fullscreen || IsZoomed(g_hwnd))
+	if (is_fullscreen || IsZoomed(g_hwnd)) {
 		return;
-
-	// Get the screen width and height.
-	const auto cx_screen = static_cast<double>(GetSystemMetrics(SM_CXVIRTUALSCREEN)); // Width.
-	const auto cy_screen = static_cast<double>(GetSystemMetrics(SM_CYVIRTUALSCREEN)); // Height.
-
-	const auto image_width = file_manager.image.get_width<double>();
-	const auto image_height = file_manager.image.get_height<double>();
+	}
 	RECT rect;
 	
-	// At this point we only care about RECT::top.
-	if (!g_config.window_autowh_center.val)
+	// We need RECT::top if we are not centering window.
+	if (!g_config.window_autowh_center.val) {
 		GetWindowRect(g_hwnd, &rect);
-	else
+	}
+	else {
 		rect.top = 0;
+	}
 
+	const double screen_width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	const double screen_height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	
 	// If the image resolution is larger than the screen resolution * 0.9, downsize the window to screen resolution * 0.9 with the aspect ratio of the image.
-	const auto factor = std::min({ cx_screen * 0.9 / image_width, (cy_screen - rect.top) * 0.9 / image_height, 1.0 });
-	rect.right = std::lround(image_width * factor);
-	rect.bottom = std::lround(image_height * factor);
+	const double image_width = file_manager.image.get_width<double>();
+	const double image_height = file_manager.image.get_height<double>();
+	const double scale_factor = std::min(std::min(screen_width * 0.9 / image_width, (screen_height - rect.top) * 0.9 / image_height), 1.0);
+	rect.right = std::lround(image_width * scale_factor);
+	rect.bottom = std::lround(image_height * scale_factor);
 	rect.left = 0;
 	rect.top = 0;
 
 	AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE);
 
 	// Optionaly center the window and apply new dimensions.
-	const UINT flags = static_cast<UINT>(g_config.window_autowh_center.val ? SWP_NOZORDER : SWP_NOZORDER | SWP_NOMOVE);
-	SetWindowPos(g_hwnd, nullptr, static_cast<int>((cx_screen - rc_w<double>(rect)) / 2.0), static_cast<int>((cy_screen - rc_h<double>(rect)) / 2.0), rc_w<int>(rect), rc_h<int>(rect), flags);
+	const UINT flags = static_cast<UINT>(g_config.window_autowh_center.val ? SWP_NOZORDER | SWP_NOCOPYBITS : SWP_NOZORDER | SWP_NOMOVE | SWP_NOCOPYBITS);
+	SetWindowPos(g_hwnd, HWND_TOP, (screen_width - rc_w<double>(rect)) / 2.0, (screen_height - rc_h<double>(rect)) / 2.0, rc_w<int>(rect), rc_h<int>(rect), flags);
 }
 
 void User_interface::reset_image_panzoom() noexcept
