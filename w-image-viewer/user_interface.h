@@ -43,7 +43,6 @@ public:
 	void window_about();
 	void dialog_file_open(WIV_OPEN_ file_type);
 	void toggle_fullscreen();
-	void dimm(bool condition = false) const;
 	bool is_overlay_open = g_config.overlay_show.val;
 	bool is_window_settings_open;
 	bool is_window_slideshow_open;

@@ -481,9 +481,9 @@ void User_interface::window_settings()
 		ImGui::Spacing();
 		ImGui::Checkbox("Keep aspect ratio when sizing", &g_config.window_keep_aspect.val);
 		ImGui::Checkbox("Auto dimensions", &g_config.window_autowh.val);
-		dimm(!g_config.window_autowh.val);
+		ImGui::BeginDisabled(!g_config.window_autowh.val);
 		ImGui::Checkbox("Center on auto dimensions", &g_config.window_autowh_center.val);
-		dimm();
+		ImGui::EndDisabled();
 		ImGui::Spacing();
 
 		// The order has to be same as in the enum WIV_WINDOW_NAME_.
@@ -578,21 +578,21 @@ void User_interface::window_settings()
 
 		ImGui::SeparatorText("Pre-scale blur (downscale only)");
 		ImGui::Checkbox("Enable pre-scale blur", &scale.blur_use.val);
-		dimm(!scale.blur_use.val);
+		ImGui::BeginDisabled(!scale.blur_use.val);
 		ImGui::InputInt("Radius##blur", &scale.blur_radius.val, 0, 0);
 		scale.blur_radius.val = std::max(scale.blur_radius.val, 1);
 		ImGui::InputFloat("Sigma##blur", &scale.blur_sigma.val, 0.0f, 0.0f, "%.6f");
 		scale.blur_sigma.val = std::max(scale.blur_sigma.val, 1e-6f);
-		dimm();
+		ImGui::EndDisabled();
 		ImGui::Spacing();
 		ImGui::SeparatorText("Sigmoidize (upscale only)");
 		ImGui::Checkbox("Enable sigmoidize", &scale.sigmoid_use.val);
-		dimm(!scale.sigmoid_use.val);
+		ImGui::BeginDisabled(!scale.sigmoid_use.val);
 		ImGui::InputFloat("Contrast", &scale.sigmoid_contrast.val, 0.0f, 0.0f, "%.6f");
 		scale.sigmoid_contrast.val = std::max(scale.sigmoid_contrast.val, 1e-6f);
 		ImGui::InputFloat("Midpoint", &scale.sigmoid_midpoint.val, 0.0f, 0.0f, "%.6f");
 		scale.sigmoid_midpoint.val = std::clamp(scale.sigmoid_midpoint.val, 0.0f, 1.0f);
-		dimm();
+		ImGui::EndDisabled();
 		ImGui::Spacing();
 		ImGui::SeparatorText("Filter");
 		ImGui::Checkbox("Use cylindrical filtering (Jinc based)", &scale.kernel_cylindrical_use.val);
@@ -606,10 +606,10 @@ void User_interface::window_settings()
 			case WIV_KERNEL_FUNCTION_BCSPLINE:
 				has_fixed_radius = true;
 		}
-		dimm(has_fixed_radius);
+		ImGui::BeginDisabled(has_fixed_radius);
 		ImGui::InputFloat("Radius##kernel", &scale.kernel_radius.val, 0.0f, 0.0f, "%.6f");
 		ImGui::InputFloat("Blur", &scale.kernel_blur.val, 0.0f, 0.0f, "%.6f");
-		dimm();
+		ImGui::EndDisabled();
 		bool hasno_parameter1 = false;
 		switch (scale.kernel_index.val) {
 			case WIV_KERNEL_FUNCTION_LANCZOS:
@@ -619,9 +619,9 @@ void User_interface::window_settings()
 			case WIV_KERNEL_FUNCTION_LINEAR:
 				hasno_parameter1 = true;
 		}
-		dimm(hasno_parameter1);
+		ImGui::BeginDisabled(hasno_parameter1);
 		ImGui::InputFloat("Parameter 1", &scale.kernel_parameter1.val, 0.0f, 0.0f, "%.6f");
-		dimm();
+		ImGui::EndDisabled();
 		bool hasno_parameter2 = false;
 		switch (scale.kernel_index.val) {
 			case WIV_KERNEL_FUNCTION_LANCZOS:
@@ -634,29 +634,29 @@ void User_interface::window_settings()
 			case WIV_KERNEL_FUNCTION_BICUBIC:
 				hasno_parameter2 = true;
 		}
-		dimm(hasno_parameter2);
+		ImGui::BeginDisabled(hasno_parameter2);
 		ImGui::InputFloat("Parameter 2", &scale.kernel_parameter2.val, 0.0f, 0.0f, "%.6f");
-		dimm();
+		ImGui::EndDisabled();
 		ImGui::InputFloat("Anti-ringing", &scale.kernel_antiringing.val, 0.0f, 0.0f, "%.6f");
 		scale.kernel_antiringing.val = std::clamp(scale.kernel_antiringing.val, 0.0f, 1.0f);
 		ImGui::Spacing();
 		ImGui::SeparatorText("Post-scale unsharp mask");
 		ImGui::Checkbox("Enable post-scale unsharp mask", &scale.unsharp_use.val);
-		dimm(!scale.unsharp_use.val);
+		ImGui::BeginDisabled(!scale.unsharp_use.val);
 		ImGui::InputInt("Radius##unsharp", &scale.unsharp_radius.val, 0, 0);
 		scale.unsharp_radius.val = std::max(scale.unsharp_radius.val, 1);
 		ImGui::InputFloat("Sigma##unsharp", &scale.unsharp_sigma.val, 0.0f, 0.0f, "%.6f");
 		scale.unsharp_sigma.val = std::max(scale.unsharp_sigma.val, 1e-6f);
 		ImGui::InputFloat("Amount", &scale.unsharp_amount.val, 0.0f, 0.0f, "%.6f");
 		scale.unsharp_amount.val = std::max(scale.unsharp_amount.val, 1e-6f);
-		dimm();
+		ImGui::EndDisabled();
 		ImGui::Spacing();
 	}
 	if (ImGui::CollapsingHeader("Color management")) {
 		ImGui::Spacing();
 		ImGui::Checkbox("Enable color management", &g_config.cms_use.val);
 		ImGui::Spacing();
-		dimm(!g_config.cms_use.val);
+		ImGui::BeginDisabled(!g_config.cms_use.val);
 
 		// The order has to be the same as in the enum WIV_CMS_PROFILE_DISPLAY_.
 		static constinit const std::array cms_display_profile_items = {
@@ -669,17 +669,15 @@ void User_interface::window_settings()
 		ImGui::Combo("Display profile", &g_config.cms_display_profile.val, cms_display_profile_items.data(), cms_display_profile_items.size());
 		char buffer[MAX_PATH];
 		std::strcpy(buffer, g_config.cms_display_profile_custom.val.string().c_str());
-		if (g_config.cms_use.val)
-			dimm(g_config.cms_display_profile.val != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
+		ImGui::BeginDisabled(g_config.cms_display_profile.val != WIV_CMS_PROFILE_DISPLAY_CUSTOM);
 		ImGui::InputText("##custom_path", buffer, MAX_PATH);
 		g_config.cms_display_profile_custom.val = buffer;
-		if (g_config.cms_use.val)
-			dimm();
 		ImGui::SameLine();
 		if (ImGui::Button("Custom...", button_size)) {
 			std::thread t(&User_interface::dialog_file_open, this, WIV_OPEN_ICC);
 			t.detach();
 		}
+		ImGui::EndDisabled();
 		ImGui::Spacing();
 
 		// The order has to be the same as the lcms2 ICC Intents.
@@ -723,7 +721,7 @@ void User_interface::window_settings()
 		}
 		
 		ImGui::Checkbox("Dither 8 bit images", &g_config.cms_dither.val);
-		dimm();
+		ImGui::EndDisabled();
 		ImGui::Spacing();
 		ImGui::SeparatorText("Color tags");
 		ImGui::Checkbox("Linear tagged images default to ACEScg", &g_config.cms_default_to_aces.val);
@@ -885,18 +883,4 @@ void User_interface::toggle_fullscreen()
 		wiv_assert(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, cx, cy, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOCOPYBITS), != 0);
 	}
 	is_fullscreen = !is_fullscreen;
-}
-
-// Imgui dimming helper.
-void User_interface::dimm(bool condition) const
-{
-	static bool is_pushed = false;
-	if (condition) {
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.45f);
-		is_pushed = true;
-	}
-	else if (is_pushed) {
-		ImGui::PopStyleVar();
-		is_pushed = false;
-	}
 }
