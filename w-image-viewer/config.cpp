@@ -153,6 +153,7 @@ void Config::read_top_level(const std::string& key, const std::string& val)
 	read(overlay_show)
 	read(overlay_position)
 	read(overlay_config)
+	read(cycle_files)
 }
 
 void Config::read_scale(const std::string& key, const std::string& val, Config_scale& scale)
@@ -232,6 +233,7 @@ void Config::write_top_level(std::ofstream& file)
 	write(overlay_show)
 	write(overlay_position)
 	write(overlay_config)
+	write(cycle_files)
 }
 
 void Config::write_scale(std::ofstream& file, const Config_scale& scale)

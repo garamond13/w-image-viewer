@@ -73,6 +73,7 @@ public:
 	Config_pair<bool, "ovrl"> overlay_show;
 	Config_pair<int, "ovrl_pos"> overlay_position;
 	Config_pair<uint64_t, "ovrl_cfg"> overlay_config;
+	Config_pair<bool, "cycle_files"> cycle_files;
 private:
 	void read_top_level(const std::string& key, const std::string& val);
 	void read_scale(const std::string& key, const std::string& val, Config_scale& scale);
