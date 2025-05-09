@@ -8,6 +8,7 @@
 #include "supported_extensions.h"
 #include "window.h"
 #include "message.h"
+#include "info.h"
 
 enum WIV_OVERLAY_SHOW_ : uint64_t
 {
@@ -15,7 +16,10 @@ enum WIV_OVERLAY_SHOW_ : uint64_t
 	WIV_OVERLAY_SHOW_SCALE = 1 << 1,
 	WIV_OVERLAY_SHOW_SCALED_DIMS = 1 << 2,
 	WIV_OVERLAY_SHOW_KERNEL_INDEX = 1 << 3,
-	WIV_OVERLAY_SHOW_KERNEL_SIZE = 1 << 4
+	WIV_OVERLAY_SHOW_KERNEL_SIZE = 1 << 4,
+	WIV_OVERLAY_SHOW_KERNEL_RADIUS = 1 << 5,
+	WIV_OVERLAY_SHOW_IMAGE_BITDEPTH = 1 << 6,
+	WIV_OVERLAY_SHOW_IMAGE_NCHANNELS = 1 << 7,
 };
 
 namespace
@@ -334,9 +338,9 @@ void User_interface::input()
 
 void User_interface::overlay() const
 {
-	// Early return.
-	if (!is_overlay_open)
+	if (!is_overlay_open) {
 		return;
+	}
 
 	// Set overlay position.
 	const auto viewport = ImGui::GetMainViewport();
@@ -351,24 +355,36 @@ void User_interface::overlay() const
 
 	ImGui::SetNextWindowBgAlpha(0.35f);
 	if (ImGui::Begin("##overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize)) {
-		if (!g_config.overlay_config.val)
+		if (!g_config.overlay_config.val) {
 			ImGui::TextUnformatted("Overlay is not configured.");
+		}
 		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS) {
-			ImGui::Text("Image W: %i", g_info.image_width);
-			ImGui::Text("Image H: %i", g_info.image_height);
+			ImGui::Text("Image W: %i", info::image_width);
+			ImGui::Text("Image H: %i", info::image_height);
 		}
-		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE)
-			ImGui::Text("Scale: %.6f", g_info.scale);
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_BITDEPTH) {
+			ImGui::Text("Image bitdepth: %i", info::image_bitdepth);
+		}
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_NCHANNELS) {
+			ImGui::Text("Image nchannels: %i", info::image_nchannels);
+		}
 		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS) {
-			ImGui::Text("Scaled W: %i", g_info.scaled_width);
-			ImGui::Text("Scaled H: %i", g_info.scaled_height);
+			ImGui::Text("Scaled W: %i", info::scaled_width);
+			ImGui::Text("Scaled H: %i", info::scaled_height);
 		}
-		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX)
-			ImGui::Text(kernel_function_names[g_info.kernel_index]);
-		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE)
-			ImGui::Text("Kernel size: %i", g_info.kernel_size);
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE) {
+			ImGui::Text("Scale: %.6f", info::scale);
+		}
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX) {
+			ImGui::Text(kernel_function_names[info::kernel_index]);
+		}
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX) {
+			ImGui::Text("Kernel radius: %.6f", info::kernel_radius);
+		}
+		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE) {
+			ImGui::Text("Kernel size: %i", info::kernel_size);
+		}
 	}
-
 	ImGui::End();
 }
 
@@ -747,16 +763,30 @@ void User_interface::window_settings()
 		ImGui::Combo("Overlay position", &g_config.overlay_position.val, overlay_position_items.data(), overlay_position_items.size());
 		ImGui::Spacing();
 		ImGui::TextUnformatted("Show:");
-		if (ImGui::Selectable("Image dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS))
+		if (ImGui::Selectable("Image dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS)) {
 			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_IMAGE_DIMS;
-		if (ImGui::Selectable("Scale factor", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE))
-			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALE;
-		if (ImGui::Selectable("Scaled dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS))
+		}
+		if (ImGui::Selectable("Image bit depth", g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_BITDEPTH)) {
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_IMAGE_BITDEPTH;
+		}
+		if (ImGui::Selectable("Image nchannels", g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_NCHANNELS)) {
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_IMAGE_NCHANNELS;
+		}
+		if (ImGui::Selectable("Scaled dimensions", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS)) {
 			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALED_DIMS;
-		if (ImGui::Selectable("Kernel function", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX))
+		}
+		if (ImGui::Selectable("Scale factor", g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE)) {
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_SCALE;
+		}
+		if (ImGui::Selectable("Kernel function", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX)) {
 			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_INDEX;
-		if (ImGui::Selectable("Scale kernel size", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE))
+		}
+		if (ImGui::Selectable("Scale kernel radius", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_RADIUS)) {
+			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_RADIUS;
+		}
+		if (ImGui::Selectable("Scale kernel size", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE)) {
 			g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_SIZE;
+		}
 		ImGui::Spacing();
 	}
 	if (ImGui::CollapsingHeader("Other")) {

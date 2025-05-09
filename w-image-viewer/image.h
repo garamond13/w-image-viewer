@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "trc.h"
+#include "info.h"
 
 enum WIV_COLOR_SPACE_
 {
@@ -47,19 +48,21 @@ public:
 	template<typename T>
 	std::unique_ptr<uint8_t[]> read_image()
 	{
-		// size = width * height * nchannels * bytedepth
-		auto data = std::make_unique_for_overwrite<uint8_t[]>(image_input->spec().width * image_input->spec().height * 4 * sizeof(T));
+		const auto& spec = image_input->spec();
 
-		image_input->read_image(0, 0, 0, -1, image_input->spec().format, data.get(), 4 * sizeof(T));
+		// size = width * height * nchannels * bytedepth
+		auto data = std::make_unique_for_overwrite<uint8_t[]>(spec.width * spec.height * 4 * sizeof(T));
+
+		image_input->read_image(0, 0, 0, -1, spec.format, data.get(), 4 * sizeof(T));
 
 		// Convert a single channel greyscale image into multy channel greyscale image.
-		switch (image_input->spec().nchannels) {
+		switch (spec.nchannels) {
 			case 1: // (grey null null null) into (grey grey grey null).
-				for (int i = 0; i < image_input->spec().width * image_input->spec().height; ++i)
+				for (int i = 0; i < spec.width * spec.height; ++i)
 					reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
 				break;
 			case 2: // (grey alpha null null) into (grey grey grey alpha)
-				for (int i = 0; i < image_input->spec().width * image_input->spec().height; ++i) {
+				for (int i = 0; i < spec.width * spec.height; ++i) {
 					reinterpret_cast<T*>(data.get())[4 * i + 3] = reinterpret_cast<T*>(data.get())[4 * i + 1];
 					reinterpret_cast<T*>(data.get())[4 * i + 2] = reinterpret_cast<T*>(data.get())[4 * i + 1] = reinterpret_cast<T*>(data.get())[4 * i];
 				}
@@ -68,6 +71,8 @@ public:
 		// At this point we dont need raw_input data anymore.
 		raw_input.recycle();
 		
+		info::image_bitdepth = spec.channel_bytes() * 8;
+		info::image_nchannels = spec.nchannels;
 		return data;
 	}
 

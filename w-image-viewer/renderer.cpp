@@ -5,6 +5,7 @@
 #include "shader_config.h"
 #include "icc.h"
 #include "cms_lut.h"
+#include "info.h"
 
 // Compiled shaders.
 #include "ps_sample_hlsl.h"
@@ -127,9 +128,8 @@ void Renderer::create_image()
 	UINT sys_mem_pitch;
 	std::unique_ptr<uint8_t[]> data = get_image_data(format, sys_mem_pitch);
 	
-	// Info.
-	g_info.image_width = image.get_width<int>();
-	g_info.image_height = image.get_height<int>();
+	info::image_width = image.get_width<int>();
+	info::image_height = image.get_height<int>();
 
 	// Create texture.
 	const D3D11_TEXTURE2D_DESC texture2d_desc = {
@@ -242,11 +242,9 @@ void Renderer::update_scale_and_dims_output() noexcept
 
 	dims_output.width = static_cast<int>(std::ceil(image_w * scale));
 	dims_output.height = static_cast<int>(std::ceil(image_h * scale));
-
-	// Info.
-	g_info.scale = scale;
-	g_info.scaled_width = dims_output.width;
-	g_info.scaled_height = dims_output.height;
+	info::scale = scale;
+	info::scaled_width = dims_output.width;
+	info::scaled_height = dims_output.height;
 }
 
 void Renderer::update_scale_profile() noexcept
@@ -261,15 +259,16 @@ void Renderer::update_scale_profile() noexcept
 	// Else use default profile.
 	p_scale_profile = &g_config.scale_profiles[0].config;
 
-	// Info.
 info:
-	g_info.kernel_index = p_scale_profile->kernel_index.val;
+	info::kernel_index = p_scale_profile->kernel_index.val;
+	info::kernel_radius = get_kernel_radius();
 	if (p_scale_profile->kernel_cylindrical_use.val) {
-		const auto a = static_cast<int>(std::ceil(get_kernel_radius() / std::min(scale, 1.0f)));
-		g_info.kernel_size = a * a;
+		const auto a = static_cast<int>(std::ceil(info::kernel_radius / std::min(scale, 1.0f)));
+		info::kernel_size = a * a;
 	}
-	else
-		g_info.kernel_size = static_cast<int>(std::ceil(get_kernel_radius() / std::min(scale, 1.0f))) * 2;
+	else {
+		info::kernel_size = static_cast<int>(std::ceil(info::kernel_radius / std::min(scale, 1.0f))) * 2;
+	}
 }
 
 void Renderer::update_trc()
