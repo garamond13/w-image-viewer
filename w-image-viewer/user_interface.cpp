@@ -376,7 +376,7 @@ void User_interface::overlay() const
 			ImGui::Text("Scale: %.6f", info::scale);
 		}
 		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX) {
-			ImGui::Text(kernel_function_names[info::kernel_index]);
+			ImGui::Text("Kernel: %s", kernel_function_names[info::kernel_index]);
 		}
 		if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX) {
 			ImGui::Text("Kernel radius: %.6f", info::kernel_radius);
