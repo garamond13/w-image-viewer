@@ -101,7 +101,7 @@ void User_interface::update()
 	ImGui::ShowMetricsWindow();
 #endif
 
-#if 1
+#if 0
 	ImGui::ShowDemoWindow();
 #endif
 
