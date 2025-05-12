@@ -6,14 +6,10 @@ SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-	int radius; // x
-	float sigma; // y
-	
-	// Only used by unsharp mask.
-	float amount; // z
-	
-	// Texel size, (1 / width, 0) or (0, 1 / height).
-	float2 pt; // xx yy
+	int radius;
+	float sigma;
+	float amount;
+	float2 pt;
 };
 
 // Normalized version is divided by sqrt(2 * pi * sigma * sigma).

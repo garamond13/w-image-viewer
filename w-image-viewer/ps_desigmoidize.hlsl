@@ -5,25 +5,19 @@ SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-	// Contrast.
-	float c; // x
-	
-	// Midpoint.
-	float m; // y
-	
-	float offset; // z
-	float scale; // w
+	float contrast;
+	float midpoint;
+	float offset;
+	float scale;
 }
 
 // Based on https://github.com/ImageMagick/ImageMagick/blob/main/MagickCore/enhance.c
-//desigmoidize(x) = 1 / (1 + exp(c * (m - x))) - 1 / (1 + exp(c * m))) / (1 / (1 + exp(c * (m - 1))) - 1 / (1 + exp(c * m))
-
-// offset = 1 / (1 + exp(c * m))
-// scale = 1 / (1 + exp(c * (m - 1))) - offset
 
 float3 desigmoidize(float3 rgb)
 {
-	return (1.0 / (1.0 + exp(c * (m - rgb))) - offset) / scale;
+	// offset = 1 / (1 + exp(contrast * midpoint))
+	// scale = 1 / (1 + exp(contrast * (midpoint - 1))) - offset
+	return (1.0 / (1.0 + exp(contrast * (midpoint - rgb))) - offset) / scale;
 }
 
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target

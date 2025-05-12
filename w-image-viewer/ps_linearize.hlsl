@@ -5,10 +5,8 @@ SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-	int index; // x
-	
-	// Example: 2.2.
-	float gamma_value; // y
+	int index;
+	float gamma_value;
 }
 
 float3 gamma_to_linear(float3 rgb)

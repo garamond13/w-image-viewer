@@ -10,27 +10,19 @@ SamplerState smp : register(s1);
 
 cbuffer cb0 : register(b0)
 {
-	int index; // x
-	float radius; // y
-	float blur; // z
+	int index;
+	float radius;
+	float blur;
 	
 	// Free parameters.
-	float p1; // w
-	float p2; // xx
+	float p1;
+	float p2;
 	
-	// Antiringing strenght.
-	float ar; // yy
-	
-	float2 dims; // zz ww
-	float scale; // xxx
-	
-	// Kernel bounds.
-	float bound; // yyy
-	
-	// Texel size.
-	float2 pt; // zzz www
-	
-	bool use_ar; // xxxx
+	float ar; // Antiringing strenght.
+	float2 dims;
+	float scale;
+	float bound;
+	float2 pt;
 }
 
 // Expects abs(x).
@@ -91,13 +83,13 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 	
 	for (float y = 1.0 - bound; y <= bound; ++y) {
 		for (float x = 1.0 - bound; x <= bound; ++x) {
-			float4 color = tex.SampleLevel(smp, (base + float2(x, y)) * pt, 0.0);
-			float weight = get_weight(length(float2(x, y) - f) * scale);
+			const float4 color = tex.SampleLevel(smp, (base + float2(x, y)) * pt, 0.0);
+			const float weight = get_weight(length(float2(x, y) - f) * scale);
 			csum += color * weight;
 			wsum += weight;
 
 			// Antiringing.
-			if (use_ar && y >= 0.0 && y <= 1.0 && x >= 0.0 && x <= 1.0) {
+			if (ar > 0.0f && y >= 0.0 && y <= 1.0 && x >= 0.0 && x <= 1.0) {
 				lo = min(lo, color);
 				hi = max(hi, color);
 			}
@@ -108,7 +100,7 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 	csum /= wsum;
 
 	// Antiringing.
-	if (use_ar) {
+	if (ar > 0.0f) {
 		return lerp(csum, clamp(csum, lo, hi), ar);
 	}
 

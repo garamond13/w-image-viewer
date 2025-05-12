@@ -5,11 +5,11 @@ SamplerState smp : register(s1);
 
 cbuffer cb0 : register(b0)
 {
-	float2 size; // x y
-	float theta; // z
-	bool rotate; // w
-	float3 tile1; // xx yy zz
-	float3 tile2; // xxx yyy zzz
+	float2 size;
+	float theta;
+	bool rotate;
+	float3 tile1;
+	float3 tile2;
 }
 
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target

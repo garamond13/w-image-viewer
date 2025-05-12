@@ -5,8 +5,8 @@ SamplerState smp : register(s1);
 
 cbuffer cb0 : register(b0)
 {
-	float theta; // x
-	bool rotate; // y
+	float theta;
+	bool rotate;
 }
 
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target

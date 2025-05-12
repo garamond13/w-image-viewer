@@ -29,7 +29,7 @@ union Cb_types
 };
 
 // Use for constant buffer data.
-struct Cb4
+struct Cb
 {
 	Cb_types x;
 	Cb_types y;
@@ -396,9 +396,14 @@ void Renderer::pass_cms()
     const float random_number = static_cast<float>(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX));
 
 	const alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// lut_size
 			.x = { .f = static_cast<float>(g_config.cms_lut_size.val) },
+			
+			// dither
 			.y = { .i = g_config.cms_dither.val && image.get_base_type() == OIIO::TypeDesc::UINT8 },
+			
+			// random_number
 			.z = { .f = random_number }
 		}
 	};
@@ -416,9 +421,13 @@ void Renderer::pass_linearize(UINT width, UINT height)
 	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR)
 		return;
 	const alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// index
 			.x = { .i = trc.id },
-			.y = { .f = trc.val } // Only relevant if gamma correction is used.
+			
+			// gamma_value
+			// Only relevant if gamma correction is used.
+			.y = { .f = trc.val }
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -435,8 +444,11 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR)
 		return;
 	const alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// index
 			.x = { .i = trc.id },
+			
+			// rcp_gamma
 			.y = { .f = 1.0f / trc.val } // Only relevant if gamma correction is used.
 		}
 	};
@@ -461,10 +473,17 @@ void Renderer::pass_sigmoidize()
 	sigmoidize_scale = 1.0f / (1.0f + std::exp(p_scale_profile->sigmoid_contrast.val * p_scale_profile->sigmoid_midpoint.val - p_scale_profile->sigmoid_contrast.val)) - sigmoidize_offset;
 
 	const alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// contrast
 			.x = { .f = p_scale_profile->sigmoid_contrast.val },
+			
+			// midpoint
 			.y = { .f = p_scale_profile->sigmoid_midpoint.val },
+			
+			// offset
 			.z = { .f = sigmoidize_offset },
+			
+			// scale
 			.w = { .f = sigmoidize_scale }
 		}
 	};
@@ -484,10 +503,18 @@ void Renderer::pass_desigmoidize()
 		return;
 
 	const alignas(16) std::array data = {
-		Cb4{
+		Cb{
+
+			// contrast
 			.x = { .f = p_scale_profile->sigmoid_contrast.val },
+			
+			// midpoint
 			.y = { .f = p_scale_profile->sigmoid_midpoint.val },
+			
+			// offset
 			.z = { .f = sigmoidize_offset },
+			
+			// scale
 			.w = { .f = sigmoidize_scale }
 		}
 	};
@@ -503,12 +530,19 @@ void Renderer::pass_desigmoidize()
 void Renderer::pass_blur()
 {
 	alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// radius
 			.x = { .i = p_scale_profile->blur_radius.val },
+			
+			// sigma
 			.y = { .f = p_scale_profile->blur_sigma.val },
-			.z = { .f = -1.0f } // Unsharp amount, has to be <= 0!
+			
+			// amount
+			// Unsharp amount, has to be <= 0!
+			.z = { .f = -1.0f }
 		},
-		Cb4{
+		Cb{
+			// pt
 			.x = { .f = 0.0f },
 			.y = { .f = 1.0f / image.get_height<float>() }
 		}
@@ -524,8 +558,11 @@ void Renderer::pass_blur()
 	unbind_render_targets();
 
 	// Pass x axis.
+
+	// pt
 	data[1].x.f = 1.0f / image.get_width<float>();
 	data[1].y.f = 0.0f;
+	
 	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
@@ -536,12 +573,19 @@ void Renderer::pass_blur()
 void Renderer::pass_unsharp()
 {
 	alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// radius
 			.x = { .i = p_scale_profile->unsharp_radius.val },
+			
+			// sigma
 			.y = { .f = p_scale_profile->unsharp_sigma.val },
-			.z = { .f = -1.0f } // Unsharp amount, has to be <= 0 for the 1st pass!
+
+			// amount
+			// Unsharp amount, has to be <= 0 for the 1st pass!
+			.z = { .f = -1.0f }
 		},
-		Cb4{
+		Cb{
+			// pt
 			.x = { .f = 0.0f },
 			.y = { .f = 1.0f / dims_output.get_height<float>() }
 		}
@@ -559,9 +603,15 @@ void Renderer::pass_unsharp()
 	unbind_render_targets();
 
 	// Pass x axis.
-	data[0].z.f = p_scale_profile->unsharp_amount.val; // Should be > 0.
+	
+	// amount
+	// Should be > 0.
+	data[0].z.f = p_scale_profile->unsharp_amount.val;
+	
+	// pt
 	data[1].x.f = 1.0f / dims_output.get_width<float>();
 	data[1].y.f = 0.0f;
+	
 	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	const std::array srvs = { srv_pass.Get(), srv_original.Get() };
 	device_context->PSSetShaderResources(0, 2, srvs.data());
@@ -575,31 +625,47 @@ void Renderer::pass_orthogonal_resample()
 	const float clamped_scale = std::min(scale, 1.0f);
 	const float kernel_radius = get_kernel_radius();
 	alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// index
 			.x = { .i = p_scale_profile->kernel_index.val },
+			
+			// radius
 			.y = { .f = kernel_radius },
+			
+			// blur
 			.z = { .f = p_scale_profile->kernel_blur.val },
+			
+			// p1
 			.w = { .f = p_scale_profile->kernel_parameter1.val }
 		},
-		Cb4{
+		Cb{
+			// p2
 			.x = { .f = p_scale_profile->kernel_parameter2.val },
-			.y = { .f = p_scale_profile->kernel_antiringing.val },
+
+			// ar
+			// Antiringing shouldnt be used when downsampling!
+			.y = { .f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f },
+			
+			// scale
 			.z = { .f = clamped_scale },
+			
+			// bound
 			.w = { .f = std::ceil(kernel_radius / clamped_scale) }
 		},
-		Cb4{
+		Cb{
+
+			// dims
 			.x = { .f = image.get_width<float>() },
 			.y = { .f = image.get_height<float>() },
+			
+			// axis
 			.z = { .f = 0.0f },
 			.w = { .f = 1.0f }
 		},
-		Cb4{
+		Cb{
+			// pt
 			.x = { .f = 1.0f / image.get_width<float>() },
 			.y = { .f = 1.0f / image.get_height<float>() },
-
-			// Antiringing shouldnt be used when downsampling!
-			.z = { .i = p_scale_profile->kernel_antiringing.val > 0.0f && clamped_scale == 1.0f }
-
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -613,8 +679,11 @@ void Renderer::pass_orthogonal_resample()
 	unbind_render_targets();
 
 	// Pass x axis.
-	data[2].z.f = 1.0f; // x axis.
-	data[2].w.f = 0.0f; // y axis.
+
+	// axis
+	data[2].z.f = 1.0f;
+	data[2].w.f = 0.0f;
+	
 	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -627,29 +696,41 @@ void Renderer::pass_cylindrical_resample()
 	const float clamped_scale = std::min(scale, 1.0f);
 	const float kernel_radius = get_kernel_radius();
 	const alignas(16) std::array data = {
-		Cb4{
+		Cb{
+			// index
 			.x = { .i = p_scale_profile->kernel_index.val },
+			
+			// radius
 			.y = { .f = kernel_radius },
+			
+			// blur
 			.z = { .f = p_scale_profile->kernel_blur.val },
+			
+			// p1
 			.w = { .f = p_scale_profile->kernel_parameter1.val }
 		},
-		Cb4{
+		Cb{
+
+			// p2
 			.x = { .f = p_scale_profile->kernel_parameter2.val },
-			.y = { .f = p_scale_profile->kernel_antiringing.val },
+			
+			// ar
+			.y = { .f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f },
+			
+			// dims
 			.z = { .f = image.get_width<float>() },
 			.w = { .f = image.get_height<float>() }
 		},
-		Cb4{
+		Cb{
+			// scale
 			.x = { .f = clamped_scale },
+			
+			// bound
 			.y = { .f = std::ceil(kernel_radius / clamped_scale) },
+			
+			// pt
 			.z = { .f = 1.0f / image.get_width<float>() },
-			.w = { .f = 1.0f / image.get_height<float>() },
-		},
-		Cb4{
-
-			// Antiringing shouldnt be used when downsampling!
-			.x = { .i = p_scale_profile->kernel_antiringing.val > 0.0f && clamped_scale == 1.0f }
-
+			.w = { .f = 1.0f / image.get_height<float>() }
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
@@ -666,21 +747,27 @@ void Renderer::pass_last()
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	if (image.has_alpha()) {
 		const alignas(16) std::array data = {
-			Cb4{
+			Cb{
+				// size
 				.x = { .f = dims_output.get_width<float>() / g_config.alpha_tile_size.val },
 				.y = { .f = dims_output.get_height<float>() / g_config.alpha_tile_size.val },
+				
+				// theta
 				.z = { .f = ui.image_rotation },
 
+				// rotate
 				// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
 				.w = { .i = is_not_zero(frac(ui.image_rotation / 360.0f)) }
 
 			},
-			Cb4{
+			Cb{
+				// tile1
 				.x = { .f = g_config.alpha_tile1_color.val[0] },
 				.y = { .f = g_config.alpha_tile1_color.val[1] },
 				.z = { .f = g_config.alpha_tile1_color.val[2] }
 			},
-			Cb4{
+			Cb{
+				// tile2
 				.x = { .f = g_config.alpha_tile2_color.val[0] },
 				.y = { .f = g_config.alpha_tile2_color.val[1] },
 				.z = { .f = g_config.alpha_tile2_color.val[2] }
@@ -691,9 +778,11 @@ void Renderer::pass_last()
 	}
 	else {
 		const alignas(16) std::array data = {
-			Cb4{
+			Cb{
+				// theta
 				.x = { .f = ui.image_rotation },
 
+				// rotate
 				// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
 				.y = { .i = is_not_zero(frac(ui.image_rotation / 360.0f)) }
 

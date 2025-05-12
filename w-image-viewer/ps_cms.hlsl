@@ -7,9 +7,9 @@ SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
-	float lut_size; // x
-	bool dither; // y
-	float random_number; // z
+	float lut_size;
+	bool dither;
+	float random_number;
 }
 
 // Tri dither
