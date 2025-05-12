@@ -27,7 +27,7 @@ void Renderer_base::create_swapchain()
 {
 	// Query interfaces.
 	Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
-	wiv_assert(device->QueryInterface(IID_PPV_ARGS(dxgi_device1.GetAddressOf())), == S_OK);
+	wiv_assert(device.As(&dxgi_device1), == S_OK);
 	Microsoft::WRL::ComPtr<IDXGIAdapter> dxgi_adapter;
 	wiv_assert(dxgi_device1->GetAdapter(dxgi_adapter.GetAddressOf()), == S_OK);
 	Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
