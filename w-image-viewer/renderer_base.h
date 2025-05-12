@@ -17,7 +17,7 @@ protected:
 	void unbind_render_targets() const;
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> device_context;
-	Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain;
+	Microsoft::WRL::ComPtr<IDXGISwapChain1> swapchain;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv_back_buffer;
 	Dims dims_swap_chain;
 };

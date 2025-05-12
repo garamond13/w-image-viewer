@@ -117,7 +117,7 @@ void Renderer::draw() const
 	device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_color.val.data());
 	device_context->Draw(3, 0);
 	ui.draw();
-	wiv_assert(swap_chain->Present(1, 0), == S_OK);
+	wiv_assert(swapchain->Present(1, 0), == S_OK);
 }
 
 // Creates the first texture from the loaded image.
@@ -147,7 +147,7 @@ void Renderer::create_image()
 		.SysMemPitch = sys_mem_pitch
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-	wiv_assert(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.ReleaseAndGetAddressOf()), == S_OK);
+	wiv_assert(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.GetAddressOf()), == S_OK);
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
 
 	if (cms_profile_display)
@@ -157,13 +157,13 @@ void Renderer::create_image()
 void Renderer::on_window_resize() noexcept
 {
 	// This function may get called to early, so check do we have swap chain.
-	if (swap_chain) {
+	if (swapchain) {
 		rtv_back_buffer.Reset();
-		wiv_assert(swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), == S_OK);
+		wiv_assert(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), == S_OK);
 
 		// Set swapchain dims.
 		DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1;
-		wiv_assert(swap_chain->GetDesc1(&swap_chain_desc1), == S_OK);
+		wiv_assert(swapchain->GetDesc1(&swap_chain_desc1), == S_OK);
 		dims_swap_chain.width = swap_chain_desc1.Width;
 		dims_swap_chain.height = swap_chain_desc1.Height;
 
@@ -343,9 +343,9 @@ void Renderer::create_cms_lut()
 		.SysMemSlicePitch = sqr(g_config.cms_lut_size.val) * 4 * 2 // width * height * nchannals * byte_depth
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
-	wiv_assert(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.ReleaseAndGetAddressOf()), == S_OK);
+	wiv_assert(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.GetAddressOf()), == S_OK);
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-	wiv_assert(device->CreateShaderResourceView(texture3d.Get(), nullptr, srv.ReleaseAndGetAddressOf()), == S_OK);
+	wiv_assert(device->CreateShaderResourceView(texture3d.Get(), nullptr, srv.GetAddressOf()), == S_OK);
 	device_context->PSSetShaderResources(2, 1, srv.GetAddressOf());
 	
 	is_cms_valid = true;
@@ -403,7 +403,7 @@ void Renderer::pass_cms()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_CMS, sizeof(PS_CMS));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
@@ -422,7 +422,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_LINEARIZE, sizeof(PS_LINEARIZE));
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
@@ -441,7 +441,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_DELINEARIZE, sizeof(PS_DELINEARIZE));
 	create_viewport(static_cast<float>(width), static_cast<float>(height));
@@ -469,7 +469,7 @@ void Renderer::pass_sigmoidize()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_SIGMOIDIZE, sizeof(PS_SIGMOIDIZE));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
@@ -492,7 +492,7 @@ void Renderer::pass_desigmoidize()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_DESIGMOIDIZE, sizeof(PS_DESIGMOIDIZE));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -514,7 +514,7 @@ void Renderer::pass_blur()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
 
 	// Pass y axis.
@@ -547,7 +547,7 @@ void Renderer::pass_unsharp()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_original = srv_pass;
@@ -603,7 +603,7 @@ void Renderer::pass_orthogonal_resample()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
 
 	// Pass y axis.
@@ -655,7 +655,7 @@ void Renderer::pass_cylindrical_resample()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-	create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_CYL, sizeof(PS_CYL));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -688,7 +688,7 @@ void Renderer::pass_last()
 				.z = { .f = g_config.alpha_tile2_color.val[2] }
 			}
 		};
-		create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+		create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 		create_pixel_shader(PS_SAMPLE_ALPHA, sizeof(PS_SAMPLE_ALPHA));
 	}
 	else {
@@ -701,7 +701,7 @@ void Renderer::pass_last()
 
 			}
 		};
-		create_constant_buffer(sizeof(data), &data, cb0.ReleaseAndGetAddressOf());
+		create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 		create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
 	}
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
@@ -721,11 +721,11 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 		.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-	wiv_assert(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.ReleaseAndGetAddressOf()), == S_OK);
+	wiv_assert(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.GetAddressOf()), == S_OK);
 	
 	// Create render target view.
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
-	wiv_assert(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.ReleaseAndGetAddressOf()), == S_OK);
+	wiv_assert(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.GetAddressOf()), == S_OK);
 
 	// Draw to the render target view.
 	device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
