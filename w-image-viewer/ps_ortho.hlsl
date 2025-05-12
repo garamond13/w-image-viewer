@@ -82,8 +82,9 @@ float get_weight(float x)
 // Samples one axis (x or y) at a time.
 float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
-	const float fcoord = dot(frac(texcoord * dims - 0.5), axis);
-	const float2 base = texcoord - fcoord * pt;
+	const float2 xy = texcoord * dims;
+	const float2 base = floor(xy - 0.5) + 0.5;
+	const float f = dot((xy - base), axis);
 	float4 csum = 0.0;
 	float wsum = 0.0; // Weight sum.
 
@@ -92,8 +93,8 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 	float4 hi = -1e9;
 	
 	for (float i = 1.0 - bound; i <= bound; ++i) {
-		float4 color = tex.SampleLevel(smp, base + pt * i, 0.0);
-		float weight = get_weight(abs((i - fcoord) * scale));
+		float4 color = tex.SampleLevel(smp, (base + i * axis) * pt, 0.0);
+		float weight = get_weight(abs((i - f) * scale));
 		csum += color * weight;
 		wsum += weight;
 		

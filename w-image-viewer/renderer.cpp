@@ -594,7 +594,7 @@ void Renderer::pass_orthogonal_resample()
 			.w = { .f = 1.0f }
 		},
 		Cb4{
-			.x = { .f = 0.0f },
+			.x = { .f = 1.0f / image.get_width<float>() },
 			.y = { .f = 1.0f / image.get_height<float>() },
 
 			// Antiringing shouldnt be used when downsampling!
@@ -615,8 +615,6 @@ void Renderer::pass_orthogonal_resample()
 	// Pass x axis.
 	data[2].z.f = 1.0f; // x axis.
 	data[2].w.f = 0.0f; // y axis.
-	data[3].x.f = 1.0f / image.get_width<float>();
-	data[3].y.f = 0.0f;
 	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
