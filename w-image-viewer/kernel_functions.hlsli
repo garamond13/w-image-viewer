@@ -10,10 +10,10 @@
 //
 
 // Bessel function of the first kind, order one. J1.
-#define bessel_J1(x) ((x) < 2.2931157 ? (x) / 2.0 - (x) * (x) * (x) / 16.0 + (x) * (x) * (x) * (x) * (x) / 384.0 - (x) * (x) * (x) * (x) * (x) * (x) * (x) / 18432.0 : sqrt(M_2_PI / (x)) * (1.0 + 0.1875 / ((x) * (x)) - 0.1933594 / ((x) * (x) * (x) * (x))) * cos((x) - 3.0 * M_PI_4 + 0.375 / (x) - 0.1640625 / ((x) * (x) * (x))))
+#define bessel_J1(x) ((x) < 2.293116 ? (x) / 2.0 - (x) * (x) * (x) / 16.0 + (x) * (x) * (x) * (x) * (x) / 384.0 - (x) * (x) * (x) * (x) * (x) * (x) * (x) / 18432.0 : sqrt(M_2_PI / (x)) * (1.0 + 3.0 / 16.0 / ((x) * (x)) - 99.0 / 512.0 / ((x) * (x) * (x) * (x))) * cos((x) - 3.0 * M_PI_4 + 3.0 / 8.0 / (x) - 21.0 / 128.0 / ((x) * (x) * (x))))
 
 // Modified Bessel function of the first kind, order zero. I0.
-#define bessel_I0(x) ((x) < 4.9706658 ? 1.0 + (x) * (x) / 4.0 + (x) * (x) * (x) * (x) / 64.0 + (x) * (x) * (x) * (x) * (x) * (x) / 2304.0 + (x) * (x) * (x) * (x) * (x) * (x) * (x) * (x) / 147456.0 : rsqrt(2.0 * M_PI * (x)) * exp(x))
+#define bessel_I0(x) ((x) < 4.970666 ? 1.0 + (x) * (x) / 4.0 + (x) * (x) * (x) * (x) / 64.0 + (x) * (x) * (x) * (x) * (x) * (x) / 2304.0 + (x) * (x) * (x) * (x) * (x) * (x) * (x) * (x) / 147456.0 : rsqrt(2.0 * M_PI * (x)) * exp(x))
 
 //
 
