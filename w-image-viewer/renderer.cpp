@@ -816,8 +816,6 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 
 	// Draw to the render target view.
 	device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
-	static constinit const std::array clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
-	device_context->ClearRenderTargetView(rtv.Get(), clear_color.data());
 	device_context->Draw(3, 0);
 
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
