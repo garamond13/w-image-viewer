@@ -8,8 +8,8 @@ cbuffer cb0 : register(b0)
 {
 	int radius;
 	float sigma;
-	float amount;
 	float2 pt;
+	float amount;
 };
 
 // Normalized version is divided by sqrt(2 * pi * sigma * sigma).

@@ -16,12 +16,14 @@ cbuffer cb0 : register(b0)
 	float p1;
 	float p2;
 	
-	float ar; // Antiringing strenght.
+	// Antiringing strenght.
+	float ar;
+	
 	float scale;
 	float bound;
 	float2 dims;
-	float2 axis;
 	float2 pt;
+	float2 axis;
 }
 
 // Expects abs(x).

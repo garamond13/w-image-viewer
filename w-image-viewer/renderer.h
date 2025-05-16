@@ -44,7 +44,7 @@ private:
 	void pass_unsharp();
 	void pass_orthogonal_resample();
 	void pass_cylindrical_resample();
-	void pass_last();
+	void update_final_pass();
 	void draw_pass(UINT width, UINT height) noexcept;
 	void create_viewport(float width, float height, bool adjust = false) const noexcept;
 	float get_kernel_radius() const noexcept;

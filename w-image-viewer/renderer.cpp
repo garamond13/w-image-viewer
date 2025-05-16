@@ -19,18 +19,16 @@
 #include "ps_delinearize_hlsl.h"
 #include "ps_cms_hlsl.h"
 
-// Constant buffer types.
-// Note that in hlsl sizeof bool is 4 bytes.
-union Cb_types
-{
-	float f;
-	int32_t i;
-	uint32_t ui;
-};
-
 // Use for constant buffer data.
-struct Cb
+struct Cb_data
 {
+	union Cb_types
+	{
+		float f;
+		int32_t i;
+		uint32_t u;
+	};
+
 	Cb_types x;
 	Cb_types y;
 	Cb_types z;
@@ -97,7 +95,7 @@ void Renderer::update()
 					pass_delinearize(dims_output.get_width<UINT>(), dims_output.get_height<UINT>());
 			}
 		}
-		pass_last();
+		update_final_pass();
 		if (ui.is_zooming)
 			should_update = true;
 		else
@@ -391,403 +389,278 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 
 void Renderer::pass_cms()
 {
-    // Generate a random float between 0.0 and 1.0. For dithering.
-	std::srand(std::time(nullptr));
-    const float random_number = static_cast<float>(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX));
+	alignas(16) Cb_data data[1];
+	data[0].x.f = g_config.cms_lut_size.val; // lut_size
+	data[0].y.i = g_config.cms_dither.val && image.get_base_type() == OIIO::TypeDesc::UINT8; // dither
 
-	const alignas(16) std::array data = {
-		Cb{
-			// lut_size
-			.x = { .f = static_cast<float>(g_config.cms_lut_size.val) },
-			
-			// dither
-			.y = { .i = g_config.cms_dither.val && image.get_base_type() == OIIO::TypeDesc::UINT8 },
-			
-			// random_number
-			.z = { .f = random_number }
-		}
-	};
+	// Generate a random float between 0.0 and 1.0. For dithering.
+	std::srand(std::time(nullptr));
+	data[0].z.f = static_cast<float>(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX)); // random_number
+	
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_CMS, sizeof(PS_CMS));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	unbind_render_targets();
 }
 
 void Renderer::pass_linearize(UINT width, UINT height)
 {
-	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR)
+	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR) {
 		return;
-	const alignas(16) std::array data = {
-		Cb{
-			// index
-			.x = { .i = trc.id },
-			
-			// gamma_value
-			// Only relevant if gamma correction is used.
-			.y = { .f = trc.val }
-		}
-	};
+	}
+	alignas(16) Cb_data data[1];
+	data[0].x.i = trc.id; // index
+
+	// Only relevant if gamma correction is used.
+	data[0].y.f = trc.val; // gamma_value
+
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_LINEARIZE, sizeof(PS_LINEARIZE));
-	create_viewport(static_cast<float>(width), static_cast<float>(height));
+	create_viewport(width, height);
 	draw_pass(width, height);
-	unbind_render_targets();
 }
 
 void Renderer::pass_delinearize(UINT width, UINT height)
 {
-	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR)
+	if (trc.id == WIV_CMS_TRC_NONE || trc.id == WIV_CMS_TRC_LINEAR) {
 		return;
-	const alignas(16) std::array data = {
-		Cb{
-			// index
-			.x = { .i = trc.id },
-			
-			// rcp_gamma
-			.y = { .f = 1.0f / trc.val } // Only relevant if gamma correction is used.
-		}
-	};
+	}
+	alignas(16) Cb_data data[1];
+	data[0].x.i = trc.id; // index
+
+	// Only relevant if gamma correction is used.
+	data[0].y.f = 1.0f / trc.val; // rcp_gamma
+
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_DELINEARIZE, sizeof(PS_DELINEARIZE));
-	create_viewport(static_cast<float>(width), static_cast<float>(height));
+	create_viewport(width, height);
 	draw_pass(width, height);
-	unbind_render_targets();
 }
 
 void Renderer::pass_sigmoidize()
 {
 	// Sigmoidize expects linear light input.
-	if (trc.id == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE) {
 		return;
+	}
 
 	// Calculate sigmoidize params.
 	// pass_desigmoidize() will use these same params!
 	sigmoidize_offset = 1.0f / (1.0f + std::exp(p_scale_profile->sigmoid_contrast.val * p_scale_profile->sigmoid_midpoint.val));
 	sigmoidize_scale = 1.0f / (1.0f + std::exp(p_scale_profile->sigmoid_contrast.val * p_scale_profile->sigmoid_midpoint.val - p_scale_profile->sigmoid_contrast.val)) - sigmoidize_offset;
 
-	const alignas(16) std::array data = {
-		Cb{
-			// contrast
-			.x = { .f = p_scale_profile->sigmoid_contrast.val },
-			
-			// midpoint
-			.y = { .f = p_scale_profile->sigmoid_midpoint.val },
-			
-			// offset
-			.z = { .f = sigmoidize_offset },
-			
-			// scale
-			.w = { .f = sigmoidize_scale }
-		}
-	};
+	alignas(16) Cb_data data[1];
+	data[0].x.f = p_scale_profile->sigmoid_contrast.val; // contrast
+	data[0].y.f = p_scale_profile->sigmoid_midpoint.val; // midpoint
+	data[0].z.f = sigmoidize_offset; // offset
+	data[0].w.f = sigmoidize_scale; // scale
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_SIGMOIDIZE, sizeof(PS_SIGMOIDIZE));
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	unbind_render_targets();
 }
 
 void Renderer::pass_desigmoidize()
 {
 	// Sigmoidize expects linear light input.
-	if (trc.id == WIV_CMS_TRC_NONE)
+	if (trc.id == WIV_CMS_TRC_NONE) {
 		return;
+	}
 
-	const alignas(16) std::array data = {
-		Cb{
-
-			// contrast
-			.x = { .f = p_scale_profile->sigmoid_contrast.val },
-			
-			// midpoint
-			.y = { .f = p_scale_profile->sigmoid_midpoint.val },
-			
-			// offset
-			.z = { .f = sigmoidize_offset },
-			
-			// scale
-			.w = { .f = sigmoidize_scale }
-		}
-	};
+	alignas(16) Cb_data data[1];
+	data[0].x.f = p_scale_profile->sigmoid_contrast.val; // contrast
+	data[0].y.f = p_scale_profile->sigmoid_midpoint.val; // midpoint
+	data[0].z.f = sigmoidize_offset; // offset
+	data[0].w.f = sigmoidize_scale; // scale
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_DESIGMOIDIZE, sizeof(PS_DESIGMOIDIZE));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	unbind_render_targets();
 }
 
 void Renderer::pass_blur()
 {
-	alignas(16) std::array data = {
-		Cb{
-			// radius
-			.x = { .i = p_scale_profile->blur_radius.val },
-			
-			// sigma
-			.y = { .f = p_scale_profile->blur_sigma.val },
-			
-			// amount
-			// Unsharp amount, has to be <= 0!
-			.z = { .f = -1.0f }
-		},
-		Cb{
-			// pt
-			.x = { .f = 0.0f },
-			.y = { .f = 1.0f / image.get_height<float>() }
-		}
-	};
+	// Pass y axis.
+	//
+
+	alignas(16) Cb_data data[2];
+	data[0].x.i = p_scale_profile->blur_radius.val; // radius
+	data[0].y.f = p_scale_profile->blur_sigma.val; // sigma
+	data[0].z.f = 0.0f; // pt.x
+	data[0].w.f = 1.0f / image.get_height<float>(); // pt.y
+
+	// Unsharp amount, has to be <= 0!
+	data[1].x.f = -1.0f; // amount
+
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
-
-	// Pass y axis.
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	unbind_render_targets();
+
+	//
 
 	// Pass x axis.
-
-	// pt
-	data[1].x.f = 1.0f / image.get_width<float>();
-	data[1].y.f = 0.0f;
-	
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	data[0].z.f = 1.0f / image.get_width<float>(); // pt.x
+	data[0].w.f = 0.0f; // pt.y
+	update_constant_buffer(cb0.Get(), data, sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), image.get_height<float>());
 	draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
-	unbind_render_targets();
 }
 
 void Renderer::pass_unsharp()
 {
-	alignas(16) std::array data = {
-		Cb{
-			// radius
-			.x = { .i = p_scale_profile->unsharp_radius.val },
-			
-			// sigma
-			.y = { .f = p_scale_profile->unsharp_sigma.val },
+	// Pass y axis.
+	//
 
-			// amount
-			// Unsharp amount, has to be <= 0 for the 1st pass!
-			.z = { .f = -1.0f }
-		},
-		Cb{
-			// pt
-			.x = { .f = 0.0f },
-			.y = { .f = 1.0f / dims_output.get_height<float>() }
-		}
-	};
+	alignas(16) Cb_data data[2];
+	data[0].x.i = p_scale_profile->unsharp_radius.val; // radius
+	data[0].y.f = p_scale_profile->unsharp_sigma.val; // sigma
+	data[0].z.f = 0.0f; // pt.x
+	data[0].w.f = 1.0f / dims_output.get_height<float>(); // pt.y
+
+	// Unsharp amount, has to be <= 0 for the 1st pass!
+	data[1].x.f = -1.0f; // amount
+
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
-
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_original = srv_pass;
-
-	// Pass y axis.
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	unbind_render_targets();
+
+	//
 
 	// Pass x axis.
+	//
 	
-	// amount
+	data[0].z.f = 1.0f / dims_output.get_width<float>(); // pt.x
+	data[0].w.f = 0.0f; // pt.y
+
 	// Should be > 0.
-	data[0].z.f = p_scale_profile->unsharp_amount.val;
+	data[1].x.f = p_scale_profile->unsharp_amount.val; // amount
 	
-	// pt
-	data[1].x.f = 1.0f / dims_output.get_width<float>();
-	data[1].y.f = 0.0f;
-	
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	update_constant_buffer(cb0.Get(), data, sizeof(data));
 	const std::array srvs = { srv_pass.Get(), srv_original.Get() };
 	device_context->PSSetShaderResources(0, 2, srvs.data());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	unbind_render_targets();
+	
+	//
 }
 
 void Renderer::pass_orthogonal_resample()
 {
+	// Pass y axis.
+	//
+
 	const float clamped_scale = std::min(scale, 1.0f);
 	const float kernel_radius = get_kernel_radius();
-	alignas(16) std::array data = {
-		Cb{
-			// index
-			.x = { .i = p_scale_profile->kernel_index.val },
-			
-			// radius
-			.y = { .f = kernel_radius },
-			
-			// blur
-			.z = { .f = p_scale_profile->kernel_blur.val },
-			
-			// p1
-			.w = { .f = p_scale_profile->kernel_parameter1.val }
-		},
-		Cb{
-			// p2
-			.x = { .f = p_scale_profile->kernel_parameter2.val },
-
-			// ar
-			// Antiringing shouldnt be used when downsampling!
-			.y = { .f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f },
-			
-			// scale
-			.z = { .f = clamped_scale },
-			
-			// bound
-			.w = { .f = std::ceil(kernel_radius / clamped_scale) }
-		},
-		Cb{
-
-			// dims
-			.x = { .f = image.get_width<float>() },
-			.y = { .f = image.get_height<float>() },
-			
-			// axis
-			.z = { .f = 0.0f },
-			.w = { .f = 1.0f }
-		},
-		Cb{
-			// pt
-			.x = { .f = 1.0f / image.get_width<float>() },
-			.y = { .f = 1.0f / image.get_height<float>() },
-		}
-	};
+	alignas(16) Cb_data data[4];
+	data[0].x.i = p_scale_profile->kernel_index.val; // index
+	data[0].y.f = kernel_radius; // radius
+	data[0].z.f = p_scale_profile->kernel_blur.val; // blur
+	data[0].w.f = p_scale_profile->kernel_parameter1.val; // p1
+	data[1].x.f = p_scale_profile->kernel_parameter2.val; // p2
+	
+	// Antiringing shouldnt be used when downsampling!
+	data[1].y.f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f; // ar
+	
+	data[1].z.f = clamped_scale; // scale
+	data[1].w.f = std::ceil(kernel_radius / clamped_scale); // bound
+	data[2].x.f = image.get_width<float>(); // dims.x
+	data[2].y.f = image.get_height<float>(); // dims.y
+	data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
+	data[2].w.f = 1.0f / image.get_height<float>(); // pt.y
+	data[3].x.f = 0.0f; // axis.x
+	data[3].y.f = 1.0f; // axis.y
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
-
-	// Pass y axis.
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(image.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(image.get_width<UINT>(), dims_output.height);
-	unbind_render_targets();
+
+	//
 
 	// Pass x axis.
-
-	// axis
-	data[2].z.f = 1.0f;
-	data[2].w.f = 0.0f;
-	
-	update_constant_buffer(cb0.Get(), data.data(), sizeof(data));
+	data[3].x.f = 1.0f; // axis.x
+	data[3].y.f = 0.0f; // axis.y	
+	update_constant_buffer(cb0.Get(), data, sizeof(data));
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	unbind_render_targets();
 }
 
 void Renderer::pass_cylindrical_resample()
 {
 	const float clamped_scale = std::min(scale, 1.0f);
 	const float kernel_radius = get_kernel_radius();
-	const alignas(16) std::array data = {
-		Cb{
-			// index
-			.x = { .i = p_scale_profile->kernel_index.val },
-			
-			// radius
-			.y = { .f = kernel_radius },
-			
-			// blur
-			.z = { .f = p_scale_profile->kernel_blur.val },
-			
-			// p1
-			.w = { .f = p_scale_profile->kernel_parameter1.val }
-		},
-		Cb{
+	alignas(16) Cb_data data[3];
+	data[0].x.i = p_scale_profile->kernel_index.val; // index
+	data[0].y.f = kernel_radius; // radius
+	data[0].z.f = p_scale_profile->kernel_blur.val; // blur
+	data[0].w.f = p_scale_profile->kernel_parameter1.val; // p1
+	data[1].x.f = p_scale_profile->kernel_parameter2.val; // p2
 
-			// p2
-			.x = { .f = p_scale_profile->kernel_parameter2.val },
-			
-			// ar
-			.y = { .f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f },
-			
-			// dims
-			.z = { .f = image.get_width<float>() },
-			.w = { .f = image.get_height<float>() }
-		},
-		Cb{
-			// scale
-			.x = { .f = clamped_scale },
-			
-			// bound
-			.y = { .f = std::ceil(kernel_radius / clamped_scale) },
-			
-			// pt
-			.z = { .f = 1.0f / image.get_width<float>() },
-			.w = { .f = 1.0f / image.get_height<float>() }
-		}
-	};
+	// Antiringing shouldnt be used when downsampling!
+	data[1].y.f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f; // ar
+	
+	data[1].z.f = std::min(scale, 1.0f); // scale
+	data[1].w.f = std::ceil(kernel_radius / clamped_scale); // bound
+	data[2].x.f = image.get_width<float>(); // dims.x
+	data[2].y.f = image.get_height<float>(); // dims.y
+	data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
+	data[2].w.f = 1.0f / image.get_height<float>(); // pt.y
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 	device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
 	create_pixel_shader(PS_CYL, sizeof(PS_CYL));
 	create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
 	draw_pass(dims_output.width, dims_output.height);
-	unbind_render_targets();
 }
 
-void Renderer::pass_last()
+void Renderer::update_final_pass()
 {
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
 	if (image.has_alpha()) {
-		const alignas(16) std::array data = {
-			Cb{
-				// size
-				.x = { .f = dims_output.get_width<float>() / g_config.alpha_tile_size.val },
-				.y = { .f = dims_output.get_height<float>() / g_config.alpha_tile_size.val },
-				
-				// theta
-				.z = { .f = ui.image_rotation },
+		alignas(16) Cb_data data[3];
+		data[0].x.f = dims_output.get_width<float>() / g_config.alpha_tile_size.val; // size.x
+		data[0].y.f = dims_output.get_height<float>() / g_config.alpha_tile_size.val; // size.y
+		data[0].z.f = ui.image_rotation; // theta
 
-				// rotate
-				// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
-				.w = { .i = is_not_zero(frac(ui.image_rotation / 360.0f)) }
+		// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
+		data[0].w.i = is_not_zero(frac(ui.image_rotation / 360.0f)); // rotate
 
-			},
-			Cb{
-				// tile1
-				.x = { .f = g_config.alpha_tile1_color.val[0] },
-				.y = { .f = g_config.alpha_tile1_color.val[1] },
-				.z = { .f = g_config.alpha_tile1_color.val[2] }
-			},
-			Cb{
-				// tile2
-				.x = { .f = g_config.alpha_tile2_color.val[0] },
-				.y = { .f = g_config.alpha_tile2_color.val[1] },
-				.z = { .f = g_config.alpha_tile2_color.val[2] }
-			}
-		};
+		data[1].x.f = g_config.alpha_tile1_color.val[0]; // tile1.x
+		data[1].y.f = g_config.alpha_tile1_color.val[1]; // tile1.y
+		data[1].z.f = g_config.alpha_tile1_color.val[2]; // tile1.z
+		data[2].x.f = g_config.alpha_tile2_color.val[0]; // tile2.x
+		data[2].y.f = g_config.alpha_tile2_color.val[1]; // tile2.y
+		data[2].z.f = g_config.alpha_tile2_color.val[2]; // tile2.z
 		create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 		create_pixel_shader(PS_SAMPLE_ALPHA, sizeof(PS_SAMPLE_ALPHA));
 	}
 	else {
-		const alignas(16) std::array data = {
-			Cb{
-				// theta
-				.x = { .f = ui.image_rotation },
+		alignas(16) Cb_data data[1];
+		data[0].x.f = ui.image_rotation; // theta
 
-				// rotate
-				// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
-				.y = { .i = is_not_zero(frac(ui.image_rotation / 360.0f)) }
+		// Check is theta divisible by 360, if it is we dont need to rotate texcoord.
+		data[0].y.i = is_not_zero(frac(ui.image_rotation / 360.0f)); // rotate
 
-			}
-		};
 		create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
 		create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
 	}
@@ -798,15 +671,14 @@ void Renderer::pass_last()
 void Renderer::draw_pass(UINT width, UINT height) noexcept
 {
 	// Create texture.
-	const D3D11_TEXTURE2D_DESC texture2d_desc = {
-		.Width = width,
-		.Height = height,
-		.MipLevels = 1,
-		.ArraySize = 1,
-		.Format = WIV_PASS_FORMATS[g_config.pass_format.val],
-		.SampleDesc = { .Count = 1 },
-		.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET
-	};
+	D3D11_TEXTURE2D_DESC texture2d_desc = {};
+	texture2d_desc.Width = width;
+	texture2d_desc.Height = height;
+	texture2d_desc.MipLevels = 1;
+	texture2d_desc.ArraySize = 1;
+	texture2d_desc.Format = WIV_PASS_FORMATS[g_config.pass_format.val];
+	texture2d_desc.SampleDesc.Count = 1;
+	texture2d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
 	wiv_assert(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.GetAddressOf()), == S_OK);
 	
@@ -817,6 +689,7 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 	// Draw to the render target view.
 	device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
 	device_context->Draw(3, 0);
+	unbind_render_targets();
 
 	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
 }
