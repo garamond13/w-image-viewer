@@ -5,6 +5,7 @@
 #include "supported_extensions.h"
 #include "global.h"
 #include "window.h"
+#include "ensure.h"
 
 bool File_manager::file_open(std::wstring_view path)
 {
@@ -88,7 +89,7 @@ void File_manager::file_previous()
 bool File_manager::drag_and_drop(HDROP hdrop)
 {
 	wchar_t path[MAX_PATH];
-	wiv_assert(DragQueryFileW(hdrop, 0, path, MAX_PATH), != 0);
+	ensure(DragQueryFileW(hdrop, 0, path, MAX_PATH), != 0);
 	DragFinish(hdrop);
 	if (image.set_image_input(path)) {
 		file_current = path;
@@ -122,9 +123,9 @@ void File_manager::delete_file()
 			file_previous();
 		if (file_current == deleted_file) { // At this point do we have a next or previous file?
 			file_current.clear();
-			wiv_assert(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+			ensure(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
 		}
 		else
-			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 	}
 }

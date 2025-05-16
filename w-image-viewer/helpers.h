@@ -2,12 +2,6 @@
 
 #include "pch.h"
 
-#ifdef NDEBUG
-#define wiv_assert(keep, discard_if_ndebug) keep
-#else
-#define wiv_assert(keep, discard_if_ndebug) (assert(keep discard_if_ndebug))
-#endif
-
 // Safe floating point comparations.
 //
 

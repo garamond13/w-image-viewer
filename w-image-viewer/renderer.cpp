@@ -6,6 +6,7 @@
 #include "icc.h"
 #include "cms_lut.h"
 #include "info.h"
+#include "ensure.h"
 
 // Compiled shaders.
 #include "ps_sample_hlsl.h"
@@ -115,7 +116,7 @@ void Renderer::draw() const
 	device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_color.val.data());
 	device_context->Draw(3, 0);
 	ui.draw();
-	wiv_assert(swapchain->Present(1, 0), == S_OK);
+	ensure(swapchain->Present(1, 0), == S_OK);
 }
 
 // Creates the first texture from the loaded image.
@@ -145,8 +146,8 @@ void Renderer::create_image()
 		.SysMemPitch = sys_mem_pitch
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-	wiv_assert(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.GetAddressOf()), == S_OK);
-	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
+	ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.GetAddressOf()), == S_OK);
+	ensure(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
 
 	if (cms_profile_display)
 		create_cms_lut();
@@ -157,11 +158,11 @@ void Renderer::on_window_resize() noexcept
 	// This function may get called to early, so check do we have swap chain.
 	if (swapchain) {
 		rtv_back_buffer.Reset();
-		wiv_assert(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), == S_OK);
+		ensure(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), == S_OK);
 
 		// Set swapchain dims.
 		DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1;
-		wiv_assert(swapchain->GetDesc1(&swap_chain_desc1), == S_OK);
+		ensure(swapchain->GetDesc1(&swap_chain_desc1), == S_OK);
 		dims_swap_chain.width = swap_chain_desc1.Width;
 		dims_swap_chain.height = swap_chain_desc1.Height;
 
@@ -299,8 +300,8 @@ void Renderer::init_cms_profile_display()
 			DWORD buffer_size;
 			GetICMProfileA(dc, &buffer_size, nullptr);
 			auto path = std::make_unique_for_overwrite<char[]>(buffer_size);
-			wiv_assert(GetICMProfileA(dc, &buffer_size, path.get()), == TRUE);
-			wiv_assert(ReleaseDC(nullptr, dc), == 1);
+			ensure(GetICMProfileA(dc, &buffer_size, path.get()), == TRUE);
+			ensure(ReleaseDC(nullptr, dc), == 1);
 			
 			cms_profile_display.reset(cmsOpenProfileFromFile(path.get(), "r"));
 			break;
@@ -341,9 +342,9 @@ void Renderer::create_cms_lut()
 		.SysMemSlicePitch = sqr(g_config.cms_lut_size.val) * 4 * 2 // width * height * nchannals * byte_depth
 	};
 	Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
-	wiv_assert(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.GetAddressOf()), == S_OK);
+	ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.GetAddressOf()), == S_OK);
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-	wiv_assert(device->CreateShaderResourceView(texture3d.Get(), nullptr, srv.GetAddressOf()), == S_OK);
+	ensure(device->CreateShaderResourceView(texture3d.Get(), nullptr, srv.GetAddressOf()), == S_OK);
 	device_context->PSSetShaderResources(2, 1, srv.GetAddressOf());
 	
 	is_cms_valid = true;
@@ -680,18 +681,18 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 	texture2d_desc.SampleDesc.Count = 1;
 	texture2d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-	wiv_assert(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.GetAddressOf()), == S_OK);
+	ensure(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.GetAddressOf()), == S_OK);
 	
 	// Create render target view.
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
-	wiv_assert(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.GetAddressOf()), == S_OK);
+	ensure(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.GetAddressOf()), == S_OK);
 
 	// Draw to the render target view.
 	device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
 	device_context->Draw(3, 0);
 	unbind_render_targets();
 
-	wiv_assert(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
+	ensure(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
 }
 
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept

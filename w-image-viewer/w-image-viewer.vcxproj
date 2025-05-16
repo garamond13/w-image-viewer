@@ -158,6 +158,7 @@
     <ClInclude Include="bench.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dims.h" />
+    <ClInclude Include="ensure.h" />
     <ClInclude Include="file_manager.h" />
     <ClInclude Include="font.h" />
     <ClInclude Include="global.h" />

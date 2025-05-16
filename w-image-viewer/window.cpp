@@ -3,6 +3,7 @@
 #include "window.h"
 #include "helpers.h"
 #include "resource.h"
+#include "ensure.h"
 
 enum WIV_WINDOW_NAME_
 {
@@ -28,14 +29,14 @@ Window::Window(HINSTANCE hinstance, int ncmdshow) :
 		.hIcon = LoadIconW(hinstance, MAKEINTRESOURCEW(IDI_WIMAGEVIEWER)),
 		.lpszClassName = L"WIV"
 	};
-	wiv_assert(RegisterClassExW(&wndclassexw), != 0);
+	ensure(RegisterClassExW(&wndclassexw), != 0);
 
 	// Create window.
 	RECT rect = {
 		.right = g_config.window_width.val,
 		.bottom = g_config.window_height.val
 	};
-	wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+	ensure(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
 	g_hwnd = CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rc_w<int>(rect), rc_h<int>(rect), nullptr, nullptr, hinstance, nullptr);
 	assert(g_hwnd);
 
@@ -92,7 +93,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 				.right = g_config.window_min_width.val,
 				.bottom = g_config.window_min_height.val
 			};
-			wiv_assert(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+			ensure(AdjustWindowRectEx(&rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
 			auto minmaxinfo = reinterpret_cast<MINMAXINFO*>(lparam);
 			minmaxinfo->ptMinTrackSize.x = std::max(static_cast<LONG>(GetSystemMetrics(SM_CXMIN)), rc_w<LONG>(rect));
 			minmaxinfo->ptMinTrackSize.y = std::max(static_cast<LONG>(GetSystemMetrics(SM_CYMIN) + 1), rc_h<LONG>(rect));
@@ -123,7 +124,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 				// Get client area.
 				RECT unadjusted_rect = *rect;
-				wiv_assert(UnAdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
+				ensure(UnAdjustWindowRectEx(&unadjusted_rect, WIV_WINDOW_STYLE, FALSE, WIV_WINDOW_EX_STYLE), != 0);
 				const auto client_width = rc_w<double>(unadjusted_rect);
 				const auto client_height = rc_h<double>(unadjusted_rect);
 
@@ -156,7 +157,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 			}
 			return 0;
 		case WM_DROPFILES:
-			wiv_assert(SetForegroundWindow(hwnd), != 0);
+			ensure(SetForegroundWindow(hwnd), != 0);
 			if (this_ptr->renderer.ui.file_manager.drag_and_drop(reinterpret_cast<HDROP>(wparam))) {
 				this_ptr->renderer.create_image();
 				if (g_config.window_autowh.val)
@@ -191,7 +192,7 @@ void Window::set_window_name() const
 			name = renderer.ui.file_manager.file_current.wstring() + L" - " + WIV_WINDOW_NAME;
 			break;
 	}
-	wiv_assert(SetWindowTextW(g_hwnd, name.c_str()), != 0);
+	ensure(SetWindowTextW(g_hwnd, name.c_str()), != 0);
 }
 
 void Window::reset_image_rotation() noexcept

@@ -9,6 +9,7 @@
 #include "window.h"
 #include "message.h"
 #include "info.h"
+#include "ensure.h"
 
 enum WIV_OVERLAY_SHOW_ : uint64_t
 {
@@ -301,14 +302,14 @@ void User_interface::input()
 			if (file_manager.file_current.empty())
 				return;
 			file_manager.file_previous();
-			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
 			if (file_manager.file_current.empty())
 				return;
 			file_manager.file_next();
-			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			return;
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_F11)) {
@@ -329,7 +330,7 @@ void User_interface::input()
 		if (is_fullscreen)
 			toggle_fullscreen();
 		else
-			wiv_assert(DestroyWindow(g_hwnd), != 0);
+			ensure(DestroyWindow(g_hwnd), != 0);
 		return;
 	}
 
@@ -401,14 +402,14 @@ void User_interface::context_menu()
 			if (file_manager.file_current.empty())
 				goto end;
 			file_manager.file_next();
-			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			goto end;
 		}
 		if (ImGui::Selectable("Previous")) {
 			if (file_manager.file_current.empty())
 				goto end;
 			file_manager.file_previous();
-			wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+			ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 			goto end;
 		}
 		ImGui::Separator();
@@ -454,7 +455,7 @@ void User_interface::context_menu()
 		}
 		ImGui::Separator();
 		if (ImGui::Selectable("Exit")) {
-			wiv_assert(DestroyWindow(g_hwnd), != 0);
+			ensure(DestroyWindow(g_hwnd), != 0);
 			goto end;
 		}
 	end:
@@ -478,7 +479,7 @@ void User_interface::window_settings()
 		ImGui::SeparatorText("Default dimensions");
 		if (ImGui::Button("Use current dimensions##def")) {
 			RECT rect;
-			wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
+			ensure(GetClientRect(g_hwnd, &rect), != 0);
 			g_config.window_width.val = rect.right;
 			g_config.window_height.val = rect.bottom;
 		}
@@ -488,7 +489,7 @@ void User_interface::window_settings()
 		ImGui::SeparatorText("Minimum dimensions");
 		if (ImGui::Button("Use current dimensions##min")) {
 			RECT rect;
-			wiv_assert(GetClientRect(g_hwnd, &rect), != 0);
+			ensure(GetClientRect(g_hwnd, &rect), != 0);
 			g_config.window_min_width.val = rect.right;
 			g_config.window_min_height.val = rect.bottom;
 		}
@@ -873,7 +874,7 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 				.pszName = L"All supported",
 				.pszSpec = file_type == WIV_OPEN_IMAGE ? WIV_SUPPORTED_EXTENSIONS : L"*.icc" /* WIV_OPEN_ICC */
 			};
-			wiv_assert(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
+			ensure(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
 			if (SUCCEEDED(file_open_dialog->Show(g_hwnd))) {
 				Microsoft::WRL::ComPtr<IShellItem> shell_item;
 				if (SUCCEEDED(file_open_dialog->GetResult(shell_item.GetAddressOf()))) {
@@ -881,9 +882,9 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 					if (SUCCEEDED(shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path))) {
 						if (file_type == WIV_OPEN_IMAGE) {
 							if (file_manager.file_open(path))
-								wiv_assert(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
+								ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
 							else
-								wiv_assert(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+								ensure(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
 						}
 						else // WIV_OPEN_ICC
 							g_config.cms_display_profile_custom.val = path;
@@ -902,15 +903,15 @@ void User_interface::toggle_fullscreen()
 	static WINDOWPLACEMENT windowplacment;
 	if (is_fullscreen) {
 		SetWindowLongPtrW(g_hwnd, GWL_STYLE, WIV_WINDOW_STYLE);
-		wiv_assert(SetWindowPlacement(g_hwnd, &windowplacment), != 0);
-		wiv_assert(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOCOPYBITS), != 0);
+		ensure(SetWindowPlacement(g_hwnd, &windowplacment), != 0);
+		ensure(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOCOPYBITS), != 0);
 	}
 	else {
-		wiv_assert(GetWindowPlacement(g_hwnd, &windowplacment), != 0);
+		ensure(GetWindowPlacement(g_hwnd, &windowplacment), != 0);
 		SetWindowLongPtrW(g_hwnd, GWL_STYLE, WS_POPUP);
 		const int cx = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 		const int cy = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-		wiv_assert(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, cx, cy, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOCOPYBITS), != 0);
+		ensure(SetWindowPos(g_hwnd, HWND_TOP, 0, 0, cx, cy, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOCOPYBITS), != 0);
 	}
 	is_fullscreen = !is_fullscreen;
 }
