@@ -268,6 +268,7 @@ info:
 	else {
 		info::kernel_size = static_cast<int>(std::ceil(info::kernel_radius / std::min(scale, 1.0f))) * 2;
 	}
+	info::scale_filter = p_scale_profile->kernel_cylindrical_use.val ? "Cylindrical" : "Orthogonal";
 }
 
 void Renderer::update_trc()

@@ -10,6 +10,7 @@ namespace info
 	inline float scale; // Current image scale.
 	inline int scaled_width; // Scaled image width.
 	inline int scaled_height; // Scaled image height.
+	inline std::string scale_filter; // Scale filter. 0 - orthogonal, 1 - cylindrical 
 	inline int kernel_index; // Currently used scale kernel.
 	inline float kernel_radius; // Currently used kernel radius
 	inline uint8_t image_bitdepth; // Image bitdepth per channel.
