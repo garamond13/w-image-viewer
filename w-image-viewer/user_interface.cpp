@@ -873,35 +873,41 @@ void User_interface::window_about()
 
 void User_interface::dialog_file_open(WIV_OPEN_ file_type)
 {
+    if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) {
+        return;
+    }
     is_dialog_file_open = true;
-    if (SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) {
-        Microsoft::WRL::ComPtr<IFileOpenDialog> file_open_dialog;
-        if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(file_open_dialog.GetAddressOf())))) {
-            COMDLG_FILTERSPEC filterspec = {
-                .pszName = L"All supported",
-                .pszSpec = file_type == WIV_OPEN_IMAGE ? WIV_SUPPORTED_EXTENSIONS : L"*.icc" /* WIV_OPEN_ICC */
-            };
-            ensure(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
-            if (SUCCEEDED(file_open_dialog->Show(g_hwnd))) {
-                Microsoft::WRL::ComPtr<IShellItem> shell_item;
-                if (SUCCEEDED(file_open_dialog->GetResult(shell_item.GetAddressOf()))) {
-                    wchar_t* path;
-                    if (SUCCEEDED(shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path))) {
-                        if (file_type == WIV_OPEN_IMAGE) {
-                            if (file_manager.file_open(path))
-                                ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
-                            else
-                                ensure(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+    Microsoft::WRL::ComPtr<IFileOpenDialog> file_open_dialog;
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(file_open_dialog.GetAddressOf())))) {
+        COMDLG_FILTERSPEC filterspec = {};
+        filterspec.pszName = L"All supported";
+        filterspec.pszSpec = file_type == WIV_OPEN_IMAGE ? WIV_SUPPORTED_EXTENSIONS : L"*.icc" /* WIV_OPEN_ICC */;
+        ensure(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
+        if (SUCCEEDED(file_open_dialog->Show(g_hwnd))) {
+            Microsoft::WRL::ComPtr<IShellItem> shell_item;
+            if (SUCCEEDED(file_open_dialog->GetResult(shell_item.GetAddressOf()))) {
+                wchar_t* path;
+                if (SUCCEEDED(shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path))) {
+                    if (file_type == WIV_OPEN_IMAGE) {
+                        if (file_manager.file_open(path)) {
+                            ensure(PostMessageW(g_hwnd, WIV_WM_OPEN_FILE, 0, 0), != 0);
                         }
-                        else // WIV_OPEN_ICC
-                            g_config.cms_display_profile_custom.val = path;
-                        CoTaskMemFree(path);
+                        else {
+                            ensure(PostMessageW(g_hwnd, WIV_WM_RESET_RESOURCES, 0, 0), != 0);
+                        }
                     }
+
+                    // WIV_OPEN_ICC
+                    else {
+                        g_config.cms_display_profile_custom.val = path;
+                    }
+                    
+                    CoTaskMemFree(path);
                 }
             }
         }
-        CoUninitialize();
     }
+    CoUninitialize();
     is_dialog_file_open = false;
 }
 
