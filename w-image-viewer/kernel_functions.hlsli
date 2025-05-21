@@ -37,18 +37,16 @@ float bessel_I0(float x)
 // Base functions
 //
 
-// (b) is the kernel blur.
-
 #ifdef USE_JINC_BASE
     // Jinc
     // Used for cylindrical resampling.
     // Normalized version: x == 0.0 ? 1.0 : 2.0 * bessel_J1(M_PI * x / blur) / (M_PI * x / blur).
-    #define base(x,b) (is_zero(x) ? M_PI_2 / (b) : bessel_J1(M_PI / (b) * (x)) / (x))
+    #define base(x,blur) (is_zero(x) ? M_PI_2 / (blur) : bessel_J1(M_PI / (blur) * (x)) / (x))
 #else
     // Sinc
     // Used for orhogonal resampling.
     // Normalized version: x == 0.0 ? 1.0 : sin(M_PI * x / blur) / (M_PI * x / blur).
-    #define base(x,b) (is_zero(x) ? M_PI / (b) : sin(M_PI / (b) * (x)) / (x))
+    #define base(x,blur) (is_zero(x) ? M_PI / (blur) : sin(M_PI / (blur) * (x)) / (x))
 #endif
 
 //
@@ -56,39 +54,37 @@ float bessel_I0(float x)
 // Window functions
 //
 
-// (r) is the kernel radius.
-
-// Normalized version sinc: x == 0.0 ? 1.0 : sin(M_PI * x / r) / (M_PI * x / r).
-float sinc(float x, float r)
+// Normalized version sinc: x == 0.0 ? 1.0 : sin(M_PI * x / support) / (M_PI * x / support).
+float sinc(float x, float support)
 {
-    return is_zero(x) ? M_PI / r : sin(M_PI / r * x) / x;
+    return is_zero(x) ? M_PI / support : sin(M_PI / support * x) / x;
 }
 
 // Normalized version: x == 0.0 ? 1.0 : 2.0 * bessel_J1(M_PI * x / (radius * FIRST_JINC_ZERO)) / (M_PI * x / (radius * FIRST_JINC_ZERO)).
-float jinc(float x, float r)
+float jinc(float x, float support)
 {
-    return is_zero(x) ? M_PI_2 / FIRST_JINC_ZERO / r : bessel_J1(M_PI / FIRST_JINC_ZERO / r * x) / x;
+    return is_zero(x) ? M_PI_2 / FIRST_JINC_ZERO / support : bessel_J1(M_PI / FIRST_JINC_ZERO / support * x) / x;
 }
 
-float hamming(float x, float r)
+float hamming(float x, float support)
 {
-    return 0.54 + 0.46 * cos(M_PI / r * x);
+    return 0.54 + 0.46 * cos(M_PI / support * x);
 }
 
 // Has to be satisfied: n >= 0.
 // n = 0: Box window.
 // n = 1: Cosine window.
 // n = 2: Hann window.
-float power_of_cosine(float x, float r, float n)
+float power_of_cosine(float x, float support, float n)
 {
-    return pow(cos(M_PI_2 / r * x), n);
+    return pow(cos(M_PI_2 / support * x), n);
 }
 
 // Kaiser(x, R, beta) == Kaiser(x, R, -beta).
 // Normalized version is divided by bessel_I0(beta).
-float kaiser(float x, float r, float beta)
+float kaiser(float x, float support, float beta)
 {
-    return bessel_I0(beta * sqrt(1.0 - x * x / (r * r)));
+    return bessel_I0(beta * sqrt(1.0 - x * x / (support * support)));
 }
 
 // Has to be satisfied: n >= 0, m >= 0.
@@ -98,9 +94,9 @@ float kaiser(float x, float r, float beta)
 // n -> inf, m <= 1.0: Box window.
 // n = 0.0: Box window.
 // m = 0.0: Box window.
-float power_of_garamond(float x, float r, float n, float m)
+float power_of_garamond(float x, float support, float n, float m)
 {
-    return is_zero(n) ? 1.0 : pow(1.0 - pow(x / r, n), m);
+    return is_zero(n) ? 1.0 : pow(1.0 - pow(x / support, n), m);
 }
 
 // Has to be satisfied: n >= 0.
@@ -109,9 +105,9 @@ float power_of_garamond(float x, float r, float n, float m)
 // a = 0.0, n = 0.5: Cosine window.
 // n = 1.0: Blackman window.
 // n = 0.0: Box window.
-float power_of_blackman(float x, float r, float a, float n)
+float power_of_blackman(float x, float support, float a, float n)
 {
-    return pow((1.0 - a) / 2.0 + 0.5 * cos(M_PI / r * x) + a / 2.0 * cos(2.0 * M_PI / r * x), n);
+    return pow((1.0 - a) / 2.0 + 0.5 * cos(M_PI / support * x) + a / 2.0 * cos(2.0 * M_PI / support * x), n);
 }
 
 // Has to be satisfied: s != 0, n >= 0.
@@ -133,22 +129,19 @@ float said(float x, float eta, float chi)
 // Kernel functions
 //
 
-// Fixed radius 1.0.
-#ifdef USE_JINC_BASE
-    #define nearest_neighbor(x) ((x) > 0.5 * M_SQRT2 ? 0.0 : 1.0)
-#else
-    #define nearest_neighbor(x) ((x) > 0.5 ? 0.0 : 1.0)
-#endif
+// Support for orthogonal filter is 1.0 / 2.0.
+// Support for cylindrical filter is sqrt(2.0) / 2.0
+#define nearest_neighbor(x) (1.0)
 
 #ifdef USE_JINC_BASE
-    // Fixed radius sqrt(2.0).
+    // Support is sqrt(2.0).
     #define linear_kernel(x) (1.0 - (x) / M_SQRT2)
 #else
-    // Fixed radius 1.0.
+    // Support is 1.0.
     #define linear_kernel(x) (1.0 - (x))
 #endif
 
-// Fixed radius 2.0.
+// Support is 2.0.
 float _sinc_fsr_kernel(float x)
 {
     const float base = 25.0 / 16.0 * (2.0 / 5.0 * x * x - 1.0) * (2.0 / 5.0 * x * x - 1.0) - (25.0 / 16.0 - 1.0);
@@ -156,7 +149,7 @@ float _sinc_fsr_kernel(float x)
     return  base * window;
 }
 
-// Fixed radius second Jinc zero, 2.23313059438152863173.
+// Support is the second Jinc zero, 2.23313059438152863173.
 float _jinc_fsr_kernel(float x)
 {
     const float base = 25.0 / 16.0 * (2.0 / 5.0 / (FIRST_JINC_ZERO * FIRST_JINC_ZERO) * x * x - 1.0) * (2.0 / 5.0 / (FIRST_JINC_ZERO * FIRST_JINC_ZERO) * x * x - 1.0) - (25.0 / 16.0 - 1.0);
@@ -170,7 +163,7 @@ float _jinc_fsr_kernel(float x)
     #define fsr_kernel(x) _sinc_fsr_kernel(x)
 #endif
 
-// Fixed radius 2.0.
+// Support is 2.0.
 float bicubic(float x, float a)
 {
     if (x < 1.0) {
@@ -179,7 +172,7 @@ float bicubic(float x, float a)
     return a * x * x * x - 5.0 * a * x * x + 8.0 * a * x - 4.0 * a;
 }
 
-// Fixed radius 2.0.
+// Support is 2.0.
 // Keys kernels: B + 2C = 1.
 // B = 1.0, C = 0.0: Spline kernel.
 // B = 0.0, C = 0.0: Hermite kernel.

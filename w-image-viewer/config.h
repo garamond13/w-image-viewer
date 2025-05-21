@@ -20,7 +20,7 @@ struct Config_scale
 	Config_pair<float, "sig_c"> sigmoid_contrast = { 6.0f };
 	Config_pair<float, "sig_m"> sigmoid_midpoint = { 0.6f };
 	Config_pair<int, "k_i"> kernel_index;
-	Config_pair<float, "k_r"> kernel_radius = { 2.0f };
+	Config_pair<float, "k_r"> kernel_support = { 2.0f };
 	Config_pair<float, "k_b"> kernel_blur = { 1.0f };
 	Config_pair<float, "k_p1"> kernel_parameter1 = { 0.16f };
 	Config_pair<float, "k_p2"> kernel_parameter2 = { 1.0f };

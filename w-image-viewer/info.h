@@ -11,13 +11,14 @@ namespace info
 	inline int scaled_width; // Scaled image width.
 	inline int scaled_height; // Scaled image height.
 	inline std::string scale_filter; // Scale filter. 0 - orthogonal, 1 - cylindrical 
-	inline int kernel_index; // Currently used scale kernel.
-	inline float kernel_radius; // Currently used kernel radius
+	inline int kernel_index; // Currently used kernel function.
+	inline float kernel_support; // Valid range of the kernel function.
+	inline int kernel_radius; // Currently used kernel radius: ceil(kernel_support / min(scale, 1)).
 	inline uint8_t image_bitdepth; // Image bitdepth per channel.
 	inline uint8_t image_nchannels; // Number of channels per pixel.
 
 	// Currently used scale kernel size.
-	// In case of orthogonal scaling: (ceil(kernel_radius / scale) * 2) * 2.
-	// In case of cylindrical scaling: (ceil(kernel_radius / scale) * 2) ^ 2.
+	// In case of orthogonal scaling: kernel_radius * 2.
+	// In case of cylindrical scaling: (kernel_radius * 2)^2.
 	inline int kernel_size;
 };

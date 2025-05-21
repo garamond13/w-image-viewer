@@ -42,7 +42,7 @@ namespace
         DXGI_FORMAT_R16G16B16A16_UNORM,
         DXGI_FORMAT_R32G32B32A32_FLOAT
     };
-    
+
     // Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
     template<typename T>
     constexpr T WIV_MAX_TEX_UV = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
@@ -260,13 +260,15 @@ void Renderer::update_scale_profile() noexcept
 
 info:
     info::kernel_index = p_scale_profile->kernel_index.val;
-    info::kernel_radius = get_kernel_radius();
+    info::kernel_support = get_kernel_support();
+    const auto clamped_scale = std::min(scale, 1.0f);
+    info::kernel_radius = std::ceil(info::kernel_support / clamped_scale);
     if (p_scale_profile->kernel_cylindrical_use.val) {
-        const auto a = static_cast<int>(std::ceil(info::kernel_radius / std::min(scale, 1.0f)));
+        const auto a = static_cast<int>(std::ceil(info::kernel_support / clamped_scale));
         info::kernel_size = a * a;
     }
     else {
-        info::kernel_size = static_cast<int>(std::ceil(info::kernel_radius / std::min(scale, 1.0f))) * 2;
+        info::kernel_size = std::ceil(static_cast<float>(info::kernel_radius) / std::min(scale, 1.0f)) * 2;
     }
     info::scale_filter = p_scale_profile->kernel_cylindrical_use.val ? "Cylindrical" : "Orthogonal";
 }
@@ -569,11 +571,11 @@ void Renderer::pass_orthogonal_resample()
     // Pass y axis.
     //
 
+    const float kernel_support = get_kernel_support();
     const float clamped_scale = std::min(scale, 1.0f);
-    const float kernel_radius = get_kernel_radius();
     alignas(16) Cb_data data[4];
     data[0].x.i = p_scale_profile->kernel_index.val; // index
-    data[0].y.f = kernel_radius; // radius
+    data[0].y.f = kernel_support; // support
     data[0].z.f = p_scale_profile->kernel_blur.val; // blur
     data[0].w.f = p_scale_profile->kernel_parameter1.val; // p1
     data[1].x.f = p_scale_profile->kernel_parameter2.val; // p2
@@ -582,7 +584,7 @@ void Renderer::pass_orthogonal_resample()
     data[1].y.f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f; // ar
     
     data[1].z.f = clamped_scale; // scale
-    data[1].w.f = std::ceil(kernel_radius / clamped_scale); // bound
+    data[1].w.f = std::ceil(kernel_support / clamped_scale); // radius
     data[2].x.f = image.get_width<float>(); // dims.x
     data[2].y.f = image.get_height<float>(); // dims.y
     data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
@@ -609,11 +611,11 @@ void Renderer::pass_orthogonal_resample()
 
 void Renderer::pass_cylindrical_resample()
 {
+    const float kernel_support = get_kernel_support();
     const float clamped_scale = std::min(scale, 1.0f);
-    const float kernel_radius = get_kernel_radius();
     alignas(16) Cb_data data[3];
     data[0].x.i = p_scale_profile->kernel_index.val; // index
-    data[0].y.f = kernel_radius; // radius
+    data[0].y.f = kernel_support; // support
     data[0].z.f = p_scale_profile->kernel_blur.val; // blur
     data[0].w.f = p_scale_profile->kernel_parameter1.val; // p1
     data[1].x.f = p_scale_profile->kernel_parameter2.val; // p2
@@ -621,8 +623,8 @@ void Renderer::pass_cylindrical_resample()
     // Antiringing shouldnt be used when downsampling!
     data[1].y.f = scale > 1.0f ? p_scale_profile->kernel_antiringing.val : -1.0f; // ar
     
-    data[1].z.f = std::min(scale, 1.0f); // scale
-    data[1].w.f = std::ceil(kernel_radius / clamped_scale); // bound
+    data[1].z.f = clamped_scale; // scale
+    data[1].w.f = std::ceil(kernel_support / clamped_scale); // radius
     data[2].x.f = image.get_width<float>(); // dims.x
     data[2].y.f = image.get_height<float>(); // dims.y
     data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
@@ -712,25 +714,28 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
     device_context->RSSetViewports(1, &viewport);
 }
 
-float Renderer::get_kernel_radius() const noexcept
+float Renderer::get_kernel_support() const noexcept
 {
     switch (p_scale_profile->kernel_index.val) {
-    case WIV_KERNEL_FUNCTION_NEAREST:
-        return 1.0f;
-    case WIV_KERNEL_FUNCTION_LINEAR:
-        if (p_scale_profile->kernel_cylindrical_use.val) {
-            return std::numbers::sqrt2_v<float>;
-        }
-        return 1.0f;
-    case WIV_KERNEL_FUNCTION_BICUBIC:
-    case WIV_KERNEL_FUNCTION_BCSPLINE:
-        return 2.0f;
-    case WIV_KERNEL_FUNCTION_FSR:
-        if (p_scale_profile->kernel_cylindrical_use.val) {
-            return 2.23313059438152863173f; // Second Jinc zero.
-        }
-        return 2.0f;
-    default:
-        return p_scale_profile->kernel_radius.val;
+        case WIV_KERNEL_FUNCTION_NEAREST:
+            if (p_scale_profile->kernel_cylindrical_use.val) {
+                return std::numbers::sqrt2_v<float> / 2.0f;
+            }
+            return 1.0f / 2.0f;
+        case WIV_KERNEL_FUNCTION_LINEAR:
+            if (p_scale_profile->kernel_cylindrical_use.val) {
+                return std::numbers::sqrt2_v<float>;
+            }
+            return 1.0f;
+        case WIV_KERNEL_FUNCTION_BICUBIC:
+        case WIV_KERNEL_FUNCTION_BCSPLINE:
+            return 2.0f;
+        case WIV_KERNEL_FUNCTION_FSR:
+            if (p_scale_profile->kernel_cylindrical_use.val) {
+                return 2.233131f; // Second Jinc zero.
+            }
+            return 2.0f;
+        default:
+            return p_scale_profile->kernel_support.val;
     }
 }

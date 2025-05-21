@@ -22,6 +22,7 @@ enum WIV_OVERLAY_SHOW_ : uint64_t
     WIV_OVERLAY_SHOW_IMAGE_BITDEPTH = 1 << 6,
     WIV_OVERLAY_SHOW_IMAGE_NCHANNELS = 1 << 7,
     WIV_OVERLAY_SHOW_SCALE_FILTER = 1 << 8,
+    WIV_OVERLAY_SHOW_KERNEL_SUPPORT = 1 << 9
 };
 
 namespace
@@ -383,8 +384,11 @@ void User_interface::overlay() const
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX) {
             ImGui::Text("Kernel: %s", kernel_function_names[info::kernel_index]);
         }
-        if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX) {
-            ImGui::Text("Kernel radius: %.6f", info::kernel_radius);
+        if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SUPPORT) {
+            ImGui::Text("Kernel support: %.6f", info::kernel_support);
+        }
+        if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_RADIUS) {
+            ImGui::Text("Kernel radius: %i", info::kernel_radius);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE) {
             ImGui::Text("Kernel size: %i", info::kernel_size);
@@ -628,7 +632,7 @@ void User_interface::window_settings()
                 has_fixed_radius = true;
         }
         ImGui::BeginDisabled(has_fixed_radius);
-        ImGui::InputFloat("Radius##kernel", &scale.kernel_radius.val, 0.0f, 0.0f, "%.6f");
+        ImGui::InputFloat("Support##kernel", &scale.kernel_support.val, 0.0f, 0.0f, "%.6f");
         ImGui::InputFloat("Blur", &scale.kernel_blur.val, 0.0f, 0.0f, "%.6f");
         ImGui::EndDisabled();
         bool hasno_parameter1 = false;
@@ -790,6 +794,9 @@ void User_interface::window_settings()
         }
         if (ImGui::Selectable("Kernel function", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX)) {
             g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_INDEX;
+        }
+        if (ImGui::Selectable("Scale kernel support", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SUPPORT)) {
+            g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_SUPPORT;
         }
         if (ImGui::Selectable("Scale kernel radius", g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_RADIUS)) {
             g_config.overlay_config.val ^= WIV_OVERLAY_SHOW_KERNEL_RADIUS;

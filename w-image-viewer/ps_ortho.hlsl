@@ -9,7 +9,7 @@ SamplerState smp : register(s1);
 cbuffer cb0 : register(b0)
 {
     int index;
-    float radius;
+    float support;
     float blur;
     
     // Free parameters.
@@ -20,7 +20,7 @@ cbuffer cb0 : register(b0)
     float ar;
     
     float scale;
-    float bound;
+    float radius;
     float2 dims;
     float2 pt;
     float2 axis;
@@ -29,22 +29,22 @@ cbuffer cb0 : register(b0)
 // Expects abs(x).
 float get_weight(float x)
 {
-    if (x < radius) {
+    if (x <= support) {
         switch (index) {
             case WIV_KERNEL_FUNCTION_LANCZOS:
-                return base(x, blur) * sinc(x, radius);
+                return base(x, blur) * sinc(x, support);
             case WIV_KERNEL_FUNCTION_GINSENG:
-                return base(x, blur) * jinc(x, radius);
+                return base(x, blur) * jinc(x, support);
             case WIV_KERNEL_FUNCTION_HAMMING:
-                return base(x, blur) * hamming(x, radius);
+                return base(x, blur) * hamming(x, support);
             case WIV_KERNEL_FUNCTION_POW_COSINE:
-                return base(x, blur) * power_of_cosine(x, radius, p1);
+                return base(x, blur) * power_of_cosine(x, support, p1);
             case WIV_KERNEL_FUNCTION_KAISER:
-                return base(x, blur) * kaiser(x, radius, p1);
+                return base(x, blur) * kaiser(x, support, p1);
             case WIV_KERNEL_FUNCTION_POW_GARAMOND:
-                return base(x, blur) * power_of_garamond(x, radius, p1, p2);
+                return base(x, blur) * power_of_garamond(x, support, p1, p2);
             case WIV_KERNEL_FUNCTION_POW_BLACKMAN:
-                return base(x, blur) * power_of_blackman(x, radius, p1, p2);
+                return base(x, blur) * power_of_blackman(x, support, p1, p2);
             case WIV_KERNEL_FUNCTION_GNW:
                 return base(x, blur) * generalized_normal_window(x, p1, p2);
             case WIV_KERNEL_FUNCTION_SAID:
@@ -64,7 +64,7 @@ float get_weight(float x)
         }
     }
 
-    // x >= radius
+    // x > support
     else {
         return 0.0;
     }
@@ -83,7 +83,7 @@ float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
     float4 lo = 1e9;
     float4 hi = -1e9;
     
-    for (float i = 1.0 - bound; i <= bound; ++i) {
+    for (float i = 1.0 - radius; i <= radius; ++i) {
         const float4 color = tex.SampleLevel(smp, (base + i * axis) * pt, 0.0);
         const float weight = get_weight(abs((i - f) * scale));
         csum += color * weight;
