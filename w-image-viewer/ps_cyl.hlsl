@@ -57,7 +57,7 @@ float get_weight(float x)
 			case WIV_KERNEL_FUNCTION_BICUBIC:
 				return bicubic(x, p1);
 			case WIV_KERNEL_FUNCTION_FSR:
-				return modified_fsr_kernel(x, p1, p2);
+				return fsr_kernel(x);
 			case WIV_KERNEL_FUNCTION_BCSPLINE:
 				return bc_spline(x, p1, p2);
 			default: // Black image.

@@ -6,6 +6,9 @@
 
 // Before including define USE_JINC_BASE macro if you want to use jinc based kernels.
 
+#define FIRST_JINC_ZERO 1.21966989126650445493
+#define SECOND_JINC_ZERO 2.23313059438152863173
+
 // Math functions
 //
 
@@ -64,7 +67,6 @@ float sinc(float x, float r)
 // Normalized version: x == 0.0 ? 1.0 : 2.0 * bessel_J1(M_PI * x / (radius * FIRST_JINC_ZERO)) / (M_PI * x / (radius * FIRST_JINC_ZERO)).
 float jinc(float x, float r)
 {
-    #define FIRST_JINC_ZERO 1.21966989126650445493
     return is_zero(x) ? M_PI_2 / FIRST_JINC_ZERO / r : bessel_J1(M_PI / FIRST_JINC_ZERO / r * x) / x;
 }
 
@@ -147,22 +149,34 @@ float said(float x, float eta, float chi)
 #endif
 
 // Fixed radius 2.0.
+float _sinc_fsr_kernel(float x)
+{
+    const float base = 25.0 / 16.0 * (2.0 / 5.0 * x * x - 1.0) * (2.0 / 5.0 * x * x - 1.0) - (25.0 / 16.0 - 1.0);
+    const float window = (1.0 / 4.0 * x * x - 1.0) * (1.0 / 4.0 * x * x - 1.0);
+    return  base * window;
+}
+
+// Fixed radius second Jinc zero, 2.23313059438152863173.
+float _jinc_fsr_kernel(float x)
+{
+    const float base = 25.0 / 16.0 * (2.0 / 5.0 / (FIRST_JINC_ZERO * FIRST_JINC_ZERO) * x * x - 1.0) * (2.0 / 5.0 / (FIRST_JINC_ZERO * FIRST_JINC_ZERO) * x * x - 1.0) - (25.0 / 16.0 - 1.0);
+    const float window = (1.0 / (SECOND_JINC_ZERO * SECOND_JINC_ZERO) * x * x - 1.0) * (1.0 / (SECOND_JINC_ZERO * SECOND_JINC_ZERO) * x * x - 1.0);
+    return  base * window;
+}
+
+#ifdef USE_JINC_BASE
+    #define fsr_kernel(x) _jinc_fsr_kernel(x)
+#else
+    #define fsr_kernel(x) _sinc_fsr_kernel(x)
+#endif
+
+// Fixed radius 2.0.
 float bicubic(float x, float a)
 {
     if (x < 1.0) {
         return (a + 2.0) * x * x * x - (a + 3.0) * x * x + 1.0;
     }
     return a * x * x * x - 5.0 * a * x * x + 8.0 * a * x - 4.0 * a;
-}
-
-// Fixed radius 2.0.
-// Has to be satisfied: b != 0, b != 2, c != 0.
-// c = 1.0: FSR kernel.
-float modified_fsr_kernel(float x, float b, float c)
-{
-    const float base = 1.0 / (2.0 * b - b * b) * (b / (c * c) * x * x - 1.0) * (b / (c * c) * x * x - 1.0) - (1.0 / (2.0 * b - b * b) - 1.0);
-    const float window = (0.25 * x * x - 1.0) * (0.25 * x * x - 1.0);
-    return  base * window;
 }
 
 // Fixed radius 2.0.

@@ -31,7 +31,7 @@ namespace
         "Lanczos",
         "Ginseng",
         "Hamming",
-        "Power of cosine",
+        "Power of Cosine",
         "Kaiser",
         "Power of Garamond",
         "Power of Blackman",
@@ -40,7 +40,7 @@ namespace
         "Nearest neighbor",
         "Linear",
         "Bicubic",
-        "Modified FSR",
+        "FSR kernel",
         "BC-Spline"
     };
 }
@@ -638,6 +638,7 @@ void User_interface::window_settings()
             case WIV_KERNEL_FUNCTION_HAMMING:
             case WIV_KERNEL_FUNCTION_NEAREST:
             case WIV_KERNEL_FUNCTION_LINEAR:
+            case WIV_KERNEL_FUNCTION_FSR:
                 hasno_parameter1 = true;
         }
         ImGui::BeginDisabled(hasno_parameter1);
@@ -653,6 +654,7 @@ void User_interface::window_settings()
             case WIV_KERNEL_FUNCTION_NEAREST:
             case WIV_KERNEL_FUNCTION_LINEAR:
             case WIV_KERNEL_FUNCTION_BICUBIC:
+            case WIV_KERNEL_FUNCTION_FSR:
                 hasno_parameter2 = true;
         }
         ImGui::BeginDisabled(hasno_parameter2);
