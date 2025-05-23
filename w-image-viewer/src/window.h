@@ -21,6 +21,7 @@ public:
     bool is_minimized;
 private:
     static LRESULT wndproc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
+    LRESULT handle_message(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
     void set_window_name() const;
     void reset_image_rotation() noexcept;
 };
