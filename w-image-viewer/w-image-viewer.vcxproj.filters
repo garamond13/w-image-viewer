@@ -18,170 +18,164 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h">
+    <ClInclude Include="src\resources\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resource.h">
+    <ClInclude Include="src\resources\Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
+    <ClInclude Include="src\pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="helpers.h">
+    <ClInclude Include="src\include\helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="window.h">
+    <ClInclude Include="src\window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="config.h">
+    <ClInclude Include="src\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer.h">
+    <ClInclude Include="src\renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="user_interface.h">
+    <ClInclude Include="src\user_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="font.h">
+    <ClInclude Include="src\include\font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="file_manager.h">
+    <ClInclude Include="src\file_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="image.h">
+    <ClInclude Include="src\image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dims.h">
+    <ClInclude Include="src\include\shader_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="shader_config.h">
+    <ClInclude Include="src\icc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="icc.h">
+    <ClInclude Include="src\include\cms_lut.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cms_lut.h">
+    <ClInclude Include="src\include\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="version.h">
+    <ClInclude Include="src\include\wiv_imconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wiv_imconfig.h">
+    <ClInclude Include="src\include\global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="global.h">
+    <ClInclude Include="src\include\range.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="range.h">
+    <ClInclude Include="src\include\supported_extensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="supported_extensions.h">
+    <ClInclude Include="src\include\bench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bench.h">
+    <ClInclude Include="src\include\info.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="message.h">
+    <ClInclude Include="src\renderer_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="info.h">
+    <ClInclude Include="src\include\ensure.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer_base.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="trc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ensure.h">
+    <ClInclude Include="src\include\dims.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="src\pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="config.cpp">
+    <ClCompile Include="src\config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="window.cpp">
+    <ClCompile Include="src\window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="renderer.cpp">
+    <ClCompile Include="src\renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="user_interface.cpp">
+    <ClCompile Include="src\user_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="file_manager.cpp">
+    <ClCompile Include="src\file_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="image.cpp">
+    <ClCompile Include="src\image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="icc.cpp">
+    <ClCompile Include="src\icc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="renderer_base.cpp">
+    <ClCompile Include="src\renderer_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="w-image-viewer.rc">
+    <ResourceCompile Include="src\resources\w-image-viewer.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="w-image-viewer.ico">
+    <Image Include="src\resources\w-image-viewer.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="vs_quad.hlsl">
+    <FxCompile Include="src\shaders\fullscreen_triangle_vs.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_sample.hlsl">
+    <FxCompile Include="src\shaders\sample_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_sample_alpha.hlsl">
+    <FxCompile Include="src\shaders\sample_alpha_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_cyl.hlsl">
+    <FxCompile Include="src\shaders\cylindcrical_resample_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_ortho.hlsl">
+    <FxCompile Include="src\shaders\orthogonal_resample_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_cms.hlsl">
+    <FxCompile Include="src\shaders\cms_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_blur.hlsl">
+    <FxCompile Include="src\shaders\blur_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_delinearize.hlsl">
+    <FxCompile Include="src\shaders\delinearize_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_linearize.hlsl">
+    <FxCompile Include="src\shaders\linearize_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_sigmoidize.hlsl">
+    <FxCompile Include="src\shaders\sigmoidize_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ps_desigmoidize.hlsl">
+    <FxCompile Include="src\shaders\desigmoidize_ps.hlsl">
       <Filter>Resource Files\shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="kernel_functions.hlsli">
+    <None Include="src\shaders\include\kernel_functions.hlsli">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="helpers.hlsli">
+    <None Include="src\shaders\include\helpers.hlsli">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="corecrt_math_defines.hlsli">
+    <None Include="src\shaders\include\corecrt_math_defines.hlsli">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>

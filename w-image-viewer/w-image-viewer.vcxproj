@@ -70,6 +70,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
   </PropertyGroup>
@@ -155,56 +161,54 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="bench.h" />
-    <ClInclude Include="config.h" />
-    <ClInclude Include="dims.h" />
-    <ClInclude Include="ensure.h" />
-    <ClInclude Include="file_manager.h" />
-    <ClInclude Include="font.h" />
-    <ClInclude Include="global.h" />
-    <ClInclude Include="helpers.h" />
-    <ClInclude Include="icc.h" />
-    <ClInclude Include="image.h" />
-    <ClInclude Include="cms_lut.h" />
-    <ClInclude Include="info.h" />
-    <ClInclude Include="range.h" />
-    <ClInclude Include="renderer_base.h" />
-    <ClInclude Include="supported_extensions.h" />
-    <ClInclude Include="message.h" />
-    <ClInclude Include="trc.h" />
-    <ClInclude Include="wiv_imconfig.h" />
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="renderer.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="shader_config.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="user_interface.h" />
-    <ClInclude Include="version.h" />
-    <ClInclude Include="window.h" />
+    <ClInclude Include="src\include\bench.h" />
+    <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\include\dims.h" />
+    <ClInclude Include="src\include\ensure.h" />
+    <ClInclude Include="src\file_manager.h" />
+    <ClInclude Include="src\include\font.h" />
+    <ClInclude Include="src\include\global.h" />
+    <ClInclude Include="src\include\helpers.h" />
+    <ClInclude Include="src\icc.h" />
+    <ClInclude Include="src\image.h" />
+    <ClInclude Include="src\include\cms_lut.h" />
+    <ClInclude Include="src\include\info.h" />
+    <ClInclude Include="src\include\range.h" />
+    <ClInclude Include="src\renderer_base.h" />
+    <ClInclude Include="src\include\supported_extensions.h" />
+    <ClInclude Include="src\include\wiv_imconfig.h" />
+    <ClInclude Include="src\pch.h" />
+    <ClInclude Include="src\renderer.h" />
+    <ClInclude Include="src\resources\Resource.h" />
+    <ClInclude Include="src\include\shader_config.h" />
+    <ClInclude Include="src\resources\targetver.h" />
+    <ClInclude Include="src\user_interface.h" />
+    <ClInclude Include="src\include\version.h" />
+    <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="config.cpp" />
-    <ClCompile Include="file_manager.cpp" />
-    <ClCompile Include="icc.cpp" />
-    <ClCompile Include="image.cpp" />
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="src\config.cpp" />
+    <ClCompile Include="src\file_manager.cpp" />
+    <ClCompile Include="src\icc.cpp" />
+    <ClCompile Include="src\image.cpp" />
+    <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="renderer.cpp" />
-    <ClCompile Include="renderer_base.cpp" />
-    <ClCompile Include="user_interface.cpp" />
-    <ClCompile Include="window.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\renderer.cpp" />
+    <ClCompile Include="src\renderer_base.cpp" />
+    <ClCompile Include="src\user_interface.cpp" />
+    <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="w-image-viewer.rc" />
+    <ResourceCompile Include="src\resources\w-image-viewer.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="w-image-viewer.ico" />
+    <Image Include="src\resources\w-image-viewer.ico" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="ps_blur.hlsl">
+    <FxCompile Include="src\shaders\blur_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -214,7 +218,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_BLUR</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_blur_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_cms.hlsl">
+    <FxCompile Include="src\shaders\cms_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -224,7 +228,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_CMS</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_cms_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_cyl.hlsl">
+    <FxCompile Include="src\shaders\cylindcrical_resample_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -234,7 +238,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_CYL</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_cyl_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_delinearize.hlsl">
+    <FxCompile Include="src\shaders\delinearize_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -244,7 +248,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_DELINEARIZE</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_delinearize_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_desigmoidize.hlsl">
+    <FxCompile Include="src\shaders\desigmoidize_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -254,7 +258,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_DESIGMOIDIZE</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_desigmoidize_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_linearize.hlsl">
+    <FxCompile Include="src\shaders\linearize_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -264,7 +268,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_LINEARIZE</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_linearize_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_ortho.hlsl">
+    <FxCompile Include="src\shaders\orthogonal_resample_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -274,7 +278,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_ORTHO</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_ortho_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_sample.hlsl">
+    <FxCompile Include="src\shaders\sample_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -286,7 +290,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_SAMPLE</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_sample_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="ps_sample_alpha.hlsl">
+    <FxCompile Include="src\shaders\sample_alpha_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -298,7 +302,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="ps_sigmoidize.hlsl">
+    <FxCompile Include="src\shaders\sigmoidize_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -308,7 +312,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_SIGMOIDIZE</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps_sigmoidize_hlsl.h</HeaderFileOutput>
     </FxCompile>
-    <FxCompile Include="vs_quad.hlsl">
+    <FxCompile Include="src\shaders\fullscreen_triangle_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -322,9 +326,9 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="corecrt_math_defines.hlsli" />
-    <None Include="helpers.hlsli" />
-    <None Include="kernel_functions.hlsli" />
+    <None Include="src\shaders\include\corecrt_math_defines.hlsli" />
+    <None Include="src\shaders\include\helpers.hlsli" />
+    <None Include="src\shaders\include\kernel_functions.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
