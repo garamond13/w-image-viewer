@@ -37,7 +37,7 @@ Window::Window(HINSTANCE hinstance, int ncmdshow)
     g_hwnd = CreateWindowExW(WIV_WINDOW_EX_STYLE, wndclassexw.lpszClassName, WIV_WINDOW_NAME, WIV_WINDOW_STYLE, CW_USEDEFAULT, CW_USEDEFAULT, rc_w<int>(rect), rc_h<int>(rect), nullptr, nullptr, hinstance, this);
     assert(g_hwnd);
 
-    renderer.create();
+    renderer.init();
     ShowWindow(g_hwnd, ncmdshow);
 }
 

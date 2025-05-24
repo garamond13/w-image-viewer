@@ -18,7 +18,7 @@ enum WIV_CMS_PROFILE_DISPLAY_
 class Renderer : Renderer_base
 {
 public:
-    void create();
+    void init();
     void update();
     void draw() const;
     void create_image();

@@ -48,7 +48,7 @@ namespace
     constexpr T WIV_MAX_TEX_UV = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
 }
 
-void Renderer::create()
+void Renderer::init()
 {
     create_device();
     create_swapchain();
