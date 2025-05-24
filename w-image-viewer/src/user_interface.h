@@ -28,7 +28,7 @@ public:
     bool is_panning;
     float image_zoom;
     bool is_zooming;
-    float image_rotation;
+    int image_rotation;
     bool is_rotating;
     
     // Request to show image at the original width and height.

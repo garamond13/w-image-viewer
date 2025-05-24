@@ -208,21 +208,21 @@ void Window::reset_image_rotation() noexcept
 {
     // Rotated 180.
     if (renderer.ui.file_manager.image.orientation == 2) {
-        renderer.ui.image_rotation = -180.0f;
+        renderer.ui.image_rotation = -180;
     }
 
     // Rotated 90 cw.
     else if (renderer.ui.file_manager.image.orientation == 5) {
-        renderer.ui.image_rotation = -90.0f;
+        renderer.ui.image_rotation = -90;
     }
 
     // Rotated 90 ccw.
     else if (renderer.ui.file_manager.image.orientation == 7) {
-        renderer.ui.image_rotation = 90.0f;
+        renderer.ui.image_rotation = 90;
     }
 
     else {
-        renderer.ui.image_rotation = 0.0f;
+        renderer.ui.image_rotation = 0;
     }
 
     // Reset orientation.

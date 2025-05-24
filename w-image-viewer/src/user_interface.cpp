@@ -269,13 +269,13 @@ void User_interface::input()
                 return;
             }
             if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-                image_rotation -= 90.0f;
+                image_rotation -= 90;
                 is_rotating = true;
                 *prenderer_should_update = true;
                 return;
             }
             if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-                image_rotation += 90.0f;
+                image_rotation += 90;
                 is_rotating = true;
                 *prenderer_should_update = true;
                 return;
@@ -426,13 +426,13 @@ void User_interface::context_menu()
         }
         ImGui::Separator();
         if (ImGui::Selectable("Rotate CW")) {
-            image_rotation += 90.0f;
+            image_rotation += 90;
             is_rotating = true;
             *prenderer_should_update = true;
             goto end;
         }
         if (ImGui::Selectable("Rotate CCW")) {
-            image_rotation -= 90.0f;
+            image_rotation -= 90;
             is_rotating = true;
             *prenderer_should_update = true;
             goto end;

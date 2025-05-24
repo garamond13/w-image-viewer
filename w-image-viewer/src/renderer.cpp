@@ -216,7 +216,7 @@ void Renderer::update_scale_and_dims_output() noexcept
     auto image_h = image.get_height<float>();
 
     // Check is the rotation angele divisible by 180, if it is we dont need to swap width and height.
-    if (is_not_zero(frac(ui.image_rotation / 180.0f)))
+    if (ui.image_rotation % 180)
         std::swap(image_w, image_h);
 
     float auto_zoom;
@@ -647,7 +647,7 @@ void Renderer::update_final_pass()
         data[0].z.f = ui.image_rotation; // theta
 
         // Check is theta divisible by 360, if it is we dont need to rotate texcoord.
-        data[0].w.i = is_not_zero(frac(ui.image_rotation / 360.0f)); // rotate
+        data[0].w.i = ui.image_rotation % 360; // rotate
 
         data[1].x.f = g_config.alpha_tile1_color.val[0]; // tile1.x
         data[1].y.f = g_config.alpha_tile1_color.val[1]; // tile1.y
@@ -663,7 +663,7 @@ void Renderer::update_final_pass()
         data[0].x.f = ui.image_rotation; // theta
 
         // Check is theta divisible by 360, if it is we dont need to rotate texcoord.
-        data[0].y.i = is_not_zero(frac(ui.image_rotation / 360.0f)); // rotate
+        data[0].y.i = ui.image_rotation % 360; // rotate
 
         create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
         create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
