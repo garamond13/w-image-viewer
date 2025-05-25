@@ -317,7 +317,7 @@ void User_interface::input()
             toggle_fullscreen();
             return;
         }
-        if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_Delete, false)) {
             file_manager.delete_file();
             return;
         }
