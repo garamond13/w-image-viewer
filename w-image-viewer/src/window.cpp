@@ -179,6 +179,7 @@ LRESULT Window::handle_message(HWND hwnd, UINT message, WPARAM wparam, LPARAM lp
             return 0;
         case WIV_WM_RESET_RESOURCES:
             renderer.reset_resources();
+            ensure(SetWindowTextW(hwnd, WIV_WINDOW_NAME), != 0);
             return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
