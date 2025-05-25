@@ -60,7 +60,7 @@
     <ClInclude Include="src\include\cms_lut.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\version.h">
+    <ClInclude Include="src\resources\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\include\wiv_imconfig.h">

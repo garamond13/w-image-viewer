@@ -183,7 +183,7 @@
     <ClInclude Include="src\include\shader_config.h" />
     <ClInclude Include="src\resources\targetver.h" />
     <ClInclude Include="src\user_interface.h" />
-    <ClInclude Include="src\include\version.h" />
+    <ClInclude Include="src\resources\version.h" />
     <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>

@@ -4,7 +4,7 @@
 #include "include\font.h"
 #include "include\helpers.h"
 #include "include\shader_config.h"
-#include "include\version.h"
+#include "resources\version.h"
 #include "include\supported_extensions.h"
 #include "window.h"
 #include "include\info.h"
