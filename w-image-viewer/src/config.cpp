@@ -28,72 +28,121 @@ section_key=value
 
 void Config::read()
 {
+    auto file = std::ifstream(get_path() / L"config.dat");
+    
+    // If we don't have a config write a new one with default values.
+    if (!file.is_open()) {
+        write();
+        return;
+    }
+
+    std::string line;
     bool is_section_scale = false;
     Right_open_range<float> range;
     Config_scale scale;
-    auto file = std::ifstream(get_path());
     scale_profiles.clear();
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
+    while (std::getline(file, line)) {
 
-            // Check for sections.
-            if (line[0] == '#' && line[1] != '#')
-                if (line.substr(1) == "scale") {
-                    is_section_scale = true;
-                    continue;
+        // Check for sections.
+        if (line[0] == '#' && line[1] != '#')
+            if (line.substr(1) == "scale") {
+                is_section_scale = true;
+                continue;
+            }
+        
+        // If we are not in any section, we are in top level.
+        if (!is_section_scale) {
+            auto pos = line.find('=');
+            if (pos != std::string::npos) {
+                read_top_level(line.substr(0, pos), line.substr(pos + 1));
+            }
+        }
+
+        // #scale
+        if (is_section_scale) {
+
+            // Check for the start and the end of subsection.
+            if (line[0] == '#' && line[1] == '#') {
+
+                // At the end of a subsection add the scale profile to the array of scale profiles.
+                if (line.substr(2) == "end") {
+                    scale_profiles.push_back(Scale_profile(range, scale));
                 }
-            
-            // Top level
-            if (!is_section_scale) {
-                auto pos = line.find('=');
-                if (pos != std::string::npos) {
-                    read_top_level(line.substr(0, pos), line.substr(pos + 1));
+
+                // At the start of a subsection read a scale range.
+                else {
+                    auto pos = line.find(',');
+                    strtoval(line.substr(2, pos), range.lower);
+                    strtoval(line.substr(pos + 1), range.upper);
                 }
+                continue;
             }
 
-            // Section #scale
-            if (is_section_scale) {
-
-                // Check for subsections.
-                if (line[0] == '#' && line[1] == '#') {
-                    if (line.substr(2) == "end")
-                        scale_profiles.push_back({range, scale});
-                    else {
-                        auto pos = line.find(',');
-                        strtoval(line.substr(2, pos), range.lower);
-                        strtoval(line.substr(pos + 1), range.upper);
-                    }
-                    continue;
-                }
-
-                auto pos = line.find('=');
-                if (pos != std::string::npos)
-                    read_scale(line.substr(0, pos), line.substr(pos + 1), scale);
+            auto pos = line.find('=');
+            if (pos != std::string::npos) {
+                read_scale(line.substr(0, pos), line.substr(pos + 1), scale);
             }
+        }
 
-        }	
     }
-    else
-        write();
 }
 
 void Config::write()
 {
     // Top level
-    auto file = std::ofstream(get_path());
+    auto file = std::ofstream(get_path() / L"config.dat");
+    if (!file.is_open()) {
+        return;
+    }
     write_top_level(file);
     
     // Scale
     file << "#scale\n";
-    if(scale_profiles.empty())
-        scale_profiles.push_back({});
+    if (scale_profiles.empty()) {
+        scale_profiles.push_back(Scale_profile());
+    }
     for (const auto& profile : scale_profiles) {
         file << "##" << std::to_string(profile.range.lower) + "," + std::to_string(profile.range.upper) << '\n';
         write_scale(file, profile.config);
         file << "##end\n";
     }
     file << "#end\n";
+}
+
+void Config::read_slideshow()
+{
+    auto file = std::ifstream(get_path() / L"slideshow.dat");
+    
+    // If we don't have a config write a new one with default values.
+    if (!file.is_open()) {
+        write_slideshow();
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        auto pos = line.find('=');
+        if (pos != std::string::npos) {
+            if (line.substr(0, pos) == slideshow_auto_close.key) {
+                strtoval(line.substr(pos + 1), slideshow_auto_close.val);
+                continue;
+            }
+            if (line.substr(0, pos) == slideshow_interval.key) {
+                strtoval(line.substr(pos + 1), slideshow_interval.val);
+                continue;
+            }
+        }
+    }
+}
+
+void Config::write_slideshow()
+{
+    auto file = std::ofstream(get_path() / L"slideshow.dat");
+    if (!file.is_open()) {
+        return;
+    }
+    file << slideshow_auto_close.key << '=' << slideshow_auto_close.val << '\n';
+    file << slideshow_interval.key << '=' << slideshow_interval.val << '\n';
 }
 
 void Config::read_top_level(const std::string& key, const std::string& val)
@@ -266,5 +315,5 @@ std::filesystem::path Config::get_path()
 {
     wchar_t path[MAX_PATH];
     GetModuleFileNameW(nullptr, path, MAX_PATH);
-    return std::filesystem::path(path).parent_path() / L"config.txt";
+    return std::filesystem::path(path).parent_path();
 }

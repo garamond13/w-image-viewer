@@ -176,7 +176,7 @@ void User_interface::slideshow()
         is_slideshow_start = false;
     }
 
-    if (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start).count() < slideshow_interval) {
+    if (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start).count() < g_config.slideshow_interval.val) {
         return;
     }
     file_manager.file_next();
@@ -839,11 +839,14 @@ void User_interface::window_slideshow()
     static constinit const ImVec2 size = { 288.0f, 0.0f };
     ImGui::SetNextWindowSize(size);
     ImGui::Begin("Slideshow", &is_window_slideshow_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    static bool auto_close;
-    ImGui::Checkbox("Auto close this window on start", &auto_close);
-    ImGui::InputFloat("Interval", &slideshow_interval, 0.0f, 0.0f, "%.3f");
+    if (ImGui::Checkbox("Auto close this window on start", &g_config.slideshow_auto_close.val)) {
+        g_config.write_slideshow();
+    }
+    if (ImGui::InputFloat("Interval", &g_config.slideshow_interval.val, 0.0f, 0.0f, "%.3f")) {
+        g_config.write_slideshow();
+    }
     if (ImGui::Button("Start")) {
-        if (auto_close) {
+        if (g_config.slideshow_auto_close.val) {
             is_window_slideshow_open = false;
         }
         is_slideshow_start = true;

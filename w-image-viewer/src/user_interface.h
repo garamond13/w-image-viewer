@@ -48,7 +48,6 @@ public:
     bool is_window_slideshow_open;
     bool is_window_about_open;
     bool* prenderer_should_update;
-    float slideshow_interval = 3.0f;
     bool is_slideshow_start;
     bool is_slideshow_playing;
 };

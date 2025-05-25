@@ -7,6 +7,7 @@
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     g_config.read();
+    g_config.read_slideshow();
     auto window = std::make_unique<Window>(hInstance, nCmdShow);
 
     // "direct" file open.
