@@ -73,7 +73,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
         return 1;
     }
     Window* window = nullptr;
-    if (message == WM_NCCREATE) {
+    [[unlikely]] if (message == WM_NCCREATE) {
         auto* createstruct = reinterpret_cast<CREATESTRUCTW*>(lparam);
         window = reinterpret_cast<Window*>(createstruct->lpCreateParams);
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
