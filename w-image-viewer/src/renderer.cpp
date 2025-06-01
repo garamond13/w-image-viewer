@@ -359,7 +359,7 @@ std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
     if (image.embended_profile) {
         
         // Set flags.
-        cmsUInt32Number flags = cmsFLAGS_NOCACHE | cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE;
+        cmsUInt32Number flags = cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE;
         if (g_config.cms_bpc_use.val)
             flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
         
