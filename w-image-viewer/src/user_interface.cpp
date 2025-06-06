@@ -503,6 +503,7 @@ void User_interface::window_settings()
         ImGui::InputInt("Width##min", &g_config.window_min_width.val, 0, 0);
         ImGui::InputInt("Height##min", &g_config.window_min_height.val, 0, 0);
         ImGui::Spacing();
+        ImGui::Checkbox("Start fullscreen", &g_config.start_fullscreen.val);
         ImGui::Checkbox("Keep aspect ratio when sizing", &g_config.window_keep_aspect.val);
         ImGui::Checkbox("Auto dimensions", &g_config.window_autowh.val);
         ImGui::BeginDisabled(!g_config.window_autowh.val);

@@ -78,6 +78,7 @@ public:
     Config_pair<bool, "cf"> cycle_files;
     Config_pair<bool, "ssac"> slideshow_auto_close;
     Config_pair<float, "ssi"> slideshow_interval = { 5.0f };
+    Config_pair<bool, "sfs"> start_fullscreen = { false };
 private:
     void read_top_level(const std::string& key, const std::string& val);
     void read_scale(const std::string& key, const std::string& val, Config_scale& scale);

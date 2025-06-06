@@ -21,6 +21,7 @@ public:
     void auto_window_size() const;
     void reset_image_panzoom() noexcept;
     void slideshow();
+    void toggle_fullscreen();
     File_manager file_manager;
     bool is_fullscreen;
     bool is_dialog_file_open;
@@ -34,7 +35,7 @@ public:
     // Request to show image at the original width and height.
     bool image_no_scale;
     
-    private:
+private:
     void input();
     void overlay() const;
     void context_menu();
@@ -42,7 +43,6 @@ public:
     void window_slideshow();
     void window_about();
     void dialog_file_open(WIV_OPEN_ file_type);
-    void toggle_fullscreen();
     bool is_overlay_open = g_config.overlay_show.val;
     bool is_window_settings_open;
     bool is_window_slideshow_open;
