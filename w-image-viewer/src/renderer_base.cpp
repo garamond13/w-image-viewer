@@ -35,14 +35,13 @@ void Renderer_base::create_swapchain()
     ensure(dxgi_adapter->GetParent(IID_PPV_ARGS(dxgi_factory2.GetAddressOf())), == S_OK);
 
     // Create swap chain.
-    DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1 = {
-        .Format = DXGI_FORMAT_R10G10B10A2_UNORM,
-        .SampleDesc = { .Count = 1 },
-        .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-        .BufferCount = 2,
-        .Scaling = DXGI_SCALING_NONE,
-        .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD
-    };
+    DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1 = {};
+    swap_chain_desc1.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+    swap_chain_desc1.SampleDesc.Count = 1;
+    swap_chain_desc1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swap_chain_desc1.BufferCount = 2;
+    swap_chain_desc1.Scaling = DXGI_SCALING_NONE;
+    swap_chain_desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     ensure(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device1.Get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swapchain.ReleaseAndGetAddressOf()), == S_OK);
 
     // Set member swapchain dims.
@@ -66,13 +65,12 @@ void Renderer_base::create_rtv_back_buffer() noexcept
 void Renderer_base::create_samplers() const
 {
     // Create point sampler.
-    D3D11_SAMPLER_DESC sampler_desc = {
-        .AddressU = D3D11_TEXTURE_ADDRESS_CLAMP,
-        .AddressV = D3D11_TEXTURE_ADDRESS_CLAMP,
-        .AddressW = D3D11_TEXTURE_ADDRESS_CLAMP,
-        .MaxAnisotropy = 1,
-        .ComparisonFunc = D3D11_COMPARISON_NEVER,
-    };
+    D3D11_SAMPLER_DESC sampler_desc = {};
+    sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampler_desc.MaxAnisotropy = 1;
+    sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_point;
     ensure(device->CreateSamplerState(&sampler_desc, sampler_state_point.GetAddressOf()), == S_OK);
 
@@ -81,7 +79,10 @@ void Renderer_base::create_samplers() const
     Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_linear;
     ensure(device->CreateSamplerState(&sampler_desc, sampler_state_linear.GetAddressOf()), == S_OK);
 
-    std::array sampler_states = { sampler_state_point.Get(), sampler_state_linear.Get() };
+    std::array sampler_states = {
+        sampler_state_point.Get(),
+        sampler_state_linear.Get()
+    };
     device_context->PSSetSamplers(0, sampler_states.size(), sampler_states.data());
 }
 
@@ -102,15 +103,13 @@ void Renderer_base::create_pixel_shader(const BYTE* shader, size_t shader_size) 
 
 void Renderer_base::create_constant_buffer(UINT byte_width, const void* data, ID3D11Buffer** buffer) const noexcept
 {
-    const D3D11_BUFFER_DESC buffer_desc = {
-        .ByteWidth = byte_width,
-        .Usage = D3D11_USAGE_DYNAMIC,
-        .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-        .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-    };
-    const D3D11_SUBRESOURCE_DATA subresource_data = {
-        .pSysMem = data
-    };
+    D3D11_BUFFER_DESC buffer_desc = {};
+    buffer_desc.ByteWidth = byte_width;
+    buffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+    buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    buffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    D3D11_SUBRESOURCE_DATA subresource_data = {};
+    subresource_data.pSysMem = data;
     ensure(device->CreateBuffer(&buffer_desc, &subresource_data, buffer), == S_OK);
     device_context->PSSetConstantBuffers(0, 1, buffer);
 }

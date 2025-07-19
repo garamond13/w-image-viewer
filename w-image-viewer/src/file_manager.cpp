@@ -110,11 +110,10 @@ void File_manager::delete_file()
     path[std::char_traits<wchar_t>::length(path) + 1] = '\0';
 
     // Configured to send file to the recycle bin.
-    SHFILEOPSTRUCTW fileopenstruct = {
-        .wFunc = FO_DELETE,
-        .pFrom = path,
-        .fFlags = FOF_ALLOWUNDO
-    };
+    SHFILEOPSTRUCTW fileopenstruct = {};
+    fileopenstruct.wFunc = FO_DELETE;
+    fileopenstruct.pFrom = path;
+    fileopenstruct.fFlags = FOF_ALLOWUNDO;
 
     if (SHFileOperationW(&fileopenstruct) == 0) {
         const auto deleted_file = file_current;

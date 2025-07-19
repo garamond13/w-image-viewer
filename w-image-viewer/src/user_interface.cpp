@@ -562,7 +562,7 @@ void User_interface::window_settings()
 
                 // Check first is profile overlapping with any other profile.
                 bool overlaps = false;
-                for (int i{}; i < g_config.scale_profiles.size(); ++i)
+                for (int i = 0; i < g_config.scale_profiles.size(); ++i)
                     if (i != scale_profile_index && g_config.scale_profiles[i].range.is_overlapping(range)) {
                         overlaps = true;
                         break;

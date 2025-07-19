@@ -131,20 +131,18 @@ void Renderer::create_image()
     info::image_height = image.get_height<int>();
 
     // Create texture.
-    const D3D11_TEXTURE2D_DESC texture2d_desc = {
-        .Width = image.get_width<UINT>(),
-        .Height = image.get_height<UINT>(),
-        .MipLevels = 1,
-        .ArraySize = 1,
-        .Format = format,
-        .SampleDesc = { .Count = 1 },
-        .Usage = D3D11_USAGE_IMMUTABLE,
-        .BindFlags = D3D11_BIND_SHADER_RESOURCE
-    };
-    const D3D11_SUBRESOURCE_DATA subresource_data = {
-        .pSysMem = data.get(),
-        .SysMemPitch = sys_mem_pitch
-    };
+    D3D11_TEXTURE2D_DESC texture2d_desc = {};
+    texture2d_desc.Width = image.get_width<UINT>();
+    texture2d_desc.Height = image.get_height<UINT>();
+    texture2d_desc.MipLevels = 1;
+    texture2d_desc.ArraySize = 1;
+    texture2d_desc.Format = format;
+    texture2d_desc.SampleDesc.Count = 1;
+    texture2d_desc.Usage = D3D11_USAGE_IMMUTABLE;
+    texture2d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    D3D11_SUBRESOURCE_DATA subresource_data = {};
+    subresource_data.pSysMem = data.get();
+    subresource_data.SysMemPitch = sys_mem_pitch;
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
     ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.GetAddressOf()), == S_OK);
     ensure(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
@@ -330,20 +328,18 @@ void Renderer::create_cms_lut()
     }
 
     // Bind lut as 3d texture.
-    const D3D11_TEXTURE3D_DESC texture3d_desc = {
-        .Width = g_config.cms_lut_size.val,
-        .Height = g_config.cms_lut_size.val,
-        .Depth = g_config.cms_lut_size.val,
-        .MipLevels = 1,
-        .Format = DXGI_FORMAT_R16G16B16A16_UNORM,
-        .Usage = D3D11_USAGE_IMMUTABLE,
-        .BindFlags = D3D11_BIND_SHADER_RESOURCE
-    };
-    const D3D11_SUBRESOURCE_DATA subresource_data = {
-        .pSysMem = lut.get(),
-        .SysMemPitch = g_config.cms_lut_size.val * 4 * 2, // width * nchannals * byte_depth
-        .SysMemSlicePitch = sqr(g_config.cms_lut_size.val) * 4 * 2 // width * height * nchannals * byte_depth
-    };
+    D3D11_TEXTURE3D_DESC texture3d_desc = {};
+    texture3d_desc.Width = g_config.cms_lut_size.val;
+    texture3d_desc.Height = g_config.cms_lut_size.val;
+    texture3d_desc.Depth = g_config.cms_lut_size.val;
+    texture3d_desc.MipLevels = 1;
+    texture3d_desc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+    texture3d_desc.Usage = D3D11_USAGE_IMMUTABLE;
+    texture3d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    D3D11_SUBRESOURCE_DATA subresource_data = {};
+    subresource_data.pSysMem = lut.get();
+    subresource_data.SysMemPitch = g_config.cms_lut_size.val * 4 * 2; // width * nchannals * byte_depth
+    subresource_data.SysMemSlicePitch = sqr(g_config.cms_lut_size.val) * 4 * 2; // width * height * nchannals * byte_depth
     Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
     ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.GetAddressOf()), == S_OK);
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
@@ -700,10 +696,9 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
 
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept
 {
-    D3D11_VIEWPORT viewport = {
-        .Width = width,
-        .Height = height
-    };
+    D3D11_VIEWPORT viewport = {};
+    viewport.Width = width;
+    viewport.Height = height;
 
     // Offset image in order to center it in the window + apply panning.
     if (adjust) {
