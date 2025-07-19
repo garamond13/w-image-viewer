@@ -127,8 +127,8 @@ void Renderer::create_image()
     UINT sys_mem_pitch;
     std::unique_ptr<uint8_t[]> data = get_image_data(format, sys_mem_pitch);
     
-    info::image_width = image.get_width<int>();
-    info::image_height = image.get_height<int>();
+    Info::image_width = image.get_width<int>();
+    Info::image_height = image.get_height<int>();
 
     // Create texture.
     D3D11_TEXTURE2D_DESC texture2d_desc = {};
@@ -239,9 +239,9 @@ void Renderer::update_scale_and_dims_output() noexcept
 
     dims_output.width = static_cast<int>(std::ceil(image_w * scale));
     dims_output.height = static_cast<int>(std::ceil(image_h * scale));
-    info::scale = scale;
-    info::scaled_width = dims_output.width;
-    info::scaled_height = dims_output.height;
+    Info::scale = scale;
+    Info::scaled_width = dims_output.width;
+    Info::scaled_height = dims_output.height;
 }
 
 void Renderer::update_scale_profile() noexcept
@@ -257,18 +257,18 @@ void Renderer::update_scale_profile() noexcept
     p_scale_profile = &g_config.scale_profiles[0].config;
 
 info:
-    info::kernel_index = p_scale_profile->kernel_index.val;
-    info::kernel_support = get_kernel_support();
+    Info::kernel_index = p_scale_profile->kernel_index.val;
+    Info::kernel_support = get_kernel_support();
     const auto clamped_scale = std::min(scale, 1.0f);
-    info::kernel_radius = std::ceil(info::kernel_support / clamped_scale);
+    Info::kernel_radius = std::ceil(Info::kernel_support / clamped_scale);
     if (p_scale_profile->kernel_cylindrical_use.val) {
-        const auto a = static_cast<int>(std::ceil(info::kernel_support / clamped_scale));
-        info::kernel_size = a * a;
+        const auto a = static_cast<int>(std::ceil(Info::kernel_support / clamped_scale));
+        Info::kernel_size = a * a;
     }
     else {
-        info::kernel_size = std::ceil(static_cast<float>(info::kernel_radius) / std::min(scale, 1.0f)) * 2;
+        Info::kernel_size = std::ceil(static_cast<float>(Info::kernel_radius) / std::min(scale, 1.0f)) * 2;
     }
-    info::scale_filter = p_scale_profile->kernel_cylindrical_use.val ? "Cylindrical" : "Orthogonal";
+    Info::scale_filter = p_scale_profile->kernel_cylindrical_use.val ? "Cylindrical" : "Orthogonal";
 }
 
 void Renderer::update_trc()

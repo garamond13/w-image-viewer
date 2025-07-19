@@ -71,8 +71,8 @@ public:
         // At this point we dont need raw_input data anymore.
         raw_input.recycle();
         
-        info::image_bitdepth = spec.channel_bytes() * 8;
-        info::image_nchannels = spec.nchannels;
+        Info::image_bitdepth = spec.channel_bytes() * 8;
+        Info::image_nchannels = spec.nchannels;
         return data;
     }
 

@@ -361,36 +361,36 @@ void User_interface::overlay() const
             ImGui::TextUnformatted("Overlay is not configured.");
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_DIMS) {
-            ImGui::Text("Image W: %i", info::image_width);
-            ImGui::Text("Image H: %i", info::image_height);
+            ImGui::Text("Image W: %i", Info::image_width);
+            ImGui::Text("Image H: %i", Info::image_height);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_BITDEPTH) {
-            ImGui::Text("Image bitdepth: %i", info::image_bitdepth);
+            ImGui::Text("Image bitdepth: %i", Info::image_bitdepth);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_IMAGE_NCHANNELS) {
-            ImGui::Text("Image nchannels: %i", info::image_nchannels);
+            ImGui::Text("Image nchannels: %i", Info::image_nchannels);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALED_DIMS) {
-            ImGui::Text("Scaled W: %i", info::scaled_width);
-            ImGui::Text("Scaled H: %i", info::scaled_height);
+            ImGui::Text("Scaled W: %i", Info::scaled_width);
+            ImGui::Text("Scaled H: %i", Info::scaled_height);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE) {
-            ImGui::Text("Scale: %.6f", info::scale);
+            ImGui::Text("Scale: %.6f", Info::scale);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_SCALE_FILTER) {
-            ImGui::Text("Scale filter: %s", info::scale_filter.c_str());
+            ImGui::Text("Scale filter: %s", Info::scale_filter.c_str());
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_INDEX) {
-            ImGui::Text("Kernel: %s", kernel_function_names[info::kernel_index]);
+            ImGui::Text("Kernel: %s", kernel_function_names[Info::kernel_index]);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SUPPORT) {
-            ImGui::Text("Kernel support: %.6f", info::kernel_support);
+            ImGui::Text("Kernel support: %.6f", Info::kernel_support);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_RADIUS) {
-            ImGui::Text("Kernel radius: %i", info::kernel_radius);
+            ImGui::Text("Kernel radius: %i", Info::kernel_radius);
         }
         if (g_config.overlay_config.val & WIV_OVERLAY_SHOW_KERNEL_SIZE) {
-            ImGui::Text("Kernel size: %i", info::kernel_size);
+            ImGui::Text("Kernel size: %i", Info::kernel_size);
         }
     }
     ImGui::End();
