@@ -186,22 +186,22 @@ std::unique_ptr<uint8_t[]> Renderer::get_image_data(DXGI_FORMAT& format, UINT& s
     std::unique_ptr<uint8_t[]> data;
     switch (image.get_basetype()) {
         case OIIO::TypeDesc::UINT8:
-            data = image.read_image<uint8_t>();
+            data = image.get_image_data<uint8_t>();
             format = DXGI_FORMAT_R8G8B8A8_UNORM;
             sys_mem_pitch = image.get_width<int>() * 4;
             break;
         case OIIO::TypeDesc::UINT16:
-            data = image.read_image<uint16_t>();
+            data = image.get_image_data<uint16_t>();
             format = DXGI_FORMAT_R16G16B16A16_UNORM;
             sys_mem_pitch = image.get_width<int>() * 4 * 2;
             break;
         case OIIO::TypeDesc::HALF:
-            data = image.read_image<uint16_t>();
+            data = image.get_image_data<uint16_t>();
             format = DXGI_FORMAT_R16G16B16A16_FLOAT;
             sys_mem_pitch = image.get_width<int>() * 4 * 2;
             break;
         case OIIO::TypeDesc::FLOAT:
-            data = image.read_image<uint32_t>();
+            data = image.get_image_data<uint32_t>();
             format = DXGI_FORMAT_R32G32B32A32_FLOAT;
             sys_mem_pitch = image.get_width<int>() * 4 * 4;
     }

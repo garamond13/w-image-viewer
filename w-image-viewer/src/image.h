@@ -38,7 +38,7 @@ public:
     }
 
     template<typename T>
-    std::unique_ptr<uint8_t[]> read_image()
+    std::unique_ptr<uint8_t[]> get_image_data()
     {
         const auto& spec = image_input->spec();
 
