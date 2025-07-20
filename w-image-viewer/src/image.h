@@ -12,8 +12,9 @@ public:
     bool set_image_input(std::wstring_view path);
     bool close() noexcept;
     
-    // OIIO::TypeDesc::BASETYPE
-    auto get_base_type() const noexcept
+    // Should return OIIO::TypeDesc::BASETYPE,
+    // but it's returning unsigned char.
+    auto get_basetype() const noexcept
     {
         return image_input->spec().format.basetype;
     }

@@ -184,7 +184,7 @@ void Renderer::fullscreen_hide_cursor() const
 std::unique_ptr<uint8_t[]> Renderer::get_image_data(DXGI_FORMAT& format, UINT& sys_mem_pitch)
 {
     std::unique_ptr<uint8_t[]> data;
-    switch (image.get_base_type()) {
+    switch (image.get_basetype()) {
         case OIIO::TypeDesc::UINT8:
             data = image.read_image<uint8_t>();
             format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -391,7 +391,7 @@ void Renderer::pass_cms()
 {
     alignas(16) Cb_data data[1];
     data[0].x.f = g_config.cms_lut_size.val; // lut_size
-    data[0].y.i = g_config.cms_dither.val && image.get_base_type() == OIIO::TypeDesc::UINT8; // dither
+    data[0].y.i = g_config.cms_dither.val && image.get_basetype() == OIIO::TypeDesc::UINT8; // dither
 
     // Generate a random float between 0.0 and 1.0. For dithering.
     std::srand(std::time(nullptr));
