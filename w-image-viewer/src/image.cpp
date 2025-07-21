@@ -14,32 +14,32 @@ bool Image::has_alpha() const noexcept
     return image_input->spec().alpha_channel != -1;
 }
 
-bool Image::set_image_input(std::wstring_view path)
+bool Image::open_image(const std::filesystem::path& path)
 {
     // First try to open file with libraw, since OIIO cant read thumbnails.
-    if (g_config.raw_thumb.val && raw_input.open_file(path.data()) == LIBRAW_SUCCESS) {
-        if (raw_input.unpack_thumb() == LIBRAW_SUCCESS) {
-            thumb = { raw_input.imgdata.thumbnail.thumb, raw_input.imgdata.thumbnail.tlength };
-            
-            // OIIO::ImageInput::open(): The filename here is irelevant, we only need extension.
-            if (raw_input.imgdata.thumbnail.tformat == LIBRAW_THUMBNAIL_JPEG) {
-                image_input = OIIO::ImageInput::open(".jpg", nullptr, &thumb);
-            }
-            else // Try bmp.
-                image_input = OIIO::ImageInput::open(".bmp", nullptr, &thumb);
-
-            orientation = raw_input.imgdata.sizes.flip;
+    // If Config::raw_thumb is enabled.
+    if (g_config.raw_thumb.val && raw_input.open_file(path.c_str()) == LIBRAW_SUCCESS && raw_input.unpack_thumb() == LIBRAW_SUCCESS) {
+        // We still want to open extracted thumbnail with OIIO.
+        OIIO::Filesystem::IOMemReader thumb(raw_input.imgdata.thumbnail.thumb, raw_input.imgdata.thumbnail.tlength);
+        if (raw_input.imgdata.thumbnail.tformat == LIBRAW_THUMBNAIL_JPEG) {
+            // The filename here is irelevant, we only need the extension.
+            image_input = OIIO::ImageInput::open(".jpg", nullptr, &thumb);
         }
-        else
-            image_input = OIIO::ImageInput::open(path.data());
+        else { // BMP.
+            // The filename here is irelevant, we only need the extension.
+            image_input = OIIO::ImageInput::open(".bmp", nullptr, &thumb);
+        }
+
+        orientation = raw_input.imgdata.sizes.flip;
     }
     else {
         OIIO::ImageSpec config;
         config["bmp:monochrome_detect"] = 0;
-        image_input = OIIO::ImageInput::open(path.data(), &config);
+        image_input = OIIO::ImageInput::open(path, &config);
     }
-    if (!image_input)
+    if (!image_input) {
         return false;
+    }
     get_embended_profile();
     return true;
 }

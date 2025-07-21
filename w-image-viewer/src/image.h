@@ -9,7 +9,7 @@ class Image
 public:
     bool is_valid() const noexcept;
     bool has_alpha() const noexcept;
-    bool set_image_input(std::wstring_view path);
+    bool open_image(const std::filesystem::path& path);
     bool close() noexcept;
     
     // Should return OIIO::TypeDesc::BASETYPE,
@@ -75,5 +75,4 @@ private:
     void get_embended_profile();
     std::unique_ptr<OIIO::ImageInput> image_input;
     LibRaw raw_input;
-    OIIO::Filesystem::IOMemReader thumb = { nullptr, 0 };
 };
