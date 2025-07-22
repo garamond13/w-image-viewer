@@ -14,7 +14,7 @@ bool Image::has_alpha() const noexcept
     return image_input->spec().alpha_channel != -1;
 }
 
-bool Image::open_image(const std::filesystem::path& path)
+bool Image::open(const std::filesystem::path& path)
 {
     // First try to open file with libraw, since OIIO cant read thumbnails.
     // If Config::raw_thumb is enabled.

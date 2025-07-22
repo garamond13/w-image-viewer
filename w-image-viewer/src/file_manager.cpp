@@ -9,7 +9,7 @@
 
 bool File_manager::file_open(const wchar_t* path)
 {
-    if (image.open_image(path)) {
+    if (image.open(path)) {
         file_current = path;
         return true;
     }
@@ -44,7 +44,7 @@ void File_manager::file_next()
     // Get next valid file.
     std::sort(files.begin(), files.end());
     for (const auto& file : files) {
-        if (image.open_image(file)) {
+        if (image.open(file)) {
             file_current = file;
             break;
         }
@@ -79,7 +79,7 @@ void File_manager::file_previous()
     // Get previous valid file.
     std::sort(files.begin(), files.end());
     for (const auto& file : std::ranges::views::reverse(files)) {
-        if (image.open_image(file)) {
+        if (image.open(file)) {
             file_current = file;
             break;
         }
@@ -91,7 +91,7 @@ bool File_manager::drag_and_drop(HDROP hdrop)
     wchar_t path[MAX_PATH];
     ensure(DragQueryFileW(hdrop, 0, path, MAX_PATH), != 0);
     DragFinish(hdrop);
-    if (image.open_image(path)) {
+    if (image.open(path)) {
         file_current = path;
         return true;
     }

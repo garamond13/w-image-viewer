@@ -9,7 +9,7 @@ class Image
 public:
     bool is_valid() const noexcept;
     bool has_alpha() const noexcept;
-    bool open_image(const std::filesystem::path& path);
+    bool open(const std::filesystem::path& path);
     bool close() noexcept;
     
     // Should return OIIO::TypeDesc::BASETYPE,
