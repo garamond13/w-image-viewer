@@ -34,7 +34,6 @@ private:
     void init_cms_profile_display();
     void create_cms_lut();
     std::unique_ptr<uint16_t[]> cms_transform_lut();
-    void update_trc();
     void pass_cms();
     void pass_linearize(UINT width, UINT height);
     void pass_delinearize(UINT width, UINT height);

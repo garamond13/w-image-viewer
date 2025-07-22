@@ -55,8 +55,9 @@ void Renderer::init()
     create_rtv_back_buffer();
     create_samplers();
     create_vertex_shader();
-    if (g_config.cms_use.val)
+    if (g_config.cms_use.val) {
         init_cms_profile_display();
+    }
     ui.create(device.Get(), device_context.Get(), &should_update);
 }
 
@@ -67,24 +68,30 @@ void Renderer::update()
         update_scale_profile();
         if (!(ui.is_panning || ui.is_zooming || ui.is_rotating)) {
             srv_pass = srv_image;
-            if (g_config.cms_use.val && is_cms_valid)
+            if (g_config.cms_use.val && is_cms_valid) {
                 pass_cms();
+            }
             if (!is_equal(scale, 1.0f)) {
-                update_trc();
                 const bool sigmoidize = scale > 1.0f && p_scale_profile->sigmoid_use.val;
                 bool linearize = scale < 1.0f || sigmoidize || p_scale_profile->blur_use.val;
-                if (linearize)
+                if (linearize) {
                     pass_linearize(image.get_width<UINT>(), image.get_height<UINT>());
-                if (sigmoidize)
+                }
+                if (sigmoidize) {
                     pass_sigmoidize();
-                if (scale < 1.0f && p_scale_profile->blur_use.val)
+                }
+                if (scale < 1.0f && p_scale_profile->blur_use.val) {
                     pass_blur();
-                if (p_scale_profile->kernel_cylindrical_use.val)
+                }
+                if (p_scale_profile->kernel_cylindrical_use.val) {
                     pass_cylindrical_resample();
-                else
+                }
+                else {
                     pass_orthogonal_resample();
-                if (sigmoidize)
+                }
+                if (sigmoidize) {
                     pass_desigmoidize();
+                }
                 if (p_scale_profile->unsharp_use.val) {
                     if (!linearize) {
                         pass_linearize(dims_output.get_width<UINT>(), dims_output.get_height<UINT>());
@@ -92,15 +99,18 @@ void Renderer::update()
                     }
                     pass_unsharp();
                 }
-                if (linearize)
+                if (linearize) {
                     pass_delinearize(dims_output.get_width<UINT>(), dims_output.get_height<UINT>());
+                }
             }
         }
         update_final_pass();
-        if (ui.is_zooming)
+        if (ui.is_zooming) {
             should_update = true;
-        else
+        }
+        else {
             should_update = false;
+        }
         ui.is_panning = false;
         ui.is_zooming = false;
         ui.is_rotating = false;
@@ -147,8 +157,14 @@ void Renderer::create_image()
     ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.GetAddressOf()), == S_OK);
     ensure(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
 
-    if (cms_profile_display)
+    if (cms_profile_display) {
         create_cms_lut();
+    }
+
+    // We will still need a tone response curve, so use the one from the image.
+    else {
+        trc = image.trc;
+    }
 }
 
 void Renderer::on_window_resize() noexcept
@@ -271,32 +287,12 @@ info:
     Info::scale_filter = p_scale_profile->kernel_cylindrical_use.val ? "Cylindrical" : "Orthogonal";
 }
 
-void Renderer::update_trc()
-{
-    // If use of CMS is enabled get TRC from the display profile, so after we do color managment.
-    if (g_config.cms_use.val) {
-        if ((g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_AUTO || g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_CUSTOM) && cms_profile_display) {
-            auto gamma = static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1));
-            if (gamma < 0.0f) // On Error.
-                trc = { WIV_CMS_TRC_NONE, 0.0f };
-            else
-                trc = { WIV_CMS_TRC_GAMMA, gamma };
-        }
-        else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_ADOBE)
-            trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
-        else if (g_config.cms_display_profile.val == WIV_CMS_PROFILE_DISPLAY_SRGB)
-            trc = { WIV_CMS_TRC_SRGB, 0.0f };
-    }
-    else // Get TRC from the image embended profile.
-        trc = image.trc;
-}
-
 void Renderer::init_cms_profile_display()
 {
     switch (g_config.cms_display_profile.val) {
         case WIV_CMS_PROFILE_DISPLAY_AUTO: {
 
-            // Get system default icc profile.
+            // Get system default ICC profile.
             auto dc = GetDC(nullptr);
             DWORD buffer_size;
             GetICMProfileA(dc, &buffer_size, nullptr);
@@ -305,17 +301,34 @@ void Renderer::init_cms_profile_display()
             ensure(ReleaseDC(nullptr, dc), == 1);
             
             cms_profile_display.reset(cmsOpenProfileFromFile(path.get(), "r"));
+            const auto gamma = static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1));
+            if (gamma > 0.0f) {
+                trc = { WIV_CMS_TRC_GAMMA, gamma };
+            }
+            else {
+                trc = { WIV_CMS_TRC_NONE, 0.0f };
+            }
             break;
         }
         case WIV_CMS_PROFILE_DISPLAY_SRGB:
             cms_profile_display.reset(cmsCreate_sRGBProfile());
+            trc = { WIV_CMS_TRC_SRGB, 0.0f };
             break;
         case WIV_CMS_PROFILE_DISPLAY_ADOBE:
             cms_profile_display.reset(cms_create_profile_adobe_rgb());
+            trc = { WIV_CMS_TRC_GAMMA, ADOBE_RGB_GAMMA<float> };
             break;
-        case WIV_CMS_PROFILE_DISPLAY_CUSTOM:
+        case WIV_CMS_PROFILE_DISPLAY_CUSTOM: {
             cms_profile_display.reset(cmsOpenProfileFromFile(g_config.cms_display_profile_custom.val.string().c_str(), "r"));
+            const auto gamma = static_cast<float>(cmsDetectRGBProfileGamma(cms_profile_display.get(), 0.1));
+            if (gamma > 0.0f) {
+                trc = { WIV_CMS_TRC_GAMMA, gamma };
+            }
+            else {
+                trc = { WIV_CMS_TRC_NONE, 0.0f };
+            }
             break;
+        }
     }
 }
 
@@ -352,18 +365,15 @@ void Renderer::create_cms_lut()
 std::unique_ptr<uint16_t[]> Renderer::cms_transform_lut()
 {
     std::unique_ptr<uint16_t[]> lut;
-    if (image.embended_profile) {
+    if (image.profile) {
         
         // Set flags.
         cmsUInt32Number flags = cmsFLAGS_HIGHRESPRECALC | cmsFLAGS_NOOPTIMIZE;
-        if (g_config.cms_bpc_use.val)
+        if (g_config.cms_bpc_use.val) {
             flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
+        }
         
-        auto htransform = cmsCreateTransform(image.embended_profile.get(), TYPE_RGB_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
-        
-        // At this point we dont need the profile anymore, so close it.
-        image.embended_profile.reset();
-
+        auto htransform = cmsCreateTransform(image.profile.get(), TYPE_RGB_16, cms_profile_display.get(), TYPE_RGBA_16, g_config.cms_intent.val, flags);
         if (htransform) {
             lut = std::make_unique_for_overwrite<uint16_t[]>(cube(g_config.cms_lut_size.val) * 4);
 
