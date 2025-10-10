@@ -476,8 +476,8 @@ void User_interface::window_settings()
     if (!is_window_settings_open)
         return;
 
-    static constinit const ImVec2 window_size = { 430.0f, 696.0f };
-    static constinit const ImVec2 button_size = { -1.0f, 0.0f };
+    static constexpr ImVec2 window_size = { 430.0f, 696.0f };
+    static constexpr ImVec2 button_size = { -1.0f, 0.0f };
     static int scale_profile_index; // The default profile should always be at index 0!
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::Begin("Settings", &is_window_settings_open, ImGuiWindowFlags_NoCollapse);
@@ -512,7 +512,7 @@ void User_interface::window_settings()
         ImGui::Spacing();
 
         // The order has to be same as in the enum WIV_WINDOW_NAME_.
-        static constinit const std::array window_name_items = {
+        static constexpr std::array window_name_items = {
             "Defualt name",
             "Filename",
             "Full filename"
@@ -686,7 +686,7 @@ void User_interface::window_settings()
         ImGui::BeginDisabled(!g_config.cms_use.val);
 
         // The order has to be the same as in the enum WIV_CMS_PROFILE_DISPLAY_.
-        static constinit const std::array cms_display_profile_items = {
+        static constexpr std::array cms_display_profile_items = {
             "Auto",
             "sRGB",
             "AdobeRGB",
@@ -708,7 +708,7 @@ void User_interface::window_settings()
         ImGui::Spacing();
 
         // The order has to be the same as the lcms2 ICC Intents.
-        static constinit const std::array cms_intent_items = {
+        static constexpr std::array cms_intent_items = {
             "Perceptual",
             "Relative colorimetric",
             "Saturation",
@@ -719,7 +719,7 @@ void User_interface::window_settings()
         ImGui::Checkbox("Black Point Compensation", &g_config.cms_bpc_use.val);
 
         // LUT size
-        static constinit const std::array cms_lut_size_items = {
+        static constexpr std::array cms_lut_size_items = {
             "33",
             "49",
             "65",
@@ -765,7 +765,7 @@ void User_interface::window_settings()
     if (ImGui::CollapsingHeader("Overlay")) {
         ImGui::Spacing();
         ImGui::Checkbox("Show overlay on start", &g_config.overlay_show.val);
-        static constinit const std::array overlay_position_items = {
+        static constexpr std::array overlay_position_items = {
             "Top-left",
             "Top-right",
             "Bottom-left",
@@ -810,7 +810,7 @@ void User_interface::window_settings()
         ImGui::Spacing();
 
         // The order has to be same as in WIV_PASS_FORMATS array.
-        static constinit const std::array internal_format_items = {
+        static constexpr std::array internal_format_items = {
             "RGBA16",
             "RGBA32F"
         };
@@ -837,7 +837,7 @@ void User_interface::window_slideshow()
 {
     if (!is_window_slideshow_open)
         return;
-    static constinit const ImVec2 size = { 288.0f, 0.0f };
+    static constexpr ImVec2 size = { 288.0f, 0.0f };
     ImGui::SetNextWindowSize(size);
     ImGui::Begin("Slideshow", &is_window_slideshow_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     if (ImGui::Checkbox("Auto close this window on start", &g_config.slideshow_auto_close.val)) {
@@ -866,7 +866,7 @@ void User_interface::window_about()
     if (!is_window_about_open)
         return;
 
-    static constinit const ImVec2 size = { 288, 178.0f };
+    static constexpr ImVec2 size = { 288, 178.0f };
     ImGui::SetNextWindowSize(size);
     ImGui::Begin("About", &is_window_about_open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     ImGui::Text("W Image Viewer %d.%d.%d", WIV_VERSION_NUMBER_MAJOR, WIV_VERSION_NUMBER_MINOR, WIV_VERSION_NUMBER_PATCH);

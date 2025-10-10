@@ -15,7 +15,7 @@ void Renderer_base::create_device() noexcept
     constexpr UINT flags = D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    static constinit const std::array feature_levels = {
+    static constexpr std::array feature_levels = {
         D3D_FEATURE_LEVEL_12_1,
         D3D_FEATURE_LEVEL_12_0,
         D3D_FEATURE_LEVEL_11_1,
