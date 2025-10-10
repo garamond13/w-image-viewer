@@ -47,8 +47,8 @@ private:
     void draw_pass(UINT width, UINT height) noexcept;
     void create_viewport(float width, float height, bool adjust = false) const noexcept;
     float get_kernel_support() const noexcept;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_image;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_pass;
+    Com_ptr<ID3D11ShaderResourceView> srv_image;
+    Com_ptr<ID3D11ShaderResourceView> srv_pass;
     Image& image = ui.file_manager.image;
     Dims<int> dims_output;
     float scale;

@@ -7,7 +7,6 @@
 #include <Windows.h>
 
 #include <ShlObj.h>
-#include <wrl/client.h>
 #include <shellapi.h>
 #include <Shlwapi.h>
 
@@ -32,6 +31,8 @@
 
 // lcms
 #include <lcms2.h>
+
+#include "include\ComPtr.h"
 
 // std
 #include <filesystem>

@@ -21,18 +21,18 @@ void Renderer_base::create_device() noexcept
         D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0
     };
-    ensure(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, feature_levels.data(), feature_levels.size(), D3D11_SDK_VERSION, device.ReleaseAndGetAddressOf(), nullptr, device_context.ReleaseAndGetAddressOf()), == S_OK);
+    ensure(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, feature_levels.data(), feature_levels.size(), D3D11_SDK_VERSION, device.reset_and_get_address(), nullptr, device_context.reset_and_get_address()), == S_OK);
 }
 
 void Renderer_base::create_swapchain()
 {
     // Query interfaces.
-    Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
-    ensure(device.As(&dxgi_device1), == S_OK);
-    Microsoft::WRL::ComPtr<IDXGIAdapter> dxgi_adapter;
-    ensure(dxgi_device1->GetAdapter(dxgi_adapter.GetAddressOf()), == S_OK);
-    Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
-    ensure(dxgi_adapter->GetParent(IID_PPV_ARGS(dxgi_factory2.GetAddressOf())), == S_OK);
+    Com_ptr<IDXGIDevice1> dxgi_device1;
+    ensure(device.as(&dxgi_device1), == S_OK);
+    Com_ptr<IDXGIAdapter> dxgi_adapter;
+    ensure(dxgi_device1->GetAdapter(&dxgi_adapter), == S_OK);
+    Com_ptr<IDXGIFactory2> dxgi_factory2;
+    ensure(dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory2)), == S_OK);
 
     // Create swap chain.
     DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1 = {};
@@ -42,7 +42,7 @@ void Renderer_base::create_swapchain()
     swap_chain_desc1.BufferCount = 2;
     swap_chain_desc1.Scaling = DXGI_SCALING_NONE;
     swap_chain_desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    ensure(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device1.Get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swapchain.ReleaseAndGetAddressOf()), == S_OK);
+    ensure(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device1.get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swapchain.reset_and_get_address()), == S_OK);
 
     // Set member swapchain dims.
     ensure(swapchain->GetDesc1(&swap_chain_desc1), == S_OK);
@@ -57,9 +57,9 @@ void Renderer_base::create_swapchain()
 
 void Renderer_base::create_rtv_back_buffer() noexcept
 {
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> back_buffer;
-    ensure(swapchain->GetBuffer(0, IID_PPV_ARGS(back_buffer.GetAddressOf())), == S_OK);
-    ensure(device->CreateRenderTargetView(back_buffer.Get(), nullptr, rtv_back_buffer.ReleaseAndGetAddressOf()), == S_OK);
+    Com_ptr<ID3D11Texture2D> back_buffer;
+    ensure(swapchain->GetBuffer(0, IID_PPV_ARGS(&back_buffer)), == S_OK);
+    ensure(device->CreateRenderTargetView(back_buffer.get(), nullptr, rtv_back_buffer.reset_and_get_address()), == S_OK);
 }
 
 void Renderer_base::create_samplers() const
@@ -71,34 +71,31 @@ void Renderer_base::create_samplers() const
     sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
     sampler_desc.MaxAnisotropy = 1;
     sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_point;
-    ensure(device->CreateSamplerState(&sampler_desc, sampler_state_point.GetAddressOf()), == S_OK);
+    Com_ptr<ID3D11SamplerState> sampler_state_point;
+    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_point), == S_OK);
 
     // Create linear sampler.
     sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state_linear;
-    ensure(device->CreateSamplerState(&sampler_desc, sampler_state_linear.GetAddressOf()), == S_OK);
+    Com_ptr<ID3D11SamplerState> sampler_state_linear;
+    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_linear), == S_OK);
 
-    std::array sampler_states = {
-        sampler_state_point.Get(),
-        sampler_state_linear.Get()
-    };
+    const std::array sampler_states = { sampler_state_point.get(), sampler_state_linear.get() };
     device_context->PSSetSamplers(0, sampler_states.size(), sampler_states.data());
 }
 
 void Renderer_base::create_vertex_shader() const noexcept
 {
     device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    Microsoft::WRL::ComPtr<ID3D11VertexShader> vertex_shader;
-    ensure(device->CreateVertexShader(VS_QUAD, sizeof(VS_QUAD), nullptr, vertex_shader.GetAddressOf()), == S_OK);
-    device_context->VSSetShader(vertex_shader.Get(), nullptr, 0);
+    Com_ptr<ID3D11VertexShader> vertex_shader;
+    ensure(device->CreateVertexShader(VS_QUAD, sizeof(VS_QUAD), nullptr, &vertex_shader), == S_OK);
+    device_context->VSSetShader(vertex_shader.get(), nullptr, 0);
 }
 
 void Renderer_base::create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept
 {
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> pixel_shader;
-    ensure(device->CreatePixelShader(shader, shader_size, nullptr, pixel_shader.GetAddressOf()), == S_OK);
-    device_context->PSSetShader(pixel_shader.Get(), nullptr, 0);
+    Com_ptr<ID3D11PixelShader> pixel_shader;
+    ensure(device->CreatePixelShader(shader, shader_size, nullptr, &pixel_shader), == S_OK);
+    device_context->PSSetShader(pixel_shader.get(), nullptr, 0);
 }
 
 void Renderer_base::create_constant_buffer(UINT byte_width, const void* data, ID3D11Buffer** buffer) const noexcept

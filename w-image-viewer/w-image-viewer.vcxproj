@@ -163,6 +163,7 @@
   <ItemGroup>
     <ClInclude Include="src\include\bench.h" />
     <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\include\ComPtr.h" />
     <ClInclude Include="src\include\dims.h" />
     <ClInclude Include="src\include\ensure.h" />
     <ClInclude Include="src\file_manager.h" />

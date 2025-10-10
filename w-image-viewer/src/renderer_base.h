@@ -15,9 +15,9 @@ protected:
     void create_constant_buffer(UINT byte_width, const void* data, ID3D11Buffer** buffer) const noexcept;
     void update_constant_buffer(ID3D11Buffer* buffer, const void* data, size_t size) const noexcept;
     void unbind_render_targets() const;
-    Microsoft::WRL::ComPtr<ID3D11Device> device;
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext> device_context;
-    Microsoft::WRL::ComPtr<IDXGISwapChain1> swapchain;
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv_back_buffer;
+    Com_ptr<ID3D11Device> device;
+    Com_ptr<ID3D11DeviceContext> device_context;
+    Com_ptr<IDXGISwapChain1> swapchain;
+    Com_ptr<ID3D11RenderTargetView> rtv_back_buffer;
     Dims<int> dims_swap_chain;
 };

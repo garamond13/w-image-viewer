@@ -58,7 +58,7 @@ void Renderer::init()
     if (g_config.cms_use.val) {
         init_cms_profile_display();
     }
-    ui.create(device.Get(), device_context.Get(), &should_update);
+    ui.create(device.get(), device_context.get(), &should_update);
 }
 
 void Renderer::update()
@@ -122,8 +122,8 @@ void Renderer::update()
 
 void Renderer::draw() const
 {
-    device_context->OMSetRenderTargets(1, rtv_back_buffer.GetAddressOf(), nullptr);
-    device_context->ClearRenderTargetView(rtv_back_buffer.Get(), g_config.clear_color.val.data());
+    device_context->ClearRenderTargetView(rtv_back_buffer.get(), g_config.clear_color.val.data());
+    device_context->OMSetRenderTargets(1, &rtv_back_buffer, nullptr);
     device_context->Draw(3, 0);
     ui.draw();
     ensure(swapchain->Present(1, 0), == S_OK);
@@ -153,9 +153,9 @@ void Renderer::create_image()
     D3D11_SUBRESOURCE_DATA subresource_data = {};
     subresource_data.pSysMem = data.get();
     subresource_data.SysMemPitch = sys_mem_pitch;
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-    ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.GetAddressOf()), == S_OK);
-    ensure(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_image.ReleaseAndGetAddressOf()), == S_OK);
+    Com_ptr<ID3D11Texture2D> texture2d;
+    ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, &texture2d), == S_OK);
+    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_image.reset_and_get_address()), == S_OK);
 
     if (cms_profile_display) {
         create_cms_lut();
@@ -171,7 +171,7 @@ void Renderer::on_window_resize() noexcept
 {
     // This function may get called to early, so check do we have swap chain.
     if (swapchain) {
-        rtv_back_buffer.Reset();
+        rtv_back_buffer.reset();
         ensure(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), == S_OK);
 
         // Set swapchain dims.
@@ -186,7 +186,7 @@ void Renderer::on_window_resize() noexcept
 
 void Renderer::reset_resources() noexcept
 {
-    srv_image.Reset();
+    srv_image.reset();
     create_viewport(0.0f, 0.0f);
 }
 
@@ -353,11 +353,11 @@ void Renderer::create_cms_lut()
     subresource_data.pSysMem = lut.get();
     subresource_data.SysMemPitch = g_config.cms_lut_size.val * 4 * 2; // width * nchannals * byte_depth
     subresource_data.SysMemSlicePitch = sqr(g_config.cms_lut_size.val) * 4 * 2; // width * height * nchannals * byte_depth
-    Microsoft::WRL::ComPtr<ID3D11Texture3D> texture3d;
-    ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.GetAddressOf()), == S_OK);
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-    ensure(device->CreateShaderResourceView(texture3d.Get(), nullptr, srv.GetAddressOf()), == S_OK);
-    device_context->PSSetShaderResources(2, 1, srv.GetAddressOf());
+    Com_ptr<ID3D11Texture3D> texture3d;
+    ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, &texture3d), == S_OK);
+    Com_ptr<ID3D11ShaderResourceView> srv;
+    ensure(device->CreateShaderResourceView(texture3d.get(), nullptr, &srv), == S_OK);
+    device_context->PSSetShaderResources(2, 1, &srv);
     
     is_cms_valid = true;
 }
@@ -407,9 +407,9 @@ void Renderer::pass_cms()
     std::srand(std::time(nullptr));
     data[0].z.f = static_cast<float>(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX)); // random_number
     
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_CMS, sizeof(PS_CMS));
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
@@ -426,9 +426,9 @@ void Renderer::pass_linearize(UINT width, UINT height)
     // Only relevant if gamma correction is used.
     data[0].y.f = trc.val; // gamma_value
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_LINEARIZE, sizeof(PS_LINEARIZE));
     create_viewport(width, height);
     draw_pass(width, height);
@@ -445,9 +445,9 @@ void Renderer::pass_delinearize(UINT width, UINT height)
     // Only relevant if gamma correction is used.
     data[0].y.f = 1.0f / trc.val; // rcp_gamma
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_DELINEARIZE, sizeof(PS_DELINEARIZE));
     create_viewport(width, height);
     draw_pass(width, height);
@@ -470,9 +470,9 @@ void Renderer::pass_sigmoidize()
     data[0].y.f = p_scale_profile->sigmoid_midpoint.val; // midpoint
     data[0].z.f = sigmoidize_offset; // offset
     data[0].w.f = sigmoidize_scale; // scale
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_SIGMOIDIZE, sizeof(PS_SIGMOIDIZE));
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
@@ -490,9 +490,9 @@ void Renderer::pass_desigmoidize()
     data[0].y.f = p_scale_profile->sigmoid_midpoint.val; // midpoint
     data[0].z.f = sigmoidize_offset; // offset
     data[0].w.f = sigmoidize_scale; // scale
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_DESIGMOIDIZE, sizeof(PS_DESIGMOIDIZE));
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
@@ -512,10 +512,10 @@ void Renderer::pass_blur()
     // Unsharp amount, has to be <= 0!
     data[1].x.f = -1.0f; // amount
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
     create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 
@@ -524,8 +524,8 @@ void Renderer::pass_blur()
     // Pass x axis.
     data[0].z.f = 1.0f / image.get_width<float>(); // pt.x
     data[0].w.f = 0.0f; // pt.y
-    update_constant_buffer(cb0.Get(), data, sizeof(data));
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    update_constant_buffer(cb0.get(), data, sizeof(data));
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 }
@@ -544,11 +544,11 @@ void Renderer::pass_unsharp()
     // Unsharp amount, has to be <= 0 for the 1st pass!
     data[1].x.f = -1.0f; // amount
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
     create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv_original = srv_pass;
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    Com_ptr<ID3D11ShaderResourceView> srv_original = srv_pass;
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
 
@@ -563,8 +563,8 @@ void Renderer::pass_unsharp()
     // Should be > 0.
     data[1].x.f = p_scale_profile->unsharp_amount.val; // amount
     
-    update_constant_buffer(cb0.Get(), data, sizeof(data));
-    const std::array srvs = { srv_pass.Get(), srv_original.Get() };
+    update_constant_buffer(cb0.get(), data, sizeof(data));
+    const std::array srvs = { srv_pass.get(), srv_original.get() };
     device_context->PSSetShaderResources(0, 2, srvs.data());
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
@@ -597,10 +597,10 @@ void Renderer::pass_orthogonal_resample()
     data[2].w.f = 1.0f / image.get_height<float>(); // pt.y
     data[3].x.f = 0.0f; // axis.x
     data[3].y.f = 1.0f; // axis.y
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
     create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), dims_output.get_height<float>());
     draw_pass(image.get_width<UINT>(), dims_output.height);
 
@@ -609,8 +609,8 @@ void Renderer::pass_orthogonal_resample()
     // Pass x axis.
     data[3].x.f = 1.0f; // axis.x
     data[3].y.f = 0.0f; // axis.y	
-    update_constant_buffer(cb0.Get(), data, sizeof(data));
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    update_constant_buffer(cb0.get(), data, sizeof(data));
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
 }
@@ -635,9 +635,9 @@ void Renderer::pass_cylindrical_resample()
     data[2].y.f = image.get_height<float>(); // dims.y
     data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
     data[2].w.f = 1.0f / image.get_height<float>(); // pt.y
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    Com_ptr<ID3D11Buffer> cb0;
+    create_constant_buffer(sizeof(data), &data, &cb0);
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_CYL, sizeof(PS_CYL));
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
@@ -645,7 +645,7 @@ void Renderer::pass_cylindrical_resample()
 
 void Renderer::update_final_pass()
 {
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cb0;
+    Com_ptr<ID3D11Buffer> cb0;
     if (image.has_alpha()) {
         alignas(16) Cb_data data[3];
         data[0].x.f = dims_output.get_width<float>() / g_config.alpha_tile_size.val; // size.x
@@ -661,7 +661,7 @@ void Renderer::update_final_pass()
         data[2].x.f = g_config.alpha_tile2_color.val[0]; // tile2.x
         data[2].y.f = g_config.alpha_tile2_color.val[1]; // tile2.y
         data[2].z.f = g_config.alpha_tile2_color.val[2]; // tile2.z
-        create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
+        create_constant_buffer(sizeof(data), &data, &cb0);
         create_pixel_shader(PS_SAMPLE_ALPHA, sizeof(PS_SAMPLE_ALPHA));
     }
     else {
@@ -671,10 +671,10 @@ void Renderer::update_final_pass()
         // Check is theta divisible by 360, if it is we dont need to rotate texcoord.
         data[0].y.i = ui.image_rotation % 360; // rotate
 
-        create_constant_buffer(sizeof(data), &data, cb0.GetAddressOf());
+        create_constant_buffer(sizeof(data), &data, &cb0);
         create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
     }
-    device_context->PSSetShaderResources(0, 1, srv_pass.GetAddressOf());
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>(), true);
 }
 
@@ -689,19 +689,19 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
     texture2d_desc.Format = WIV_PASS_FORMATS[g_config.pass_format.val];
     texture2d_desc.SampleDesc.Count = 1;
     texture2d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-    ensure(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.GetAddressOf()), == S_OK);
+    Com_ptr<ID3D11Texture2D> texture2d;
+    ensure(device->CreateTexture2D(&texture2d_desc, nullptr, &texture2d), == S_OK);
     
     // Create render target view.
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
-    ensure(device->CreateRenderTargetView(texture2d.Get(), nullptr, rtv.GetAddressOf()), == S_OK);
+    Com_ptr<ID3D11RenderTargetView> rtv;
+    ensure(device->CreateRenderTargetView(texture2d.get(), nullptr, &rtv), == S_OK);
 
     // Draw to the render target view.
-    device_context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
+    device_context->OMSetRenderTargets(1, &rtv, nullptr);
     device_context->Draw(3, 0);
     unbind_render_targets();
 
-    ensure(device->CreateShaderResourceView(texture2d.Get(), nullptr, srv_pass.ReleaseAndGetAddressOf()), == S_OK);
+    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_pass.reset_and_get_address()), == S_OK);
 }
 
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept
