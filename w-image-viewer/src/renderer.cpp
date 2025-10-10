@@ -352,7 +352,7 @@ void Renderer::create_cms_lut()
     D3D11_SUBRESOURCE_DATA subresource_data = {};
     subresource_data.pSysMem = lut.get();
     subresource_data.SysMemPitch = g_config.cms_lut_size.val * 4 * 2; // width * nchannals * byte_depth
-    subresource_data.SysMemSlicePitch = sqr(g_config.cms_lut_size.val) * 4 * 2; // width * height * nchannals * byte_depth
+    subresource_data.SysMemSlicePitch = sq(g_config.cms_lut_size.val) * 4 * 2; // width * height * nchannals * byte_depth
     Com_ptr<ID3D11Texture3D> texture3d;
     ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, &texture3d), == S_OK);
     Com_ptr<ID3D11ShaderResourceView> srv;

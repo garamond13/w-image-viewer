@@ -57,7 +57,7 @@ inline auto frac(T f) noexcept
     return f - std::floor(f);
 }
 
-inline constexpr auto sqr(auto a) noexcept
+inline constexpr auto sq(auto a) noexcept
 {
     return a * a;
 }
