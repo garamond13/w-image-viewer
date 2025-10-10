@@ -21,18 +21,18 @@ void Renderer_base::create_device() noexcept
         D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0
     };
-    ensure(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, feature_levels.data(), feature_levels.size(), D3D11_SDK_VERSION, device.reset_and_get_address(), nullptr, device_context.reset_and_get_address()), == S_OK);
+    ensure(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, feature_levels.data(), feature_levels.size(), D3D11_SDK_VERSION, device.reset_and_get_address(), nullptr, device_context.reset_and_get_address()), >= 0);
 }
 
 void Renderer_base::create_swapchain()
 {
     // Query interfaces.
     Com_ptr<IDXGIDevice1> dxgi_device1;
-    ensure(device.as(&dxgi_device1), == S_OK);
+    ensure(device.as(&dxgi_device1), >= 0);
     Com_ptr<IDXGIAdapter> dxgi_adapter;
-    ensure(dxgi_device1->GetAdapter(&dxgi_adapter), == S_OK);
+    ensure(dxgi_device1->GetAdapter(&dxgi_adapter), >= 0);
     Com_ptr<IDXGIFactory2> dxgi_factory2;
-    ensure(dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory2)), == S_OK);
+    ensure(dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory2)), >= 0);
 
     // Create swap chain.
     DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1 = {};
@@ -42,24 +42,24 @@ void Renderer_base::create_swapchain()
     swap_chain_desc1.BufferCount = 2;
     swap_chain_desc1.Scaling = DXGI_SCALING_NONE;
     swap_chain_desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    ensure(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device1.get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swapchain.reset_and_get_address()), == S_OK);
+    ensure(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device1.get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swapchain.reset_and_get_address()), >= 0);
 
     // Set member swapchain dims.
-    ensure(swapchain->GetDesc1(&swap_chain_desc1), == S_OK);
+    ensure(swapchain->GetDesc1(&swap_chain_desc1), >= 0);
     dims_swap_chain.width = swap_chain_desc1.Width;
     dims_swap_chain.height = swap_chain_desc1.Height;
 
-    ensure(dxgi_device1->SetMaximumFrameLatency(1), == S_OK);
+    ensure(dxgi_device1->SetMaximumFrameLatency(1), >= 0);
 
     // Disable exclusive fullscreen.
-    ensure(dxgi_factory2->MakeWindowAssociation(g_hwnd, DXGI_MWA_NO_ALT_ENTER), == S_OK);
+    ensure(dxgi_factory2->MakeWindowAssociation(g_hwnd, DXGI_MWA_NO_ALT_ENTER), >= 0);
 }
 
 void Renderer_base::create_rtv_back_buffer() noexcept
 {
     Com_ptr<ID3D11Texture2D> back_buffer;
-    ensure(swapchain->GetBuffer(0, IID_PPV_ARGS(&back_buffer)), == S_OK);
-    ensure(device->CreateRenderTargetView(back_buffer.get(), nullptr, rtv_back_buffer.reset_and_get_address()), == S_OK);
+    ensure(swapchain->GetBuffer(0, IID_PPV_ARGS(&back_buffer)), >= 0);
+    ensure(device->CreateRenderTargetView(back_buffer.get(), nullptr, rtv_back_buffer.reset_and_get_address()), >= 0);
 }
 
 void Renderer_base::create_samplers() const
@@ -72,12 +72,12 @@ void Renderer_base::create_samplers() const
     sampler_desc.MaxAnisotropy = 1;
     sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     Com_ptr<ID3D11SamplerState> sampler_state_point;
-    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_point), == S_OK);
+    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_point), >= 0);
 
     // Create linear sampler.
     sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     Com_ptr<ID3D11SamplerState> sampler_state_linear;
-    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_linear), == S_OK);
+    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_linear), >= 0);
 
     const std::array sampler_states = { sampler_state_point.get(), sampler_state_linear.get() };
     device_context->PSSetSamplers(0, sampler_states.size(), sampler_states.data());
@@ -87,14 +87,14 @@ void Renderer_base::create_vertex_shader() const noexcept
 {
     device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Com_ptr<ID3D11VertexShader> vertex_shader;
-    ensure(device->CreateVertexShader(VS_QUAD, sizeof(VS_QUAD), nullptr, &vertex_shader), == S_OK);
+    ensure(device->CreateVertexShader(VS_QUAD, sizeof(VS_QUAD), nullptr, &vertex_shader), >= 0);
     device_context->VSSetShader(vertex_shader.get(), nullptr, 0);
 }
 
 void Renderer_base::create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept
 {
     Com_ptr<ID3D11PixelShader> pixel_shader;
-    ensure(device->CreatePixelShader(shader, shader_size, nullptr, &pixel_shader), == S_OK);
+    ensure(device->CreatePixelShader(shader, shader_size, nullptr, &pixel_shader), >= 0);
     device_context->PSSetShader(pixel_shader.get(), nullptr, 0);
 }
 
@@ -107,14 +107,14 @@ void Renderer_base::create_constant_buffer(UINT byte_width, const void* data, ID
     buffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     D3D11_SUBRESOURCE_DATA subresource_data = {};
     subresource_data.pSysMem = data;
-    ensure(device->CreateBuffer(&buffer_desc, &subresource_data, buffer), == S_OK);
+    ensure(device->CreateBuffer(&buffer_desc, &subresource_data, buffer), >= 0);
     device_context->PSSetConstantBuffers(0, 1, buffer);
 }
 
 void Renderer_base::update_constant_buffer(ID3D11Buffer* buffer, const void* data, size_t size) const noexcept
 {
     D3D11_MAPPED_SUBRESOURCE mapped_subresource;
-    ensure(device_context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_subresource), == S_OK);
+    ensure(device_context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_subresource), >= 0);
     std::memcpy(mapped_subresource.pData, data, size);
     device_context->Unmap(buffer, 0);
 }

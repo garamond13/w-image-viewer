@@ -894,7 +894,7 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
         COMDLG_FILTERSPEC filterspec = {};
         filterspec.pszName = L"All supported";
         filterspec.pszSpec = file_type == WIV_OPEN_IMAGE ? WIV_SUPPORTED_EXTENSIONS : L"*.icc" /* WIV_OPEN_ICC */;
-        ensure(file_open_dialog->SetFileTypes(1, &filterspec), == S_OK);
+        ensure(file_open_dialog->SetFileTypes(1, &filterspec), >= 0);
         if (SUCCEEDED(file_open_dialog->Show(g_hwnd))) {
             Com_ptr<IShellItem> shell_item;
             if (SUCCEEDED(file_open_dialog->GetResult(&shell_item))) {

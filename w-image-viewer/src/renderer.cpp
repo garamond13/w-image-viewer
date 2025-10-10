@@ -126,7 +126,7 @@ void Renderer::draw() const
     device_context->OMSetRenderTargets(1, &rtv_back_buffer, nullptr);
     device_context->Draw(3, 0);
     ui.draw();
-    ensure(swapchain->Present(1, 0), == S_OK);
+    ensure(swapchain->Present(1, 0), >= 0);
 }
 
 // Creates the first texture from the loaded image.
@@ -154,8 +154,8 @@ void Renderer::create_image()
     subresource_data.pSysMem = data.get();
     subresource_data.SysMemPitch = sys_mem_pitch;
     Com_ptr<ID3D11Texture2D> texture2d;
-    ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, &texture2d), == S_OK);
-    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_image.reset_and_get_address()), == S_OK);
+    ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, &texture2d), >= 0);
+    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_image.reset_and_get_address()), >= 0);
 
     if (cms_profile_display) {
         create_cms_lut();
@@ -172,11 +172,11 @@ void Renderer::on_window_resize() noexcept
     // This function may get called to early, so check do we have swap chain.
     if (swapchain) {
         rtv_back_buffer.reset();
-        ensure(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), == S_OK);
+        ensure(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0), >= 0);
 
         // Set swapchain dims.
         DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1;
-        ensure(swapchain->GetDesc1(&swap_chain_desc1), == S_OK);
+        ensure(swapchain->GetDesc1(&swap_chain_desc1), >= 0);
         dims_swap_chain.width = swap_chain_desc1.Width;
         dims_swap_chain.height = swap_chain_desc1.Height;
 
@@ -354,9 +354,9 @@ void Renderer::create_cms_lut()
     subresource_data.SysMemPitch = g_config.cms_lut_size.val * 4 * 2; // width * nchannals * byte_depth
     subresource_data.SysMemSlicePitch = sq(g_config.cms_lut_size.val) * 4 * 2; // width * height * nchannals * byte_depth
     Com_ptr<ID3D11Texture3D> texture3d;
-    ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, &texture3d), == S_OK);
+    ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, &texture3d), >= 0);
     Com_ptr<ID3D11ShaderResourceView> srv;
-    ensure(device->CreateShaderResourceView(texture3d.get(), nullptr, &srv), == S_OK);
+    ensure(device->CreateShaderResourceView(texture3d.get(), nullptr, &srv), >= 0);
     device_context->PSSetShaderResources(2, 1, &srv);
     
     is_cms_valid = true;
@@ -690,18 +690,18 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
     texture2d_desc.SampleDesc.Count = 1;
     texture2d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
     Com_ptr<ID3D11Texture2D> texture2d;
-    ensure(device->CreateTexture2D(&texture2d_desc, nullptr, &texture2d), == S_OK);
+    ensure(device->CreateTexture2D(&texture2d_desc, nullptr, &texture2d), >= 0);
     
     // Create render target view.
     Com_ptr<ID3D11RenderTargetView> rtv;
-    ensure(device->CreateRenderTargetView(texture2d.get(), nullptr, &rtv), == S_OK);
+    ensure(device->CreateRenderTargetView(texture2d.get(), nullptr, &rtv), >= 0);
 
     // Draw to the render target view.
     device_context->OMSetRenderTargets(1, &rtv, nullptr);
     device_context->Draw(3, 0);
     unbind_render_targets();
 
-    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_pass.reset_and_get_address()), == S_OK);
+    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_pass.reset_and_get_address()), >= 0);
 }
 
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept
