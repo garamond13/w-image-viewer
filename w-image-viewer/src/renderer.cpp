@@ -58,7 +58,7 @@ void Renderer::init()
     if (g_config.cms_use.val) {
         init_cms_profile_display();
     }
-    ui.create(device.get(), device_context.get(), &should_update);
+    ui.create(device.get(), ctx.get(), &should_update);
 }
 
 void Renderer::update()
@@ -122,9 +122,9 @@ void Renderer::update()
 
 void Renderer::draw() const
 {
-    device_context->ClearRenderTargetView(rtv_back_buffer.get(), g_config.clear_color.val.data());
-    device_context->OMSetRenderTargets(1, &rtv_back_buffer, nullptr);
-    device_context->Draw(3, 0);
+    ctx->ClearRenderTargetView(rtv_back_buffer.get(), g_config.clear_color.val.data());
+    ctx->OMSetRenderTargets(1, &rtv_back_buffer, nullptr);
+    ctx->Draw(3, 0);
     ui.draw();
     ensure(swapchain->Present(1, 0), >= 0);
 }
@@ -357,7 +357,7 @@ void Renderer::create_cms_lut()
     ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.put()), >= 0);
     Com_ptr<ID3D11ShaderResourceView> srv;
     ensure(device->CreateShaderResourceView(texture3d.get(), nullptr, srv.put()), >= 0);
-    device_context->PSSetShaderResources(2, 1, &srv);
+    ctx->PSSetShaderResources(2, 1, &srv);
     
     is_cms_valid = true;
 }
@@ -409,7 +409,7 @@ void Renderer::pass_cms()
     
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_CMS, sizeof(PS_CMS));
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
@@ -428,7 +428,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
 
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_LINEARIZE, sizeof(PS_LINEARIZE));
     create_viewport(width, height);
     draw_pass(width, height);
@@ -447,7 +447,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
 
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_DELINEARIZE, sizeof(PS_DELINEARIZE));
     create_viewport(width, height);
     draw_pass(width, height);
@@ -472,7 +472,7 @@ void Renderer::pass_sigmoidize()
     data[0].w.f = sigmoidize_scale; // scale
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_SIGMOIDIZE, sizeof(PS_SIGMOIDIZE));
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
@@ -492,7 +492,7 @@ void Renderer::pass_desigmoidize()
     data[0].w.f = sigmoidize_scale; // scale
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_DESIGMOIDIZE, sizeof(PS_DESIGMOIDIZE));
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
@@ -515,7 +515,7 @@ void Renderer::pass_blur()
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
     create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 
@@ -525,7 +525,7 @@ void Renderer::pass_blur()
     data[0].z.f = 1.0f / image.get_width<float>(); // pt.x
     data[0].w.f = 0.0f; // pt.y
     update_constant_buffer(cb0.get(), data, sizeof(data));
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
 }
@@ -548,7 +548,7 @@ void Renderer::pass_unsharp()
     create_constant_buffer(sizeof(data), &data, cb0.put());
     create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
     Com_ptr<ID3D11ShaderResourceView> srv_original = srv_pass;
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
 
@@ -565,7 +565,7 @@ void Renderer::pass_unsharp()
     
     update_constant_buffer(cb0.get(), data, sizeof(data));
     const std::array srvs = { srv_pass.get(), srv_original.get() };
-    device_context->PSSetShaderResources(0, 2, srvs.data());
+    ctx->PSSetShaderResources(0, 2, srvs.data());
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
     
@@ -600,7 +600,7 @@ void Renderer::pass_orthogonal_resample()
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
     create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), dims_output.get_height<float>());
     draw_pass(image.get_width<UINT>(), dims_output.height);
 
@@ -610,7 +610,7 @@ void Renderer::pass_orthogonal_resample()
     data[3].x.f = 1.0f; // axis.x
     data[3].y.f = 0.0f; // axis.y	
     update_constant_buffer(cb0.get(), data, sizeof(data));
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
 }
@@ -637,7 +637,7 @@ void Renderer::pass_cylindrical_resample()
     data[2].w.f = 1.0f / image.get_height<float>(); // inv_src_size.y
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_CYL, sizeof(PS_CYL));
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
     draw_pass(dims_output.width, dims_output.height);
@@ -674,7 +674,7 @@ void Renderer::update_final_pass()
         create_constant_buffer(sizeof(data), &data, cb0.put());
         create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
     }
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    ctx->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>(), true);
 }
 
@@ -697,9 +697,9 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
     ensure(device->CreateRenderTargetView(texture2d.get(), nullptr, rtv.put()), >= 0);
 
     // Draw to the render target view.
-    device_context->OMSetRenderTargets(1, &rtv, nullptr);
-    device_context->Draw(3, 0);
-    unbind_render_targets();
+    ctx->OMSetRenderTargets(1, &rtv, nullptr);
+    ctx->Draw(3, 0);
+    ctx->OMSetRenderTargets(0, nullptr, nullptr);
 
     ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_pass.put()), >= 0);
 }
@@ -716,7 +716,7 @@ void Renderer::create_viewport(float width, float height, bool adjust) const noe
         viewport.TopLeftY = (dims_swap_chain.height - viewport.Height) / 2.0f + ui.image_pan.y;
     }
     
-    device_context->RSSetViewports(1, &viewport);
+    ctx->RSSetViewports(1, &viewport);
 }
 
 float Renderer::get_kernel_support() const noexcept
