@@ -69,7 +69,6 @@ public:
     Config_pair<std::filesystem::path, "cmdpc"> cms_display_profile_custom;
     Config_pair<unsigned int, "cmlsz"> cms_lut_size = { 33 };
     Config_pair<bool, "cmd"> cms_dither { true };
-    Config_pair<int, "fmt"> pass_format;
     Config_pair<bool, "rwt"> raw_thumb = { true };
     std::vector<Scale_profile> scale_profiles;
     Config_pair<bool, "oshw"> overlay_show;

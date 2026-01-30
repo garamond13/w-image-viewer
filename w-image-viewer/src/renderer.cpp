@@ -38,11 +38,6 @@ struct Cb_data
 
 namespace
 {
-    constexpr std::array WIV_PASS_FORMATS = {
-        DXGI_FORMAT_R16G16B16A16_UNORM,
-        DXGI_FORMAT_R32G32B32A32_FLOAT
-    };
-
     // Max texture size will be determined by D3D_FEATURE_LEVEL_, but D3D11 and D3D12 _REQ_TEXTURE2D_U_OR_V_DIMENSION should be the same.
     template<typename T>
     constexpr T WIV_MAX_TEX_UV = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
@@ -681,27 +676,27 @@ void Renderer::update_final_pass()
 void Renderer::draw_pass(UINT width, UINT height) noexcept
 {
     // Create texture.
-    D3D11_TEXTURE2D_DESC texture2d_desc = {};
-    texture2d_desc.Width = width;
-    texture2d_desc.Height = height;
-    texture2d_desc.MipLevels = 1;
-    texture2d_desc.ArraySize = 1;
-    texture2d_desc.Format = WIV_PASS_FORMATS[g_config.pass_format.val];
-    texture2d_desc.SampleDesc.Count = 1;
-    texture2d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-    Com_ptr<ID3D11Texture2D> texture2d;
-    ensure(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.put()), >= 0);
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = width;
+    desc.Height = height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R16G16B16A16_UNORM; // For now we only support SDR images.
+    desc.SampleDesc.Count = 1;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    Com_ptr<ID3D11Texture2D> tex;
+    ensure(device->CreateTexture2D(&desc, nullptr, tex.put()), >= 0);
     
     // Create render target view.
     Com_ptr<ID3D11RenderTargetView> rtv;
-    ensure(device->CreateRenderTargetView(texture2d.get(), nullptr, rtv.put()), >= 0);
+    ensure(device->CreateRenderTargetView(tex.get(), nullptr, rtv.put()), >= 0);
 
     // Draw to the render target view.
     ctx->OMSetRenderTargets(1, &rtv, nullptr);
     ctx->Draw(3, 0);
     ctx->OMSetRenderTargets(0, nullptr, nullptr);
 
-    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_pass.put()), >= 0);
+    ensure(device->CreateShaderResourceView(tex.get(), nullptr, srv_pass.put()), >= 0);
 }
 
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept

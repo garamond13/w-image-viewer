@@ -808,15 +808,6 @@ void User_interface::window_settings()
     }
     if (ImGui::CollapsingHeader("Other")) {
         ImGui::Spacing();
-
-        // The order has to be same as in WIV_PASS_FORMATS array.
-        static constexpr std::array internal_format_items = {
-            "RGBA16",
-            "RGBA32F"
-        };
-
-        ImGui::Combo("Internal format", &g_config.pass_format.val, internal_format_items.data(), internal_format_items.size());
-        ImGui::Spacing();
         ImGui::Checkbox("Read only thumbnails in RAW images", &g_config.raw_thumb.val);
         ImGui::Spacing();
         ImGui::Checkbox("Cycle files on Next/Previous", &g_config.cycle_files.val);
@@ -827,8 +818,9 @@ void User_interface::window_settings()
         scale_profile_index = 0;
         g_config.read();
     }
-    if (ImGui::Button("Write changes", button_size))
+    if (ImGui::Button("Write changes", button_size)) {
         g_config.write();
+    }
     ImGui::Spacing();
     ImGui::End();
 }
