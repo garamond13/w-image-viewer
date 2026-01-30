@@ -890,14 +890,14 @@ void User_interface::dialog_file_open(WIV_OPEN_ file_type)
     }
     is_dialog_file_open = true;
     Com_ptr<IFileOpenDialog> file_open_dialog;
-    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(&file_open_dialog)))) {
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(file_open_dialog.put())))) {
         COMDLG_FILTERSPEC filterspec = {};
         filterspec.pszName = L"All supported";
         filterspec.pszSpec = file_type == WIV_OPEN_IMAGE ? WIV_SUPPORTED_EXTENSIONS : L"*.icc" /* WIV_OPEN_ICC */;
         ensure(file_open_dialog->SetFileTypes(1, &filterspec), >= 0);
         if (SUCCEEDED(file_open_dialog->Show(g_hwnd))) {
             Com_ptr<IShellItem> shell_item;
-            if (SUCCEEDED(file_open_dialog->GetResult(&shell_item))) {
+            if (SUCCEEDED(file_open_dialog->GetResult(shell_item.put()))) {
                 wchar_t* path;
                 if (SUCCEEDED(shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path))) {
                     if (file_type == WIV_OPEN_IMAGE) {

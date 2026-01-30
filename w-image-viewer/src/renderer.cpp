@@ -154,8 +154,8 @@ void Renderer::create_image()
     subresource_data.pSysMem = data.get();
     subresource_data.SysMemPitch = sys_mem_pitch;
     Com_ptr<ID3D11Texture2D> texture2d;
-    ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, &texture2d), >= 0);
-    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_image.reset_and_get_address()), >= 0);
+    ensure(device->CreateTexture2D(&texture2d_desc, &subresource_data, texture2d.put()), >= 0);
+    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_image.put()), >= 0);
 
     if (cms_profile_display) {
         create_cms_lut();
@@ -354,9 +354,9 @@ void Renderer::create_cms_lut()
     subresource_data.SysMemPitch = g_config.cms_lut_size.val * 4 * 2; // width * nchannals * byte_depth
     subresource_data.SysMemSlicePitch = sq(g_config.cms_lut_size.val) * 4 * 2; // width * height * nchannals * byte_depth
     Com_ptr<ID3D11Texture3D> texture3d;
-    ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, &texture3d), >= 0);
+    ensure(device->CreateTexture3D(&texture3d_desc, &subresource_data, texture3d.put()), >= 0);
     Com_ptr<ID3D11ShaderResourceView> srv;
-    ensure(device->CreateShaderResourceView(texture3d.get(), nullptr, &srv), >= 0);
+    ensure(device->CreateShaderResourceView(texture3d.get(), nullptr, srv.put()), >= 0);
     device_context->PSSetShaderResources(2, 1, &srv);
     
     is_cms_valid = true;
@@ -408,8 +408,8 @@ void Renderer::pass_cms()
     data[0].z.f = static_cast<float>(static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX)); // random_number
     
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
-    device_context->PSSetShaderResources(0, 1, &srv_pass);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
+    device_context->PSSetShaderResources(0, 1, srv_pass.put());
     create_pixel_shader(PS_CMS, sizeof(PS_CMS));
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());
@@ -427,7 +427,7 @@ void Renderer::pass_linearize(UINT width, UINT height)
     data[0].y.f = trc.val; // gamma_value
 
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_LINEARIZE, sizeof(PS_LINEARIZE));
     create_viewport(width, height);
@@ -446,7 +446,7 @@ void Renderer::pass_delinearize(UINT width, UINT height)
     data[0].y.f = 1.0f / trc.val; // rcp_gamma
 
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_DELINEARIZE, sizeof(PS_DELINEARIZE));
     create_viewport(width, height);
@@ -471,7 +471,7 @@ void Renderer::pass_sigmoidize()
     data[0].z.f = sigmoidize_offset; // offset
     data[0].w.f = sigmoidize_scale; // scale
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_SIGMOIDIZE, sizeof(PS_SIGMOIDIZE));
     create_viewport(image.get_width<float>(), image.get_height<float>());
@@ -491,7 +491,7 @@ void Renderer::pass_desigmoidize()
     data[0].z.f = sigmoidize_offset; // offset
     data[0].w.f = sigmoidize_scale; // scale
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_DESIGMOIDIZE, sizeof(PS_DESIGMOIDIZE));
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -513,7 +513,7 @@ void Renderer::pass_blur()
     data[1].x.f = -1.0f; // amount
 
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
     device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), image.get_height<float>());
@@ -545,7 +545,7 @@ void Renderer::pass_unsharp()
     data[1].x.f = -1.0f; // amount
 
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     create_pixel_shader(PS_BLUR, sizeof(PS_BLUR));
     Com_ptr<ID3D11ShaderResourceView> srv_original = srv_pass;
     device_context->PSSetShaderResources(0, 1, &srv_pass);
@@ -598,7 +598,7 @@ void Renderer::pass_orthogonal_resample()
     data[3].x.f = 0.0f; // axis.x
     data[3].y.f = 1.0f; // axis.y
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     create_pixel_shader(PS_ORTHO, sizeof(PS_ORTHO));
     device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_viewport(image.get_width<float>(), dims_output.get_height<float>());
@@ -636,7 +636,7 @@ void Renderer::pass_cylindrical_resample()
     data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
     data[2].w.f = 1.0f / image.get_height<float>(); // pt.y
     Com_ptr<ID3D11Buffer> cb0;
-    create_constant_buffer(sizeof(data), &data, &cb0);
+    create_constant_buffer(sizeof(data), &data, cb0.put());
     device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_CYL, sizeof(PS_CYL));
     create_viewport(dims_output.get_width<float>(), dims_output.get_height<float>());
@@ -661,7 +661,7 @@ void Renderer::update_final_pass()
         data[2].x.f = g_config.alpha_tile2_color.val[0]; // tile2.x
         data[2].y.f = g_config.alpha_tile2_color.val[1]; // tile2.y
         data[2].z.f = g_config.alpha_tile2_color.val[2]; // tile2.z
-        create_constant_buffer(sizeof(data), &data, &cb0);
+        create_constant_buffer(sizeof(data), &data, cb0.put());
         create_pixel_shader(PS_SAMPLE_ALPHA, sizeof(PS_SAMPLE_ALPHA));
     }
     else {
@@ -671,7 +671,7 @@ void Renderer::update_final_pass()
         // Check is theta divisible by 360, if it is we dont need to rotate texcoord.
         data[0].y.i = ui.image_rotation % 360; // rotate
 
-        create_constant_buffer(sizeof(data), &data, &cb0);
+        create_constant_buffer(sizeof(data), &data, cb0.put());
         create_pixel_shader(PS_SAMPLE, sizeof(PS_SAMPLE));
     }
     device_context->PSSetShaderResources(0, 1, &srv_pass);
@@ -690,18 +690,18 @@ void Renderer::draw_pass(UINT width, UINT height) noexcept
     texture2d_desc.SampleDesc.Count = 1;
     texture2d_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
     Com_ptr<ID3D11Texture2D> texture2d;
-    ensure(device->CreateTexture2D(&texture2d_desc, nullptr, &texture2d), >= 0);
+    ensure(device->CreateTexture2D(&texture2d_desc, nullptr, texture2d.put()), >= 0);
     
     // Create render target view.
     Com_ptr<ID3D11RenderTargetView> rtv;
-    ensure(device->CreateRenderTargetView(texture2d.get(), nullptr, &rtv), >= 0);
+    ensure(device->CreateRenderTargetView(texture2d.get(), nullptr, rtv.put()), >= 0);
 
     // Draw to the render target view.
     device_context->OMSetRenderTargets(1, &rtv, nullptr);
     device_context->Draw(3, 0);
     unbind_render_targets();
 
-    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_pass.reset_and_get_address()), >= 0);
+    ensure(device->CreateShaderResourceView(texture2d.get(), nullptr, srv_pass.put()), >= 0);
 }
 
 void Renderer::create_viewport(float width, float height, bool adjust) const noexcept

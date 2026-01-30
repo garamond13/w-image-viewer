@@ -21,18 +21,18 @@ void Renderer_base::create_device() noexcept
         D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0
     };
-    ensure(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, feature_levels.data(), feature_levels.size(), D3D11_SDK_VERSION, device.reset_and_get_address(), nullptr, device_context.reset_and_get_address()), >= 0);
+    ensure(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, feature_levels.data(), feature_levels.size(), D3D11_SDK_VERSION, device.put(), nullptr, device_context.put()), >= 0);
 }
 
 void Renderer_base::create_swapchain()
 {
     // Query interfaces.
     Com_ptr<IDXGIDevice1> dxgi_device1;
-    ensure(device.as(&dxgi_device1), >= 0);
+    ensure(device->QueryInterface(dxgi_device1.put()), >= 0);
     Com_ptr<IDXGIAdapter> dxgi_adapter;
-    ensure(dxgi_device1->GetAdapter(&dxgi_adapter), >= 0);
+    ensure(dxgi_device1->GetAdapter(dxgi_adapter.put()), >= 0);
     Com_ptr<IDXGIFactory2> dxgi_factory2;
-    ensure(dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory2)), >= 0);
+    ensure(dxgi_adapter->GetParent(IID_PPV_ARGS(dxgi_factory2.put())), >= 0);
 
     // Create swap chain.
     DXGI_SWAP_CHAIN_DESC1 swap_chain_desc1 = {};
@@ -42,7 +42,7 @@ void Renderer_base::create_swapchain()
     swap_chain_desc1.BufferCount = 2;
     swap_chain_desc1.Scaling = DXGI_SCALING_NONE;
     swap_chain_desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    ensure(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device1.get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swapchain.reset_and_get_address()), >= 0);
+    ensure(dxgi_factory2->CreateSwapChainForHwnd(dxgi_device1.get(), g_hwnd, &swap_chain_desc1, nullptr, nullptr, swapchain.put()), >= 0);
 
     // Set member swapchain dims.
     ensure(swapchain->GetDesc1(&swap_chain_desc1), >= 0);
@@ -58,8 +58,8 @@ void Renderer_base::create_swapchain()
 void Renderer_base::create_rtv_back_buffer() noexcept
 {
     Com_ptr<ID3D11Texture2D> back_buffer;
-    ensure(swapchain->GetBuffer(0, IID_PPV_ARGS(&back_buffer)), >= 0);
-    ensure(device->CreateRenderTargetView(back_buffer.get(), nullptr, rtv_back_buffer.reset_and_get_address()), >= 0);
+    ensure(swapchain->GetBuffer(0, IID_PPV_ARGS(back_buffer.put())), >= 0);
+    ensure(device->CreateRenderTargetView(back_buffer.get(), nullptr, rtv_back_buffer.put()), >= 0);
 }
 
 void Renderer_base::create_samplers() const
@@ -72,12 +72,12 @@ void Renderer_base::create_samplers() const
     sampler_desc.MaxAnisotropy = 1;
     sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     Com_ptr<ID3D11SamplerState> sampler_state_point;
-    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_point), >= 0);
+    ensure(device->CreateSamplerState(&sampler_desc, sampler_state_point.put()), >= 0);
 
     // Create linear sampler.
     sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     Com_ptr<ID3D11SamplerState> sampler_state_linear;
-    ensure(device->CreateSamplerState(&sampler_desc, &sampler_state_linear), >= 0);
+    ensure(device->CreateSamplerState(&sampler_desc, sampler_state_linear.put()), >= 0);
 
     const std::array sampler_states = { sampler_state_point.get(), sampler_state_linear.get() };
     device_context->PSSetSamplers(0, sampler_states.size(), sampler_states.data());
@@ -87,14 +87,14 @@ void Renderer_base::create_vertex_shader() const noexcept
 {
     device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Com_ptr<ID3D11VertexShader> vertex_shader;
-    ensure(device->CreateVertexShader(VS_QUAD, sizeof(VS_QUAD), nullptr, &vertex_shader), >= 0);
+    ensure(device->CreateVertexShader(VS_QUAD, sizeof(VS_QUAD), nullptr, vertex_shader.put()), >= 0);
     device_context->VSSetShader(vertex_shader.get(), nullptr, 0);
 }
 
 void Renderer_base::create_pixel_shader(const BYTE* shader, size_t shader_size) const noexcept
 {
     Com_ptr<ID3D11PixelShader> pixel_shader;
-    ensure(device->CreatePixelShader(shader, shader_size, nullptr, &pixel_shader), >= 0);
+    ensure(device->CreatePixelShader(shader, shader_size, nullptr, pixel_shader.put()), >= 0);
     device_context->PSSetShader(pixel_shader.get(), nullptr, 0);
 }
 
