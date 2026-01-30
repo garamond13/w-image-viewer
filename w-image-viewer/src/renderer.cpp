@@ -409,7 +409,7 @@ void Renderer::pass_cms()
     
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
-    device_context->PSSetShaderResources(0, 1, srv_pass.put());
+    device_context->PSSetShaderResources(0, 1, &srv_pass);
     create_pixel_shader(PS_CMS, sizeof(PS_CMS));
     create_viewport(image.get_width<float>(), image.get_height<float>());
     draw_pass(image.get_width<UINT>(), image.get_height<UINT>());

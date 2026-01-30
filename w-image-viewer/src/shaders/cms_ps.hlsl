@@ -3,7 +3,6 @@
 
 Texture2D tex : register(t0);
 Texture3D lut : register(t2);
-SamplerState smp : register(s0);
 
 cbuffer cb0 : register(b0)
 {
@@ -64,49 +63,56 @@ float3 tri_dither(float3 color, float2 uv, int bits)
 
 //
 
-// See https://doi.org/10.2312/egp.20211031
-void get_barycentric_weights(float3 r, out float4 bary, out float3 vert2, out float3 vert3)
+float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
-    vert2 = 0.0;
-    vert3 = 1.0;
+    float4 color = tex.Load(int3(pos.xy, 0));
+    const float3 coord = saturate(color.rgb) * (lut_size - 1.0);
+	
+	// See https://doi.org/10.2312/egp.20211031
+	//
+
+    const float3 r = frac(coord);
+    bool cond;
+    float3 s = 0.0;
+    int3 vert2 = 0;
+    int3 vert3 = 1;
     const bool3 c = r.xyz >= r.yzx;
     const bool c_xy = c.x;
     const bool c_yz = c.y;
     const bool c_zx = c.z;
-    const bool c_yx =!c.x;
-    const bool c_zy =!c.y;
-    const bool c_xz =!c.z;
-    bool cond;
-    float3 s = 0.0;
-    
+    const bool c_yx = !c.x;
+    const bool c_zy = !c.y;
+    const bool c_xz = !c.z;
+
     #define order(x,y,z) \
-    cond = c_ ## x ## y && c_ ## y ## z; \
-    s = cond ? r.x ## y ## z : s; \
-    vert2.x = cond ? 1.0 : vert2.x; \
-    vert3.z = cond ? 0.0 : vert3.z;
+	cond = c_ ## x ## y && c_ ## y ## z; \
+	s = cond ? r.x ## y ## z : s; \
+	vert2.x = cond ? 1 : vert2.x; \
+	vert3.z = cond ? 0 : vert3.z;
+
+	order(x, y, z)
+	order(x, z, y)
+	order(z, x, y)
+	order(z, y, x)
+	order(y, z, x)
+	order(y, x, z)
+
+    const float4 bary = float4(1.0 - s.x, s.z, s.x - s.y, s.y - s.z);
+
+	//
+
+	// Interpolate between 4 vertices using barycentric weights.
+    const int3 base = floor(coord);
+    const float3 v0 = lut.Load(int4(base, 0)).rgb * bary.x;
+    const float3 v1 = lut.Load(int4(base + 1, 0)).rgb * bary.y;
+    const float3 v2 = lut.Load(int4(base + vert2, 0)).rgb * bary.z;
+    const float3 v3 = lut.Load(int4(base + vert3, 0)).rgb * bary.w;
+    color.rgb = v0 + v1 + v2 + v3;
     
-    order(x, y, z)
-    order(x, z, y)
-    order(z, x, y)
-    order(z, y, x)
-    order(y, z, x)
-    order(y, x, z)
-
-    bary = float4(1.0 - s.x, s.z, s.x - s.y, s.y - s.z);
-}
-
-float4 main(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
-{
-    float4 color = tex.SampleLevel(smp, texcoord, 0.0); 
-    const float3 index = saturate(color.rgb) * (lut_size - 1.0);
-    float4 bary;
-    float3 vert2;
-    float3 vert3;
-    get_barycentric_weights(frac(index), bary, vert2, vert3);
-    const float3 base = floor(index) + 0.5;
-    color.rgb = lut.SampleLevel(smp, base / lut_size, 0.0).rgb * bary.x + lut.SampleLevel(smp, (base + 1.0) / lut_size, 0.0).rgb * bary.y + lut.SampleLevel(smp, (base + vert2) / lut_size, 0.0).rgb * bary.z + lut.SampleLevel(smp, (base + vert3) / lut_size, 0.0).rgb * bary.w;
+    // Optional dithering.
     if (dither) {
         color.rgb += tri_dither(color.rgb, texcoord, 8);
     }
-    return color;
+
+    return float4(color.rgb, color.a);
 }
