@@ -591,10 +591,10 @@ void Renderer::pass_orthogonal_resample()
     
     data[1].z.f = clamped_scale; // scale
     data[1].w.f = std::ceil(kernel_support / clamped_scale); // radius
-    data[2].x.f = image.get_width<float>(); // dims.x
-    data[2].y.f = image.get_height<float>(); // dims.y
-    data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
-    data[2].w.f = 1.0f / image.get_height<float>(); // pt.y
+    data[2].x.f = image.get_width<float>(); // src_size.x
+    data[2].y.f = image.get_height<float>(); // src_size.y
+    data[2].z.f = 1.0f / image.get_width<float>(); // inv_src_size.x
+    data[2].w.f = 1.0f / image.get_height<float>(); // inv_src_size.y
     data[3].x.f = 0.0f; // axis.x
     data[3].y.f = 1.0f; // axis.y
     Com_ptr<ID3D11Buffer> cb0;
@@ -631,10 +631,10 @@ void Renderer::pass_cylindrical_resample()
     
     data[1].z.f = clamped_scale; // scale
     data[1].w.f = std::ceil(kernel_support / clamped_scale); // radius
-    data[2].x.f = image.get_width<float>(); // dims.x
-    data[2].y.f = image.get_height<float>(); // dims.y
-    data[2].z.f = 1.0f / image.get_width<float>(); // pt.x
-    data[2].w.f = 1.0f / image.get_height<float>(); // pt.y
+    data[2].x.f = image.get_width<float>(); // src_size.x
+    data[2].y.f = image.get_height<float>(); // src_size.y
+    data[2].z.f = 1.0f / image.get_width<float>(); // inv_src_size.x
+    data[2].w.f = 1.0f / image.get_height<float>(); // inv_src_size.y
     Com_ptr<ID3D11Buffer> cb0;
     create_constant_buffer(sizeof(data), &data, cb0.put());
     device_context->PSSetShaderResources(0, 1, &srv_pass);
